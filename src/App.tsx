@@ -21,9 +21,10 @@ import { CaptainWadeMainView } from './components/CaptainWadeMainView';
 import { CaregiverAdminConsole } from './components/CaregiverAdminConsole';
 import { HackathonArchitectureModal } from './components/HackathonArchitectureModal';
 import { CognitiveResearchModal } from './components/CognitiveResearchModal';
+import { TokenEfficiencyModal } from './components/TokenEfficiencyModal';
 import { AcousticVoiceInspector } from './components/AcousticVoiceInspector';
 import { acousticVoice } from './utils/acousticVoiceEngine';
-import { Brain } from 'lucide-react';
+import { Brain, Zap } from 'lucide-react';
 
 export default function App() {
   const [selectedPersona, setSelectedPersona] = useState<AgentPersonaId>('dr-evil');
@@ -49,6 +50,7 @@ export default function App() {
   
   const [isArchitectureModalOpen, setIsArchitectureModalOpen] = useState(false);
   const [isResearchModalOpen, setIsResearchModalOpen] = useState(false);
+  const [isTokenEfficiencyModalOpen, setIsTokenEfficiencyModalOpen] = useState(false);
 
   const urgentRefillCount = medications.filter(m => m.daysRemaining <= m.refillThresholdDays).length;
 
@@ -342,6 +344,17 @@ export default function App() {
                 </button>
               </div>
 
+              {/* Token & Architecture Efficiency Button */}
+              <button
+                type="button"
+                id="open-token-efficiency-btn"
+                onClick={() => setIsTokenEfficiencyModalOpen(true)}
+                className="hidden lg:flex px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-black items-center gap-1.5 border border-emerald-300 transition-colors shadow-2xs"
+              >
+                <Zap className="w-3.5 h-3.5 text-emerald-600 fill-emerald-500" />
+                <span>⚡ Token Efficiency</span>
+              </button>
+
               {/* Clinical Research & PDD Specs Button */}
               <button
                 type="button"
@@ -450,6 +463,12 @@ export default function App() {
       <CognitiveResearchModal
         isOpen={isResearchModalOpen}
         onClose={() => setIsResearchModalOpen(false)}
+      />
+
+      {/* Token & Architecture Efficiency Modal */}
+      <TokenEfficiencyModal
+        isOpen={isTokenEfficiencyModalOpen}
+        onClose={() => setIsTokenEfficiencyModalOpen(false)}
       />
     </div>
   );

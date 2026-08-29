@@ -23,6 +23,7 @@ import { WadeNeedsIntake } from './WadeNeedsIntake';
 import { WadeFavoritesManager } from './WadeFavoritesManager';
 import { InfusionSiteManager } from './InfusionSiteManager';
 import { CognitiveResearchSection } from './CognitiveResearchSection';
+import { TokenEfficiencySection } from './TokenEfficiencySection';
 import { 
   INITIAL_MOTOR_LOGS, INITIAL_PUMP_CYCLES, INITIAL_ROUTINES 
 } from '../data/initialData';
@@ -90,7 +91,7 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
   onAddShoppingItem,
   onSimulateAcousticEvent
 }) => {
-  const [adminTab, setAdminTab] = useState<'calendar' | 'infusionsite' | 'pantry' | 'favorites' | 'pharmacy' | 'speech' | 'clinical' | 'mobility' | 'community' | 'dsp' | 'research'>('calendar');
+  const [adminTab, setAdminTab] = useState<'calendar' | 'infusionsite' | 'pantry' | 'favorites' | 'pharmacy' | 'speech' | 'clinical' | 'mobility' | 'community' | 'dsp' | 'research' | 'efficiency'>('calendar');
 
   const urgentRefillCount = medications.filter(m => m.daysRemaining <= m.refillThresholdDays).length;
 
@@ -429,7 +430,7 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
             type="button"
             id="admin-tab-research"
             onClick={() => setAdminTab('research')}
-            className={`p-3 rounded-2xl text-left transition-all flex items-center gap-3 border sm:col-span-2 lg:col-span-3 ${
+            className={`p-3 rounded-2xl text-left transition-all flex items-center gap-3 border sm:col-span-2 lg:col-span-2 ${
               adminTab === 'research'
                 ? 'bg-gradient-to-r from-indigo-900 to-slate-900 text-white border-indigo-500 shadow-sm ring-2 ring-indigo-400/40'
                 : 'bg-gradient-to-r from-indigo-50/70 to-slate-50 text-indigo-950 border-indigo-200 hover:border-indigo-300'
@@ -442,7 +443,7 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
             </div>
             <div className="min-w-0 flex-1">
               <div className="flex items-center gap-2">
-                <span className="text-xs font-black truncate">Cognitive & Motor Research Framework (PDD Guidelines)</span>
+                <span className="text-xs font-black truncate">Cognitive Research (PDD)</span>
                 <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${
                   adminTab === 'research' ? 'bg-indigo-400/30 text-indigo-200 border border-indigo-300/30' : 'bg-indigo-100 text-indigo-800'
                 }`}>
@@ -450,7 +451,38 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
                 </span>
               </div>
               <div className={`text-[10px] truncate ${adminTab === 'research' ? 'text-indigo-200' : 'text-slate-500'}`}>
-                4 Core Clinical Pillars, Executive Function, Visuospatial Support & Tremor Damping Filter
+                Visuospatial Support & Tremor Damping Filter
+              </div>
+            </div>
+          </button>
+
+          {/* 11. Token & Architecture Efficiency */}
+          <button
+            type="button"
+            id="admin-tab-efficiency"
+            onClick={() => setAdminTab('efficiency')}
+            className={`p-3 rounded-2xl text-left transition-all flex items-center gap-3 border sm:col-span-2 lg:col-span-1 ${
+              adminTab === 'efficiency'
+                ? 'bg-emerald-950 text-white border-emerald-500 shadow-sm ring-2 ring-emerald-400/40'
+                : 'bg-emerald-50/70 text-emerald-950 border-emerald-200 hover:border-emerald-300'
+            }`}
+          >
+            <div className={`w-9 h-9 rounded-xl flex items-center justify-center shrink-0 ${
+              adminTab === 'efficiency' ? 'bg-emerald-500 text-slate-950' : 'bg-emerald-600 text-white'
+            }`}>
+              <Zap className="w-4 h-4" />
+            </div>
+            <div className="min-w-0 flex-1">
+              <div className="flex items-center gap-2">
+                <span className="text-xs font-black truncate">⚡ Token Efficiency</span>
+                <span className={`px-2 py-0.5 rounded-full text-[9px] font-black uppercase tracking-wider shrink-0 ${
+                  adminTab === 'efficiency' ? 'bg-emerald-400/30 text-emerald-200 border border-emerald-300/30' : 'bg-emerald-100 text-emerald-800'
+                }`}>
+                  -78% Cost
+                </span>
+              </div>
+              <div className={`text-[10px] truncate ${adminTab === 'efficiency' ? 'text-emerald-200' : 'text-slate-500'}`}>
+                Benchmarking & Zero-Token DSP
               </div>
             </div>
           </button>
@@ -555,6 +587,10 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
 
       {adminTab === 'research' && (
         <CognitiveResearchSection />
+      )}
+
+      {adminTab === 'efficiency' && (
+        <TokenEfficiencySection />
       )}
     </div>
   );

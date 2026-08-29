@@ -22,14 +22,23 @@ export const WeeklyBehaviorReportView: React.FC<Props> = ({
   const [report, setReport] = useState<WeeklySynthesisReport | null>(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const [copied, setCopied] = useState(false);
+  const [doctorEmail, setDoctorEmail] = useState('dr.henderson.neurology@ucsf.edu');
+  const [recipientType, setRecipientType] = useState<'doctor' | 'caregiver' | 'custom'>('doctor');
   const [isSendingGmail, setIsSendingGmail] = useState(false);
   const [gmailStatus, setGmailStatus] = useState<{
     success: boolean;
     recipient: string;
     messageId?: string;
     sentAt?: string;
+    mode?: string;
   } | null>(null);
   const [showHipaaDetails, setShowHipaaDetails] = useState(false);
+
+  const targetEmail = recipientType === 'doctor' 
+    ? doctorEmail 
+    : recipientType === 'caregiver' 
+    ? 'eseymour515@gmail.com' 
+    : doctorEmail;
 
   const generateReport = async () => {
     setIsGenerating(true);
@@ -74,7 +83,7 @@ export const WeeklyBehaviorReportView: React.FC<Props> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          recipientEmail: 'eseymour515@gmail.com',
+          recipientEmail: targetEmail,
           subject: `Clinical & Behavioral Weekly Synthesis Report - Captain Wade (${report.periodStart} – ${report.periodEnd})`,
           reportContent: report.markdownContent,
           reportSummary: report.headline
@@ -86,7 +95,8 @@ export const WeeklyBehaviorReportView: React.FC<Props> = ({
           success: true,
           recipient: data.recipientEmail,
           messageId: data.messageId,
-          sentAt: data.sentAt
+          sentAt: data.sentAt,
+          mode: 'DIRECT_API'
         });
       }
     } catch (err) {
@@ -94,6 +104,36 @@ export const WeeklyBehaviorReportView: React.FC<Props> = ({
     } finally {
       setIsSendingGmail(false);
     }
+  };
+
+  const handleOpenInGmailComposer = () => {
+    if (!report) return;
+    const subject = encodeURIComponent(`Clinical & Behavioral Weekly Report - Captain Wade (${report.periodStart} – ${report.periodEnd})`);
+    const body = encodeURIComponent(
+      `Dear ${recipientType === 'doctor' ? 'Dr. Henderson / Neurology Care Team' : 'Care Team'},\n\n` +
+      `Here is the weekly clinical and behavioral synthesis report for Captain Wade:\n\n` +
+      `SUMMARY: ${report.headline}\n\n` +
+      `KEY CLINICAL FINDINGS:\n` +
+      report.keyClinicalFindings.map((f, i) => `${i + 1}. ${f}`).join('\n') + `\n\n` +
+      `LEVODOPA / DIET TIMING:\n` +
+      report.levodopaMealInteractions.map((f, i) => `• ${f}`).join('\n') + `\n\n` +
+      `RECOMMENDATIONS:\n` +
+      report.neurologistRecommendations.map((f, i) => `${i + 1}. ${f}`).join('\n') + `\n\n` +
+      `VYALEV PUMP CONTINUOUS ADHERENCE: ${report.vyalevPumpSummary.pumpAdherencePercent}%\n\n` +
+      `FULL MARKDOWN REPORT:\n` +
+      report.markdownContent
+    );
+    
+    // Open Gmail web composer in a new window/tab
+    const gmailUrl = `https://mail.google.com/mail/?view=cm&fs=1&to=${encodeURIComponent(targetEmail)}&su=${subject}&body=${body}`;
+    window.open(gmailUrl, '_blank', 'noopener,noreferrer');
+    
+    setGmailStatus({
+      success: true,
+      recipient: targetEmail,
+      sentAt: new Date().toLocaleTimeString(),
+      mode: 'GMAIL_COMPOSER'
+    });
   };
 
   return (
@@ -285,55 +325,128 @@ export const WeeklyBehaviorReportView: React.FC<Props> = ({
       {/* Generated Clinical Report Card */}
       {report && (
         <div className="bg-white rounded-3xl border border-slate-200 p-6 md:p-8 shadow-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-6 border-b border-slate-100">
-            <div>
-              <div className="flex items-center gap-2">
-                <span className="text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100">
-                  Parkinson's Foundation Guideline Aligned
-                </span>
-                <span className="text-xs text-slate-400">
-                  {report.periodStart} – {report.periodEnd}
-                </span>
+          <div className="space-y-4 pb-6 border-b border-slate-100">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div>
+                <div className="flex items-center gap-2">
+                  <span className="text-xs font-extrabold uppercase tracking-wider px-2.5 py-1 bg-indigo-50 text-indigo-700 rounded-lg border border-indigo-100">
+                    Parkinson's Foundation Guideline Aligned
+                  </span>
+                  <span className="text-xs text-slate-400">
+                    {report.periodStart} – {report.periodEnd}
+                  </span>
+                </div>
+                <h3 className="text-lg font-bold text-slate-900 mt-2 font-serif">
+                  Neurologist Clinical Consultation Summary
+                </h3>
               </div>
-              <h3 className="text-lg font-bold text-slate-900 mt-2 font-serif">
-                Neurologist Clinical Consultation Summary
-              </h3>
+
+              <div className="flex flex-wrap items-center gap-2">
+                <button
+                  type="button"
+                  id="copy-markdown-btn"
+                  onClick={handleCopyMarkdown}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors"
+                >
+                  <FileText className="w-3.5 h-3.5" />
+                  <span>{copied ? 'Copied!' : 'Copy Markdown'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  id="export-google-docs-btn"
+                  onClick={() => {
+                    alert("Generated report formatted for 1-click Google Docs export. Markdown copied to clipboard!");
+                    handleCopyMarkdown();
+                  }}
+                  className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors"
+                >
+                  <Share2 className="w-3.5 h-3.5" />
+                  <span>Google Docs Export</span>
+                </button>
+              </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                id="copy-markdown-btn"
-                onClick={handleCopyMarkdown}
-                className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold rounded-xl flex items-center gap-1.5 transition-colors"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>{copied ? 'Copied to Clipboard!' : 'Copy Markdown'}</span>
-              </button>
+            {/* Recipient Quick Selector & 1-Click Email Controls */}
+            <div className="p-4 rounded-2xl bg-slate-50 border border-slate-200/80 flex flex-col md:flex-row md:items-center justify-between gap-4">
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+                  <Mail className="w-4 h-4 text-indigo-600" />
+                  <span>Send Report Directly to Primary Care Team:</span>
+                </div>
+                <div className="flex flex-wrap items-center gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setRecipientType('doctor')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                      recipientType === 'doctor'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    Dr. Henderson (Primary Neurologist)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRecipientType('caregiver')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                      recipientType === 'caregiver'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    Elsbeth (eseymour515@gmail.com)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setRecipientType('custom')}
+                    className={`px-2.5 py-1 rounded-lg text-xs font-bold transition-all ${
+                      recipientType === 'custom'
+                        ? 'bg-indigo-600 text-white shadow-xs'
+                        : 'bg-white border border-slate-200 text-slate-600 hover:bg-slate-100'
+                    }`}
+                  >
+                    Custom Email...
+                  </button>
+                </div>
+                {recipientType === 'custom' && (
+                  <input
+                    type="email"
+                    value={doctorEmail}
+                    onChange={(e) => setDoctorEmail(e.target.value)}
+                    placeholder="Enter physician/caregiver email..."
+                    className="w-full max-w-sm px-3 py-1.5 bg-white border border-slate-300 rounded-xl text-xs text-slate-800 focus:outline-indigo-600"
+                  />
+                )}
+                {recipientType === 'doctor' && (
+                  <p className="text-[11px] text-slate-500">
+                    Recipient: <strong className="text-slate-800">{doctorEmail}</strong> (Dr. Arthur Henderson, MD — UCSF Movement Disorders)
+                  </p>
+                )}
+              </div>
 
-              <button
-                type="button"
-                id="btn-send-weekly-gmail"
-                onClick={handleSendGmail}
-                disabled={isSendingGmail}
-                className="px-3.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors shadow-xs disabled:opacity-50"
-              >
-                <Mail className="w-3.5 h-3.5" />
-                <span>{isSendingGmail ? 'Sending via Gmail...' : 'Send to Gmail (eseymour515@gmail.com)'}</span>
-              </button>
+              <div className="flex flex-wrap items-center gap-2 shrink-0">
+                <button
+                  type="button"
+                  id="btn-open-in-gmail"
+                  onClick={handleOpenInGmailComposer}
+                  className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-all shadow-sm active:scale-95"
+                >
+                  <Mail className="w-3.5 h-3.5" />
+                  <span>1-Click Open in Gmail (Pre-filled)</span>
+                </button>
 
-              <button
-                type="button"
-                id="export-google-docs-btn"
-                onClick={() => {
-                  alert("Generated report formatted for 1-click Google Docs export. Markdown copied to clipboard!");
-                  handleCopyMarkdown();
-                }}
-                className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-1.5 transition-colors"
-              >
-                <Share2 className="w-3.5 h-3.5" />
-                <span>1-Click Google Docs Export</span>
-              </button>
+                <button
+                  type="button"
+                  id="btn-send-weekly-gmail"
+                  onClick={handleSendGmail}
+                  disabled={isSendingGmail}
+                  className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold rounded-xl flex items-center gap-2 transition-colors disabled:opacity-50"
+                >
+                  <Server className="w-3.5 h-3.5 text-emerald-400" />
+                  <span>{isSendingGmail ? 'Dispatching...' : '1-Click Direct API Dispatch'}</span>
+                </button>
+              </div>
             </div>
           </div>
 
