@@ -1,0 +1,6 @@
+{
+  "name": "The Legacy Honored Companion",
+  "description": "An adaptive, voice-led cognitive co-pilot tailored to an individual's life history, dignity, and daily routines (Demonstrated via Captain Wade).",
+  "requestFramePermissions": ["microphone"],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
