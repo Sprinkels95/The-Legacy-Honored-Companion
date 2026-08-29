@@ -11,6 +11,7 @@ interface Props {
   sites: InfusionSiteLog[];
   onAddSiteLog: (newSite: InfusionSiteLog) => void;
   onUpdateSiteStatus: (id: string, status: InfusionSiteLog['status']) => void;
+  onOpenQuickRefill?: () => void;
 }
 
 interface ClockSlotConfig {
@@ -105,7 +106,8 @@ const CLOCK_SLOTS: ClockSlotConfig[] = [
 export const InfusionSiteManager: React.FC<Props> = ({
   sites,
   onAddSiteLog,
-  onUpdateSiteStatus
+  onUpdateSiteStatus,
+  onOpenQuickRefill
 }) => {
   const [selectedSlot, setSelectedSlot] = useState<ClockPosition>('1:30 (Upper-Right)');
   const [isLoggingNew, setIsLoggingNew] = useState(false);
@@ -312,6 +314,17 @@ export const InfusionSiteManager: React.FC<Props> = ({
           </div>
 
           <div className="flex items-center gap-2 shrink-0">
+            {onOpenQuickRefill && (
+              <button
+                type="button"
+                id="quick-syringe-refill-btn"
+                onClick={onOpenQuickRefill}
+                className="px-4 py-2.5 bg-rose-900 hover:bg-rose-950 text-rose-100 border border-rose-700 text-xs font-black rounded-xl flex items-center gap-2 transition-all shadow-xs"
+              >
+                <span>🧪 Quick Syringe Refill (Daily)</span>
+              </button>
+            )}
+
             <button
               type="button"
               id="log-site-change-btn"

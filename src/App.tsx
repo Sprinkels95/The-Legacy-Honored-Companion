@@ -8,23 +8,25 @@ import {
   AgentPersonaId, PantryItem, ShoppingItem, NeedsAuditLog, 
   MedicationRefillItem, PharmacyCallLog, SpeechAcousticEvent, 
   EnergyState, BrevityMode, DailyGeminiBriefing, DailyCalendarBriefing,
-  AdaptiveVoiceOrderItem, InfusionSiteLog
+  AdaptiveVoiceOrderItem, InfusionSiteLog, SyringeRefillLog, VyalevPumpCycle
 } from './types';
 import { 
   INITIAL_PANTRY, INITIAL_SHOPPING_LIST, INITIAL_AUDIT_LOGS, 
   INITIAL_MEDICATIONS, INITIAL_PHARMACY_CALLS, INITIAL_SPEECH_ACOUSTICS,
   INITIAL_DAILY_BRIEFING, INITIAL_DAILY_CALENDAR_BRIEFING,
-  INITIAL_ADAPTIVE_VOICE_ORDERS, INITIAL_INFUSION_SITES
+  INITIAL_ADAPTIVE_VOICE_ORDERS, INITIAL_INFUSION_SITES, INITIAL_SYRINGE_REFILLS,
+  INITIAL_PUMP_CYCLES
 } from './data/initialData';
 import { AgentPersonaSelector } from './components/AgentPersonaSelector';
 import { CaptainWadeMainView } from './components/CaptainWadeMainView';
 import { CaregiverAdminConsole } from './components/CaregiverAdminConsole';
+import { QuickSyringeRefillModal } from './components/QuickSyringeRefillModal';
 import { HackathonArchitectureModal } from './components/HackathonArchitectureModal';
 import { CognitiveResearchModal } from './components/CognitiveResearchModal';
 import { TokenEfficiencyModal } from './components/TokenEfficiencyModal';
 import { AcousticVoiceInspector } from './components/AcousticVoiceInspector';
 import { acousticVoice } from './utils/acousticVoiceEngine';
-import { Brain, Zap } from 'lucide-react';
+import { Brain, Zap, Syringe } from 'lucide-react';
 
 export default function App() {
   const [selectedPersona, setSelectedPersona] = useState<AgentPersonaId>('dr-evil');
@@ -42,6 +44,9 @@ export default function App() {
   const [calendarBriefing, setCalendarBriefing] = useState<DailyCalendarBriefing>(INITIAL_DAILY_CALENDAR_BRIEFING);
   const [adaptiveVoiceOrders, setAdaptiveVoiceOrders] = useState<AdaptiveVoiceOrderItem[]>(INITIAL_ADAPTIVE_VOICE_ORDERS);
   const [infusionSites, setInfusionSites] = useState<InfusionSiteLog[]>(INITIAL_INFUSION_SITES);
+  const [syringeRefills, setSyringeRefills] = useState<SyringeRefillLog[]>(INITIAL_SYRINGE_REFILLS);
+  const [pumpCycles, setPumpCycles] = useState<VyalevPumpCycle[]>(INITIAL_PUMP_CYCLES);
+  const [isQuickRefillModalOpen, setIsQuickRefillModalOpen] = useState<boolean>(false);
   
   // Adaptive Brevity & Energy State
   const [energyState, setEnergyState] = useState<EnergyState>('GOOD_ENERGY');
@@ -49,10 +54,56 @@ export default function App() {
   const [isRefreshingBriefing, setIsRefreshingBriefing] = useState(false);
   
   const [isArchitectureModalOpen, setIsArchitectureModalOpen] = useState(false);
+  const [hackathonInitialTab, setHackathonInitialTab] = useState<'overview' | 'submission' | 'research' | 'efficiency' | 'protocols'>('overview');
   const [isResearchModalOpen, setIsResearchModalOpen] = useState(false);
   const [isTokenEfficiencyModalOpen, setIsTokenEfficiencyModalOpen] = useState(false);
 
+  const openHackathonModalWithTab = (tab: 'overview' | 'submission' | 'research' | 'efficiency' | 'protocols') => {
+    setHackathonInitialTab(tab);
+    setIsArchitectureModalOpen(true);
+  };
+
   const urgentRefillCount = medications.filter(m => m.daysRemaining <= m.refillThresholdDays).length;
+
+  // Master handler: Save syringe refill and auto-feed all pump metrics
+  const handleSaveSyringeRefill = ({
+    refillLog,
+    updatedPumpCycle,
+    updatedSiteLog,
+    pumpHoursCalculated
+  }: {
+    refillLog: SyringeRefillLog;
+    updatedPumpCycle: VyalevPumpCycle;
+    updatedSiteLog?: InfusionSiteLog;
+    pumpHoursCalculated: number;
+  }) => {
+    // 1. Prepend to syringe refill history
+    setSyringeRefills(prev => [refillLog, ...prev]);
+
+    // 2. Prepend / update active pump cycle
+    setPumpCycles(prev => [updatedPumpCycle, ...prev]);
+
+    // 3. Update Wade Mode daily briefings with fresh calculated pump hours remaining
+    setDailyBriefing(prev => ({
+      ...prev,
+      pumpHoursLeft: pumpHoursCalculated,
+      audioScript: prev.audioScript.replace(/\d+\s+hours\s+remaining/i, `${pumpHoursCalculated} hours remaining`)
+    }));
+
+    setCalendarBriefing(prev => ({
+      ...prev,
+      pumpHoursLeft: pumpHoursCalculated,
+      spokenAudioScript: prev.spokenAudioScript.replace(/\d+\s+hours\s+remaining/i, `${pumpHoursCalculated} hours remaining`)
+    }));
+
+    // 4. If cannula site changed, update 1-inch radial site rotation logs
+    if (updatedSiteLog) {
+      handleAddInfusionSite(updatedSiteLog);
+    }
+
+    // 5. Play soothing confirmation chime
+    acousticVoice.playEarcon('chime');
+  };
 
   const handleAddInfusionSite = (newSite: InfusionSiteLog) => {
     // If marked active, ensure previous active sites become HEALING or RESTED_READY
@@ -286,7 +337,7 @@ export default function App() {
 
   return (
     <div className="min-h-screen bg-slate-100/60 text-slate-900 flex flex-col font-sans">
-      {/* Top Accessible Navigation Bar */}
+      {/* Top Accessible Navigation Bar (Clean Header for Judges & Architecture Specs) */}
       <header className="bg-white border-b border-slate-200/80 sticky top-0 z-40 shadow-2xs">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between h-16 sm:h-18">
@@ -309,72 +360,54 @@ export default function App() {
               </div>
             </div>
 
-            {/* Mode Switcher: Wade (Patient) vs Elsbeth (Admin) */}
-            <div className="flex items-center gap-2">
-              <div className="bg-slate-100 p-1 rounded-2xl border border-slate-200 flex items-center">
-                <button
-                  type="button"
-                  id="view-toggle-captain-wade"
-                  onClick={() => setCurrentViewMode('captain-wade')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    currentViewMode === 'captain-wade'
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <UserCheck className="w-3.5 h-3.5" />
-                  <span>Wade (Patient)</span>
-                </button>
-
-                <button
-                  type="button"
-                  id="view-toggle-caregiver-admin"
-                  onClick={() => setCurrentViewMode('caregiver-admin')}
-                  className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    currentViewMode === 'caregiver-admin'
-                      ? 'bg-slate-900 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Settings className="w-3.5 h-3.5" />
-                  <span>Operations Console (Admin)</span>
-                  {urgentRefillCount > 0 && (
-                    <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse"></span>
-                  )}
-                </button>
-              </div>
-
-              {/* Token & Architecture Efficiency Button */}
+            {/* Top Bar for Judges: Hackathon Specs, Submission Alignment, PDD Research, and Token Efficiency */}
+            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
+              {/* 1. Official Submission Alignment (Devpost & Rules) */}
               <button
                 type="button"
-                id="open-token-efficiency-btn"
-                onClick={() => setIsTokenEfficiencyModalOpen(true)}
-                className="hidden lg:flex px-3 py-1.5 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-black items-center gap-1.5 border border-emerald-300 transition-colors shadow-2xs"
+                id="open-hackathon-submission-btn"
+                onClick={() => openHackathonModalWithTab('submission')}
+                className="px-3 sm:px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold items-center gap-1.5 transition-colors flex shadow-xs"
+                title="Open Official Hackathon Alignment & Devpost Submission Guide"
               >
-                <Zap className="w-3.5 h-3.5 text-emerald-600 fill-emerald-500" />
-                <span>⚡ Token Efficiency</span>
+                <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
+                <span className="font-extrabold">🏆 Official Alignment</span>
               </button>
 
-              {/* Clinical Research & PDD Specs Button */}
-              <button
-                type="button"
-                id="open-cognitive-research-btn"
-                onClick={() => setIsResearchModalOpen(true)}
-                className="hidden md:flex px-3 py-1.5 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold items-center gap-1.5 border border-purple-200 transition-colors"
-              >
-                <Brain className="w-3.5 h-3.5 text-purple-600" />
-                <span>PDD Research</span>
-              </button>
-
-              {/* Hackathon Specs Button */}
+              {/* 2. Full Hackathon Specs (Architecture & 10 Agents) */}
               <button
                 type="button"
                 id="open-hackathon-specs-btn"
-                onClick={() => setIsArchitectureModalOpen(true)}
-                className="hidden sm:flex px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold items-center gap-1.5 border border-indigo-200 transition-colors"
+                onClick={() => openHackathonModalWithTab('overview')}
+                className="px-2.5 sm:px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold items-center gap-1.5 transition-colors hidden md:flex shadow-xs"
+                title="Open Hackathon Architecture & 10 Autonomous Agent Systems"
               >
-                <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                <span>Hackathon Specs</span>
+                <Sparkles className="w-3.5 h-3.5 text-amber-300" />
+                <span>10 Agents Architecture</span>
+              </button>
+
+              {/* 3. PDD Research Direct Tab Link */}
+              <button
+                type="button"
+                id="open-cognitive-research-btn"
+                onClick={() => openHackathonModalWithTab('research')}
+                className="px-2.5 sm:px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold items-center gap-1.5 border border-purple-200 transition-colors flex shadow-2xs"
+                title="Open PDD Clinical Research Framework (4 Pillars)"
+              >
+                <Brain className="w-3.5 h-3.5 text-purple-600" />
+                <span className="hidden sm:inline">PDD Research</span>
+              </button>
+
+              {/* 4. Token Efficiency Direct Tab Link */}
+              <button
+                type="button"
+                id="open-token-efficiency-btn"
+                onClick={() => openHackathonModalWithTab('efficiency')}
+                className="px-2.5 sm:px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold items-center gap-1.5 border border-emerald-300 transition-colors flex shadow-2xs"
+                title="Open Token & Compute Efficiency Report"
+              >
+                <Zap className="w-3.5 h-3.5 text-emerald-600 fill-emerald-500" />
+                <span className="hidden sm:inline">⚡ Token Efficiency</span>
               </button>
             </div>
           </div>
@@ -383,6 +416,49 @@ export default function App() {
 
       {/* Main Container */}
       <main className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 space-y-6 w-full">
+        
+        {/* App Mode Switcher Sub-Header Bar (Patient vs Ops Console) */}
+        <div className="flex flex-col sm:flex-row items-center justify-between gap-3 p-2 sm:p-2.5 bg-white rounded-2xl border border-slate-200 shadow-xs">
+          <div className="flex items-center gap-2 px-2">
+            <span className="text-xs font-black uppercase tracking-wider text-slate-500">Active Viewport:</span>
+            <span className="text-xs font-bold text-slate-900">
+              {currentViewMode === 'captain-wade' ? '🧑‍🚒 Captain Wade (Patient Interface)' : '🌋 Secret Volcano Base Ops Console (Caregiver Admin)'}
+            </span>
+          </div>
+
+          <div className="bg-slate-100 p-1 rounded-xl border border-slate-200/80 flex items-center w-full sm:w-auto shadow-2xs">
+            <button
+              type="button"
+              id="view-toggle-captain-wade"
+              onClick={() => setCurrentViewMode('captain-wade')}
+              className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                currentViewMode === 'captain-wade'
+                  ? 'bg-indigo-600 text-white shadow-xs ring-2 ring-indigo-400/30'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <UserCheck className="w-4 h-4" />
+              <span>Captain Wade</span>
+            </button>
+
+            <button
+              type="button"
+              id="view-toggle-caregiver-admin"
+              onClick={() => setCurrentViewMode('caregiver-admin')}
+              className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-2 ${
+                currentViewMode === 'caregiver-admin'
+                  ? 'bg-slate-900 text-white shadow-xs ring-2 ring-slate-400/30'
+                  : 'text-slate-600 hover:text-slate-900'
+              }`}
+            >
+              <Settings className="w-4 h-4 text-amber-400" />
+              <span>Secret Volcano Base Ops Console</span>
+              {urgentRefillCount > 0 && (
+                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+              )}
+            </button>
+          </div>
+        </div>
         {/* 1. Primary User Window: Captain Wade Mode (Uncluttered, High Contrast, Voice Accessible) */}
         {currentViewMode === 'captain-wade' ? (
           <CaptainWadeMainView
@@ -422,6 +498,9 @@ export default function App() {
             isRefreshingBriefing={isRefreshingBriefing}
             adaptiveOrders={adaptiveVoiceOrders}
             infusionSites={infusionSites}
+            syringeRefills={syringeRefills}
+            pumpCycles={pumpCycles}
+            onOpenQuickRefill={() => setIsQuickRefillModalOpen(true)}
             onAddInfusionSite={handleAddInfusionSite}
             onUpdateSiteStatus={handleUpdateSiteStatus}
             onUpdateAdaptiveOrders={setAdaptiveVoiceOrders}
@@ -453,10 +532,22 @@ export default function App() {
         </div>
       </footer>
 
-      {/* Architecture Modal */}
+      {/* Quick Syringe Refill & Cannula Site Logger Modal */}
+      <QuickSyringeRefillModal
+        isOpen={isQuickRefillModalOpen}
+        onClose={() => setIsQuickRefillModalOpen(false)}
+        infusionSites={infusionSites}
+        onSaveRefill={handleSaveSyringeRefill}
+        lastRefill={syringeRefills[0]}
+        currentActiveSite={infusionSites.find(s => s.status === 'ACTIVE_INFUSING')}
+        currentPumpCycle={pumpCycles[0]}
+      />
+
+      {/* Architecture & Clinical Specs Modal */}
       <HackathonArchitectureModal
         isOpen={isArchitectureModalOpen}
         onClose={() => setIsArchitectureModalOpen(false)}
+        initialTab={hackathonInitialTab}
       />
 
       {/* Clinical Research & PDD Modal */}

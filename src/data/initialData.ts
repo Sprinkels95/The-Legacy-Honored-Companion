@@ -363,6 +363,69 @@ export const INITIAL_MOTOR_LOGS: MotorSymptomEntry[] = [
   { id: 'm-7', timestamp: '21:30', state: 'ON_GOOD', severity: 1, mealRelation: 'Pre-meal', notes: 'Restful evening preparation. Night basal active.' }
 ];
 
+export const INITIAL_SYRINGE_REFILLS: import('../types').SyringeRefillLog[] = [
+  {
+    id: 'syr-1',
+    timestamp: 'Today at 07:30 AM',
+    date: 'Aug 29, 2026',
+    syringeVolumeMl: 10,
+    concentrationMgMl: 240,
+    totalLoadedMg: 2400,
+    basalHourlyRateMl: 0.56,
+    bolusesAllowedPerHour: 1,
+    bolusVolumeMl: 0.15,
+    hoursOfSupply: 17.8,
+    syringeLotNumber: 'SYR-VY-99412',
+    vialsDrawnCount: 1,
+    siteRotatedToday: true,
+    cannulaSiteChanged: true,
+    cannulaClockPosition: '1:30 (Upper-Right)',
+    skinCondition: 'Clear & Healthy',
+    caregiverName: 'Elsbeth Seymour',
+    notes: 'Morning fresh 10 mL syringe loaded with cold-chain Foscarbidopa/Foslevodopa. Cannula replaced & rotated to 1:30 position above waistband.'
+  },
+  {
+    id: 'syr-2',
+    timestamp: 'Aug 28, 2026 at 07:45 AM',
+    date: 'Aug 28, 2026',
+    syringeVolumeMl: 10,
+    concentrationMgMl: 240,
+    totalLoadedMg: 2400,
+    basalHourlyRateMl: 0.58,
+    bolusesAllowedPerHour: 1,
+    bolusVolumeMl: 0.15,
+    hoursOfSupply: 17.2,
+    syringeLotNumber: 'SYR-VY-99388',
+    vialsDrawnCount: 1,
+    siteRotatedToday: false,
+    cannulaSiteChanged: false,
+    cannulaClockPosition: '1:30 (Upper-Right)',
+    skinCondition: 'Clear & Healthy',
+    caregiverName: 'Elsbeth Seymour',
+    notes: 'Daily syringe swap completed. Cannula maintained (Day 1 of 2).'
+  },
+  {
+    id: 'syr-3',
+    timestamp: 'Aug 27, 2026 at 08:00 AM',
+    date: 'Aug 27, 2026',
+    syringeVolumeMl: 10,
+    concentrationMgMl: 240,
+    totalLoadedMg: 2400,
+    basalHourlyRateMl: 0.55,
+    bolusesAllowedPerHour: 1,
+    bolusVolumeMl: 0.15,
+    hoursOfSupply: 18.1,
+    syringeLotNumber: 'SYR-VY-99351',
+    vialsDrawnCount: 1,
+    siteRotatedToday: true,
+    cannulaSiteChanged: true,
+    cannulaClockPosition: '10:30 (Upper-Left)',
+    skinCondition: 'Faint Pink',
+    caregiverName: 'Elsbeth Seymour',
+    notes: 'Syringe replacement & cannula rotation. Retired old site with mild pinkness.'
+  }
+];
+
 export const INITIAL_PUMP_CYCLES: VyalevPumpCycle[] = [
   {
     id: 'pc-1',

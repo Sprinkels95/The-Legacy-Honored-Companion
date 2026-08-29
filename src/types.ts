@@ -181,10 +181,31 @@ export interface VyalevPumpCycle {
   pumpStartTime: string;
   dailyDoseMg: number;
   extraDoseBolusCount: number;
-  siteLocation: 'Abdomen Upper-Right' | 'Abdomen Lower-Left' | 'Abdomen Upper-Left' | 'Abdomen Lower-Right' | 'Thigh';
+  siteLocation: 'Abdomen Upper-Right' | 'Abdomen Lower-Left' | 'Abdomen Upper-Left' | 'Abdomen Lower-Right' | 'Thigh' | string;
   cannulaChangeDate: string;
   flowRateMlHr: number;
   alarms: string[];
+}
+
+export interface SyringeRefillLog {
+  id: string;
+  timestamp: string;
+  date: string;
+  syringeVolumeMl: number; // typically 10ml, 20ml
+  concentrationMgMl: number; // e.g. 240 mg/ml (Foscarbidopa/Foslevodopa)
+  totalLoadedMg: number; // volume * concentration e.g. 2400 mg
+  basalHourlyRateMl: number; // e.g. 0.56 ml/hr
+  bolusesAllowedPerHour: number;
+  bolusVolumeMl: number; // e.g. 0.15 ml
+  hoursOfSupply: number; // calculated e.g. volume / hourlyRate => 10 / 0.56 = 17.85h or 24h
+  syringeLotNumber?: string;
+  vialsDrawnCount: number; // e.g. 1 or 2 vials
+  siteRotatedToday: boolean;
+  cannulaSiteChanged: boolean;
+  cannulaClockPosition?: ClockPosition;
+  skinCondition: 'Clear & Healthy' | 'Faint Pink' | 'Irritated / Swollen' | 'Quarantined';
+  caregiverName: string;
+  notes?: string;
 }
 
 export interface RoutineLog {
