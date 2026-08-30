@@ -1,11 +1,11 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { 
   Calendar, Volume2, VolumeX, RefreshCw, Clock, MapPin, 
   Sparkles, HeartPulse, ShieldCheck, Car, CheckCircle2, 
   Send, UserCheck, AlertTriangle, Play, RotateCcw, ChevronDown, 
   ChevronUp, ExternalLink, Activity, Info, Bot, Download,
   CalendarDays, Check, FileText, ArrowRight, Sun, Moon, LogIn, LogOut, CheckCircle,
-  PhoneCall, Stethoscope
+  PhoneCall, Stethoscope, Edit3, Tag, X, Save, Sliders, Plus
 } from 'lucide-react';
 import { DailyCalendarBriefing, AgentPersonaId, CalendarEvent, TransitBuffer, EventAudience, TransitMode } from '../types';
 import { acousticVoice } from '../utils/acousticVoiceEngine';
@@ -57,8 +57,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
       'Afternoon video check-in with Dr. Henderson from home.'
     ],
     actionsForElsbeth: [
-      'Uber Assist staged for 09:55 AM (+25m mobility buffer).',
-      'Elsbeth drives Little Wade to Presidio soccer match at 11:15 AM.',
+      'Uber Assist staged for 09:55 AM (+25m mobility buffer for Dad).',
+      'Elsbeth drives Little Wade to Presidio soccer match at 11:15 AM (No transit for Dad).',
       'Prepare 1-click clinical dossier on screen for Dr. Henderson.'
     ],
     clinicalMedicationSynergy: {
@@ -84,7 +84,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         levodopaMealAlert: 'Optimal: Low protein breakfast avoids LNAA carrier competition with levodopa.',
         vyalevPumpSyncNote: 'Continuous pump cartridge verified with 14h reserve.',
         actionForWade: 'Enjoy a warm breakfast and gentle hydration.',
-        actionForCaregiver: 'Verify morning water intake and infusion site comfort.'
+        actionForCaregiver: 'Verify morning water intake and infusion site comfort.',
+        wadeImpactNote: 'Gentle start to the day. Low-protein breakfast maintains steady levodopa bioavailability.'
       },
       {
         id: 'cal-sat-2',
@@ -108,7 +109,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         levodopaMealAlert: 'Take light hydration 15 minutes before departure.',
         vyalevPumpSyncNote: 'Check pump harness clip before transfer into vehicle.',
         actionForWade: 'Comfortable walking shoes on; take your time stepping into the car.',
-        actionForCaregiver: 'Uber Assist staged for 09:55 AM departure (+25m mobility buffer).'
+        actionForCaregiver: 'Uber Assist staged for 09:55 AM departure (+25m mobility buffer).',
+        wadeImpactNote: 'Core physical mobility session. Unhurried +25m buffer prevents gait freezing during car transfer.'
       },
       {
         id: 'cal-sat-2b',
@@ -121,15 +123,15 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         attendees: ['Little Wade (Son)', 'Elsbeth Seymour'],
         category: 'Family / Rest',
         audience: 'Little Wade',
-        needsTransit: true,
-        transitMode: 'Uber Assist / Ride Required',
+        needsTransit: false,
+        transitMode: 'Caregiver Local Drive (No Uber for Dad)',
         colorTag: 'blue',
         description: 'Little Wade\'s weekend youth soccer league game. Elsbeth handles driving & orange slices.',
-        mobilityPrepBufferMinutes: 15,
-        suggestedDepartureTime: '11:15 AM',
+        mobilityPrepBufferMinutes: 0,
         fatigueRiskLevel: 'Low',
         actionForWade: 'Little Wade has soccer! Relax at home or tune in to the score updates.',
-        actionForCaregiver: 'Elsbeth driving Little Wade to Presidio fields; Wade resting at home.'
+        actionForCaregiver: 'Elsbeth driving Little Wade to Presidio fields; Dad resting comfortably at home.',
+        wadeImpactNote: 'Dad relaxes comfortably at home. Zero transit or physical effort required for Big Wade — Elsbeth handles driving.'
       },
       {
         id: 'cal-sat-3',
@@ -149,7 +151,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         levodopaMealAlert: 'Light turkey wrap lunch; maintain 45-minute buffer before any PRN oral tablet.',
         vyalevPumpSyncNote: 'Infusion rate steady at 0.58 mL/hr.',
         actionForWade: 'Recline in armchair, listen to audio or music, and take an unhurried rest.',
-        actionForCaregiver: 'Keep ambient noise calm; review weekly neurology report.'
+        actionForCaregiver: 'Keep ambient noise calm; review weekly neurology report.',
+        wadeImpactNote: 'Restorative quiet rest in armchair to prevent afternoon neuromuscular fatigue.'
       },
       {
         id: 'cal-sat-4',
@@ -165,13 +168,13 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         transitMode: 'No Transit (Home/Virtual)',
         colorTag: 'rose',
         description: 'Quarterly review of Vyalev 24h pump continuous metrics and motor ON/OFF stability diary.',
-        mobilityPrepBufferMinutes: 10,
-        suggestedDepartureTime: '03:20 PM (Computer Setup)',
+        mobilityPrepBufferMinutes: 0,
         fatigueRiskLevel: 'Low',
         levodopaMealAlert: 'Ensure water glass at bedside table.',
         vyalevPumpSyncNote: 'Have 7-day infusion summary open for Dr. Henderson review.',
         actionForWade: 'Join video chat from the living room tablet; no travel needed.',
-        actionForCaregiver: 'Review generated 1-click clinical synthesis report on screen.'
+        actionForCaregiver: 'Review generated 1-click clinical synthesis report on screen.',
+        wadeImpactNote: 'Virtual check-in from living room tablet. Zero transit or clinic travel stress for Dad.'
       },
       {
         id: 'cal-sat-5',
@@ -191,7 +194,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         levodopaMealAlert: 'Dinner is the designated protein window (salmon/chicken) so daytime levodopa absorption was preserved.',
         vyalevPumpSyncNote: 'Check night-mode cassette changeover schedule for 9:00 PM.',
         actionForWade: 'Enjoy dinner with family at an easy, relaxing pace.',
-        actionForCaregiver: 'Prepare fresh Vyalev cartridge from refrigerator at 8:30 PM.'
+        actionForCaregiver: 'Prepare fresh Vyalev cartridge from refrigerator at 8:30 PM.',
+        wadeImpactNote: 'Designated evening protein meal with family; relaxing, unhurried pace at home.'
       }
     ]
   },
@@ -235,7 +239,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         levodopaMealAlert: 'Light carbohydrate breakfast; optimal gastric emptying.',
         vyalevPumpSyncNote: 'Basal infusion rate steady. Sunday restful mode active.',
         actionForWade: 'Sip morning coffee on the back patio at your own pace.',
-        actionForCaregiver: 'Inspect Vyalev infusion site dressing during morning dressing.'
+        actionForCaregiver: 'Inspect Vyalev infusion site dressing during morning dressing.',
+        wadeImpactNote: 'Quiet porch breakfast; calm, peaceful morning at home.'
       },
       {
         id: 'cal-sun-2',
@@ -250,11 +255,11 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         transitMode: 'No Transit (Home/Virtual)',
         colorTag: 'emerald',
         description: 'Gentle flat-surface walking with trekking pole or walker for sensory grounding.',
-        mobilityPrepBufferMinutes: 10,
-        suggestedDepartureTime: '10:50 AM',
+        mobilityPrepBufferMinutes: 0,
         fatigueRiskLevel: 'Low',
         actionForWade: 'Enjoy the fresh air and flower beds with Elsbeth.',
-        actionForCaregiver: 'Accompany with steady pacing; offer arm support along brick path.'
+        actionForCaregiver: 'Accompany with steady pacing; offer arm support along brick path.',
+        wadeImpactNote: 'Gentle sensory grounding walk on flat backyard path with Elsbeth; no street transit.'
       },
       {
         id: 'cal-sun-2b',
@@ -272,7 +277,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         mobilityPrepBufferMinutes: 0,
         fatigueRiskLevel: 'Low',
         actionForWade: 'Encourage Little Wade with his school project.',
-        actionForCaregiver: 'Supervise supplies and maintain quiet space.'
+        actionForCaregiver: 'Supervise supplies and maintain quiet space.',
+        wadeImpactNote: 'Dad watches and chats from the comfortable armchair; zero physical or transit demands on Wade.'
       },
       {
         id: 'cal-sun-3',
@@ -291,7 +297,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         fatigueRiskLevel: 'Low',
         levodopaMealAlert: 'Designated weekly high-protein window.',
         actionForWade: 'Enjoy visiting with the grandkids and sharing stories.',
-        actionForCaregiver: 'Ensure ergonomic chair seating and high-contrast dining utensils.'
+        actionForCaregiver: 'Ensure ergonomic chair seating and high-contrast dining utensils.',
+        wadeImpactNote: 'Unhurried connection with grandchildren and scheduled evening protein repletion.'
       }
     ]
   },
@@ -308,7 +315,7 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
       'Restorative afternoon siesta with feet up.'
     ],
     actionsForElsbeth: [
-      'Uber Assist staged for 09:20 AM departure (+25m buffer).',
+      'Uber Assist staged for 09:20 AM departure (+25m buffer for Dad).',
       'Pack boxing gloves, water bottle, and electrolyte pack.',
       'Apply cool compress and monitor skin perfusion post-workout.'
     ],
@@ -334,7 +341,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         fatigueRiskLevel: 'Low',
         levodopaMealAlert: 'No heavy proteins before boxing class to guarantee max motor ON state.',
         actionForWade: 'Hydrate well and wear your comfortable athletic shoes.',
-        actionForCaregiver: 'Pack water bottle and boxing gloves into the travel tote.'
+        actionForCaregiver: 'Pack water bottle and boxing gloves into the travel tote.',
+        wadeImpactNote: 'Pre-boxing hydration and light carbohydrates to prime motor fluidity and energy.'
       },
       {
         id: 'cal-mon-2',
@@ -357,7 +365,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         levodopaMealAlert: 'Electrolyte hydration during training breaks.',
         vyalevPumpSyncNote: 'Secure pump sport waistband snugly across abdomen.',
         actionForWade: 'Show off your heavyweight punching power! Rest whenever needed.',
-        actionForCaregiver: 'Uber Assist staged for 09:20 AM departure with 25m buffer.'
+        actionForCaregiver: 'Uber Assist staged for 09:20 AM departure with 25m buffer.',
+        wadeImpactNote: 'High-intensity neuromuscular workout; +25m departure buffer eliminates time pressure.'
       },
       {
         id: 'cal-mon-3',
@@ -375,7 +384,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         mobilityPrepBufferMinutes: 0,
         fatigueRiskLevel: 'Low',
         actionForWade: 'Recline with feet up and enjoy a well-deserved afternoon nap.',
-        actionForCaregiver: 'Apply cool moist towel and verify comfortable skin perfusion.'
+        actionForCaregiver: 'Apply cool moist towel and verify comfortable skin perfusion.',
+        wadeImpactNote: 'Deep post-exercise muscle relaxation with feet elevated; restorative quiet hours.'
       }
     ]
   },
@@ -392,9 +402,9 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
       'Welcome Little Wade home from after-school math club.'
     ],
     actionsForElsbeth: [
-      'Uber Assist departure at 09:55 AM with +25m buffer.',
+      'Uber Assist departure at 09:55 AM with +25m buffer for Dad.',
       'Stage external microphone & room-temperature water for speech therapy.',
-      'Drive to Roosevelt Middle School for Little Wade pickup at 4:00 PM.'
+      'Drive to Roosevelt Middle School for Little Wade pickup at 4:00 PM (No transit for Dad).'
     ],
     clinicalMedicationSynergy: {
       levodopaAbsorptionAdvice: 'Light citrus hydration 20 minutes before afternoon speech exercises.',
@@ -420,7 +430,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         estimatedDriveMinutes: 10,
         fatigueRiskLevel: 'Moderate',
         actionForWade: 'Focus on tall posture and taking big, deliberate steps.',
-        actionForCaregiver: 'Uber Assist departure at 9:55 AM with full +25m buffer.'
+        actionForCaregiver: 'Uber Assist departure at 9:55 AM with full +25m buffer.',
+        wadeImpactNote: 'Gait posture and turning drills with Sarah; +25m buffer staged to ensure relaxed transit.'
       },
       {
         id: 'cal-tue-2',
@@ -435,11 +446,11 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         transitMode: 'No Transit (Home/Virtual)',
         colorTag: 'rose',
         description: 'Vocal volume calibration, sustained phonation, and diaphragmatic breathing with speech therapist.',
-        mobilityPrepBufferMinutes: 10,
-        suggestedDepartureTime: '01:50 PM',
+        mobilityPrepBufferMinutes: 0,
         fatigueRiskLevel: 'Low',
         actionForWade: 'Use your strong Captain\'s commanding voice!',
-        actionForCaregiver: 'Set up external microphone and glass of room-temp water.'
+        actionForCaregiver: 'Set up external microphone and glass of room-temp water.',
+        wadeImpactNote: 'Vocal volume training from home study; zero clinic transit or travel fatigue for Dad.'
       },
       {
         id: 'cal-tue-3',
@@ -451,15 +462,15 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         address: '460 Arguello Blvd, San Francisco, CA',
         category: 'Family / Rest',
         audience: 'Little Wade',
-        needsTransit: true,
-        transitMode: 'Uber Assist / Ride Required',
+        needsTransit: false,
+        transitMode: 'Caregiver Local Drive (No Uber for Dad)',
         colorTag: 'blue',
         description: 'Elsbeth picks up Little Wade from school robotics & math club.',
-        mobilityPrepBufferMinutes: 15,
-        suggestedDepartureTime: '04:00 PM',
+        mobilityPrepBufferMinutes: 0,
         fatigueRiskLevel: 'Low',
         actionForWade: 'Little Wade will be home at 5 PM after math club.',
-        actionForCaregiver: 'Caregiver driving to school pickup at 4:00 PM.'
+        actionForCaregiver: 'Caregiver driving to school pickup at 4:00 PM; Dad rests at home.',
+        wadeImpactNote: 'Dad relaxes comfortably at home; zero transit or physical effort required. Elsbeth handles pickup.'
       }
     ]
   },
@@ -477,7 +488,7 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
     ],
     actionsForElsbeth: [
       'Elsbeth in Los Angeles: remote telemetry check at 12:00 PM.',
-      'Nurse Maria on-site for morning support & pavilion outing.',
+      'Nurse Maria on-site for morning support & pavilion outing with Dad.',
       'Uber Assist scheduled for 10:25 AM departure with Maria.'
     ],
     clinicalMedicationSynergy: {
@@ -494,17 +505,17 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         location: 'SFO → LAX (Century City Client Office)',
         category: 'Travel / Work Trip',
         audience: 'Elsbeth (Work/LA)',
-        needsTransit: true,
-        transitMode: 'Flight / Out of Town',
+        needsTransit: false,
+        transitMode: 'Caregiver Work Travel (No Transit for Dad)',
         isWorkTripLA: true,
         colorTag: 'purple',
         description: 'Elsbeth traveling to Los Angeles for enterprise executive meetings. Morning check-in active & home nurse Maria on duty.',
-        mobilityPrepBufferMinutes: 45,
-        suggestedDepartureTime: '06:00 AM (Airport Ride)',
+        mobilityPrepBufferMinutes: 0,
         fatigueRiskLevel: 'Low',
         vyalevPumpSyncNote: 'Caregiver in LA: Emergency contacts & neighbor support protocol active on dashboard.',
         actionForWade: 'Elsbeth is in Los Angeles for work today. Nurse Maria is here and your pump is set smoothly.',
-        actionForCaregiver: 'Remote telemetry check at 12:00 PM from LA. Local emergency contacts on call.'
+        actionForCaregiver: 'Remote telemetry check at 12:00 PM from LA. Local emergency contacts on call.',
+        wadeImpactNote: 'Dad stays peacefully at home with Nurse Maria on-duty. Zero travel or disruption for Big Wade; evening video call scheduled.'
       },
       {
         id: 'cal-wed-1',
@@ -525,7 +536,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         estimatedDriveMinutes: 15,
         fatigueRiskLevel: 'Low',
         actionForWade: 'Enjoy catching up with friends in the open garden with Maria.',
-        actionForCaregiver: 'Uber Assist dispatch at 10:25 AM; pack portable chair cushion.'
+        actionForCaregiver: 'Uber Assist dispatch at 10:25 AM; pack portable chair cushion.',
+        wadeImpactNote: 'Social connection with fellow Parkinson\'s peers; Nurse Maria assists departure with unhurried transfer.'
       },
       {
         id: 'cal-wed-2',
@@ -543,7 +555,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         mobilityPrepBufferMinutes: 0,
         fatigueRiskLevel: 'Low',
         actionForWade: 'Listen to Dave Brubeck and browse the Captain\'s album.',
-        actionForCaregiver: 'Elsbeth sends check-in voice note from LA.'
+        actionForCaregiver: 'Elsbeth sends check-in voice note from LA.',
+        wadeImpactNote: 'Comfortable afternoon relaxing with jazz vinyl records in the study at home.'
       }
     ]
   },
@@ -560,7 +573,7 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
       'Quiet afternoon rest and music in the recliner.'
     ],
     actionsForElsbeth: [
-      'Uber Assist departure staged at 10:25 AM (+25m buffer).',
+      'Uber Assist departure staged at 10:25 AM (+25m buffer for Dad).',
       'Stage adaptive button hooks and utensil grip tools for clinic.',
       'Call Acaria Health specialty pharmacy for weekly cartridge replenishment.'
     ],
@@ -588,7 +601,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         estimatedDriveMinutes: 10,
         fatigueRiskLevel: 'Moderate',
         actionForWade: 'Take your time with hand exercises; no rushing.',
-        actionForCaregiver: 'Uber Assist departure at 10:25 AM with staged grip tools.'
+        actionForCaregiver: 'Uber Assist departure at 10:25 AM with staged grip tools.',
+        wadeImpactNote: 'Adaptive utensil and buttoning practice; +25m buffer staged for calm, unhurried transfer.'
       },
       {
         id: 'cal-thu-2',
@@ -606,7 +620,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         mobilityPrepBufferMinutes: 0,
         fatigueRiskLevel: 'Low',
         actionForWade: 'Comfortable afternoon rest.',
-        actionForCaregiver: 'Quiet hours in the home.'
+        actionForCaregiver: 'Quiet hours in the home.',
+        wadeImpactNote: 'Post-therapy recovery rest block in recliner; peaceful, calm environment.'
       }
     ]
   },
@@ -653,7 +668,8 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         fatigueRiskLevel: 'Moderate',
         vyalevPumpSyncNote: 'Print 1-Click Clinical EMR Dossier PDF for Dr. Henderson.',
         actionForWade: 'Comfortable clothing for motor evaluation; doctor will check walking.',
-        actionForCaregiver: 'Uber Assist staged for 12:40 PM (+30m hospital parking & wheelchair transfer buffer).'
+        actionForCaregiver: 'Uber Assist staged for 12:40 PM (+30m hospital parking & wheelchair transfer buffer).',
+        wadeImpactNote: 'Neurologist consultation with Dr. Henderson; +30m hospital parking & wheelchair buffer prevents gait strain.'
       },
       {
         id: 'cal-fri-2',
@@ -671,10 +687,55 @@ const WEEK_SCHEDULE_DATA: Record<string, DayConfig> = {
         mobilityPrepBufferMinutes: 0,
         fatigueRiskLevel: 'Low',
         actionForWade: 'Relax during clean skin prep and site swap.',
-        actionForCaregiver: 'Follow 5-step sterile rotation protocol; record site in EMR log.'
+        actionForCaregiver: 'Follow 5-step sterile rotation protocol; record site in EMR log.',
+        wadeImpactNote: 'Sterile evening infusion set changeover; Dad relaxes comfortably in bedroom command station.'
       }
     ]
   }
+};
+
+interface DayHorizon {
+  key: string;
+  dayIndex: number;
+  isoDate: string;
+  weekdayLong: string;
+  monthShort: string;
+  dayNum: number;
+  dateStr: string;
+  badge: string;
+  focus: string;
+}
+
+const getNext5Days = (): DayHorizon[] => {
+  const baseNow = new Date();
+  const dayKeyMap = ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'];
+  const days: DayHorizon[] = [];
+  
+  for (let i = 0; i < 5; i++) {
+    const d = new Date(baseNow.getFullYear(), baseNow.getMonth(), baseNow.getDate() + i);
+    const dayIndex = d.getDay();
+    const key = dayKeyMap[dayIndex];
+    const isoDate = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+    const weekdayLong = d.toLocaleDateString('en-US', { weekday: 'long' });
+    const monthShort = d.toLocaleDateString('en-US', { month: 'short' });
+    const dayNum = d.getDate();
+    const dateStr = `${weekdayLong}, ${monthShort} ${dayNum}`;
+    const badge = i === 0 ? 'Today' : i === 1 ? 'Tomorrow' : `Day ${i + 1}`;
+    const presetFocus = WEEK_SCHEDULE_DATA[key]?.focus || 'Care Protocol';
+
+    days.push({
+      key,
+      dayIndex: i,
+      isoDate,
+      weekdayLong,
+      monthShort,
+      dayNum,
+      dateStr,
+      badge,
+      focus: presetFocus
+    });
+  }
+  return days;
 };
 
 export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
@@ -684,15 +745,16 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
   isRefreshing,
   onOpenDiscordModal
 }) => {
-  const [selectedDayKey, setSelectedDayKey] = useState<string>('sat');
+  const next5Days = useMemo(() => getNext5Days(), []);
+  const initialDayKey = next5Days[0]?.key || 'sat';
+  const [selectedDayKey, setSelectedDayKey] = useState<string>(initialDayKey);
   const [activeEvents, setActiveEvents] = useState<CalendarEvent[]>(briefing.events || WEEK_SCHEDULE_DATA['sat'].events);
+  const [allLiveEvents, setAllLiveEvents] = useState<CalendarEvent[]>([]);
   const [currentBriefing, setCurrentBriefing] = useState<DailyCalendarBriefing>(briefing);
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [showFullSchedule, setShowFullSchedule] = useState(true);
   const [showAiDetails, setShowAiDetails] = useState(false);
-  const [showWeeklyPrep, setShowWeeklyPrep] = useState(false);
   const [isGeneratingDayAi, setIsGeneratingDayAi] = useState(false);
-  const [exportNotice, setExportNotice] = useState<string | null>(null);
 
   // Day-Of Refill & Advance Doctor Visit Alert Action States (with local persistence)
   const [isAcariaRefillConfirmed, setIsAcariaRefillConfirmed] = useState<boolean>(() => {
@@ -710,13 +772,31 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
     }
   });
 
-  // Audience Filter State
-  const [audienceFilter, setAudienceFilter] = useState<EventAudience | 'All'>('All');
+  // Custom Event & Tag Overrides Persistence
+  const [customOverrides, setCustomOverrides] = useState<Record<string, CalendarEvent>>(() => {
+    try {
+      const saved = localStorage.getItem('parkinsons_calendar_custom_overrides');
+      return saved ? JSON.parse(saved) : {};
+    } catch {
+      return {};
+    }
+  });
+
+  // Event Tag & Details Editor State
+  const [editingEvent, setEditingEvent] = useState<CalendarEvent | null>(null);
+  const [editForm, setEditForm] = useState<Partial<CalendarEvent>>({});
+
+  // Helper to merge overrides onto base schedule
+  const getDayEventsWithOverrides = (dayKey: string, overrides: Record<string, CalendarEvent>): CalendarEvent[] => {
+    const baseEvents = WEEK_SCHEDULE_DATA[dayKey]?.events || WEEK_SCHEDULE_DATA['sat'].events;
+    return baseEvents.map(evt => (overrides[evt.id] ? { ...evt, ...overrides[evt.id] } : evt));
+  };
 
   // Live Google Calendar Authentication & Sync State
   const [googleUser, setGoogleUser] = useState<User | null>(null);
   const [calendarToken, setCalendarToken] = useState<string | null>(null);
   const [isSyncingLiveCalendar, setIsSyncingLiveCalendar] = useState(false);
+  const [isLocalSyncing, setIsLocalSyncing] = useState(false);
   const [liveSyncMessage, setLiveSyncMessage] = useState<string | null>(null);
   const [isLiveSourceActive, setIsLiveSourceActive] = useState(false);
 
@@ -739,50 +819,61 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
   const handleConnectGoogleCalendar = async () => {
     try {
       setIsSyncingLiveCalendar(true);
-      setLiveSyncMessage(null);
+      setLiveSyncMessage('Opening Google Sign-In...');
       const result = await googleSignIn();
       if (result) {
         setGoogleUser(result.user);
         setCalendarToken(result.accessToken);
-        setLiveSyncMessage(`Connected as ${result.user.email}. Fetching live calendar events...`);
+        setLiveSyncMessage(`Connected as ${result.user.email}. Fetching calendar events for the next 5 days...`);
         await handleFetchLiveCalendar(result.accessToken);
       }
     } catch (err: any) {
       console.error('Google Calendar connection error:', err);
-      setLiveSyncMessage(`Google connection error: ${err.message || 'Check permissions'}`);
+      setLiveSyncMessage(`Google connection error: ${err.message || 'Check permissions or popup settings'}`);
     } finally {
       setIsSyncingLiveCalendar(false);
     }
   };
 
-  // Fetch live events from connected Google Calendar and re-synthesize Gemini Parkinson's Care Guidance
+  // Fetch live events from connected Google Calendar (Next 5 Days) and re-synthesize Gemini Parkinson's Care Guidance
   const handleFetchLiveCalendar = async (tokenOverride?: string) => {
-    const token = tokenOverride || calendarToken;
+    const token = tokenOverride || calendarToken || localStorage.getItem('gcal_access_token');
     if (!token) {
       handleConnectGoogleCalendar();
       return;
     }
 
     setIsSyncingLiveCalendar(true);
+    setIsGeneratingDayAi(true);
     try {
       const liveEvents = await fetchLiveGoogleCalendarEvents(token);
       if (liveEvents && liveEvents.length > 0) {
-        setActiveEvents(liveEvents);
+        setAllLiveEvents(liveEvents);
         setIsLiveSourceActive(true);
-        setLiveSyncMessage(`✅ Synced ${liveEvents.length} live events from your Google Calendar (${googleUser?.email || 'Primary'}) as source of truth!`);
 
-        // Re-synthesize with Gemini
-        setIsGeneratingDayAi(true);
+        // Filter events for currently active day or show all 5 days
+        let filteredEvents = liveEvents;
+        const targetDay = next5Days.find(d => d.key === selectedDayKey);
+        if (selectedDayKey !== 'all_5_days' && targetDay) {
+          const matched = liveEvents.filter(e => e.isoDate === targetDay.isoDate || (e.dateStr && e.dateStr.toLowerCase().includes(targetDay.weekdayLong.toLowerCase())));
+          filteredEvents = matched.length > 0 ? matched : [];
+        }
+
+        setActiveEvents(filteredEvents);
+        const dayLabelText = selectedDayKey === 'all_5_days' ? 'All 5 Days' : targetDay ? `${targetDay.weekdayLong} (${targetDay.badge})` : 'Selected Day';
+        setLiveSyncMessage(`✅ Synced ${liveEvents.length} events across the next 5 days from Google Calendar! Active view: ${dayLabelText} (${filteredEvents.length} events).`);
+
+        // Re-synthesize with Gemini for active view
         const dayData = WEEK_SCHEDULE_DATA[selectedDayKey] || WEEK_SCHEDULE_DATA['sat'];
         const response = await fetch('/api/gemini/daily-calendar-summary', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            events: liveEvents,
+            events: filteredEvents.length > 0 ? filteredEvents : liveEvents,
             personaId: selectedPersona,
             pumpHoursLeft: 14,
             weather: dayData.weather,
-            dateFormatted: dayData.dateStr
+            dateFormatted: targetDay ? targetDay.dateStr : dayData.dateStr
           })
         });
 
@@ -791,18 +882,41 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
           if (data.briefing) {
             setCurrentBriefing({
               ...data.briefing,
-              events: liveEvents
+              events: filteredEvents
             });
           }
         }
       } else {
-        setLiveSyncMessage('No upcoming events found in primary Google Calendar for the next 7 days. Showing clinical regimen.');
+        const dayData = WEEK_SCHEDULE_DATA[selectedDayKey] || WEEK_SCHEDULE_DATA['sat'];
+        setActiveEvents(dayData.events);
+        setIsLiveSourceActive(true);
+        setLiveSyncMessage(`✅ Connected to Google Calendar (${googleUser?.email || 'Primary'}). No events found in 5-day window; using clinical care plan.`);
       }
     } catch (err: any) {
       console.error('Failed to sync live Google Calendar:', err);
-      setLiveSyncMessage(`Google Calendar sync error: ${err.message}`);
+      setLiveSyncMessage(`Google Calendar sync notice: ${err.message}. Using clinical schedule.`);
     } finally {
       setIsSyncingLiveCalendar(false);
+      setIsGeneratingDayAi(false);
+    }
+  };
+
+  // Manual Master Sync (Synchronizes Active Schedule, Mobility Buffers & Gemini AI Synthesis)
+  const handleManualSync = async () => {
+    setIsLocalSyncing(true);
+    setLiveSyncMessage(null);
+    try {
+      if (isLiveSourceActive && (calendarToken || localStorage.getItem('gcal_access_token'))) {
+        await handleFetchLiveCalendar();
+      } else {
+        await handleSelectDay(selectedDayKey);
+        setLiveSyncMessage(`✅ Synced! Refreshed schedule, mobility buffers (+25m), and ${selectedPersona === 'ward-cleaver' ? 'Ward Cleaver' : selectedPersona === 'dr-evil' ? 'Dr. Evil' : selectedPersona === 'first-mate' ? 'First Mate' : 'Clinical Co-Pilot'} audio briefing.`);
+      }
+    } catch (err: any) {
+      console.error('Manual sync error:', err);
+      setLiveSyncMessage(`Sync error: ${err.message || 'Failed to sync'}`);
+    } finally {
+      setIsLocalSyncing(false);
       setIsGeneratingDayAi(false);
     }
   };
@@ -812,7 +926,9 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
     setGoogleUser(null);
     setCalendarToken(null);
     setIsLiveSourceActive(false);
-    setActiveEvents(WEEK_SCHEDULE_DATA[selectedDayKey].events);
+    setAllLiveEvents([]);
+    const baseEvents = getDayEventsWithOverrides(selectedDayKey, customOverrides);
+    setActiveEvents(baseEvents);
     setLiveSyncMessage('Disconnected from live Google Calendar. Switched back to Parkinson\'s clinical protocol.');
   };
 
@@ -837,29 +953,113 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
     }
   };
 
-  // Switch Day Handler: Instant Synchronous UI Update + Background Gemini Refresh
+  // Switch Day Handler: Instant Synchronous UI Update + Dynamic 5-Day Horizon + Background Gemini Refresh
   const handleSelectDay = async (dayKey: string) => {
     setSelectedDayKey(dayKey);
-    const dayData = WEEK_SCHEDULE_DATA[dayKey];
-    if (!dayData) return;
-
     if (isPlayingAudio) {
       acousticVoice.cancel();
       setIsPlayingAudio(false);
     }
 
+    let targetEvents: CalendarEvent[] = [];
+    let headline = '';
+    let summary = '';
+    let dateStr = '';
+    let spokenScript = '';
+    let actionsWade: string[] = [];
+    let actionsElsbeth: string[] = [];
+    let clinicalSynergy = {
+      levodopaAbsorptionAdvice: 'Maintain light carbohydrates before morning transit.',
+      vyalevPumpCheck: 'Continuous pump cartridge verified with steady flow.'
+    };
+    let weather = 'Mild & Sunny, 68°F';
+
+    if (dayKey === 'all_5_days') {
+      if (isLiveSourceActive && allLiveEvents.length > 0) {
+        targetEvents = allLiveEvents;
+      } else {
+        // Collect next 5 days of preset events
+        targetEvents = next5Days.flatMap(d => {
+          const evts = getDayEventsWithOverrides(d.key, customOverrides);
+          return evts.map(e => ({
+            ...e,
+            dateStr: d.dateStr,
+            dayLabel: `${d.weekdayLong} (${d.badge})`,
+            fullDateFormatted: `${d.weekdayLong}, ${d.monthShort} ${d.dayNum}`
+          }));
+        });
+      }
+      headline = '5-Day Care Horizon & Schedule';
+      summary = `Viewing ${targetEvents.length} scheduled events across the next 5 days with coordinated mobility buffers.`;
+      dateStr = `${next5Days[0]?.dateStr} – ${next5Days[next5Days.length - 1]?.dateStr}`;
+      spokenScript = `Captain Wade, here is your 5-day schedule overview spanning from ${next5Days[0]?.weekdayLong} through ${next5Days[next5Days.length - 1]?.weekdayLong}. All transit buffers and medication timing have been calibrated.`;
+      actionsWade = [
+        'Review upcoming therapy sessions and daily mobility windows.',
+        'Ensure hydration before scheduled departure times.',
+        'Keep continuous pump harness inspected daily.'
+      ];
+      actionsElsbeth = [
+        'All staged transit departures calibrated with +25m mobility buffers.',
+        'Weekly Vyalev cassette cold-chain delivery coordinated with Acaria Health.',
+        'Sync calendar reminders across family devices.'
+      ];
+    } else {
+      const targetDay = next5Days.find(d => d.key === dayKey) || next5Days[0];
+      const presetDayData = WEEK_SCHEDULE_DATA[dayKey] || WEEK_SCHEDULE_DATA['sat'];
+
+      if (isLiveSourceActive && allLiveEvents.length > 0) {
+        targetEvents = allLiveEvents.filter(e => {
+          if (e.isoDate && targetDay.isoDate) {
+            return e.isoDate === targetDay.isoDate;
+          }
+          if (e.dateStr) {
+            return e.dateStr.toLowerCase().includes(targetDay.weekdayLong.toLowerCase());
+          }
+          return false;
+        });
+
+        headline = `${targetDay.weekdayLong} (${targetDay.badge}) Live Schedule`;
+        summary = `${targetDay.dateStr}: ${targetEvents.length} synced calendar events from Google Calendar with clinical mobility buffers.`;
+        dateStr = `${targetDay.dateStr}`;
+        spokenScript = targetEvents.length > 0 
+          ? `Good morning Captain Wade. Today is ${targetDay.weekdayLong}, ${targetDay.monthShort} ${targetDay.dayNum}. You have ${targetEvents.length} events scheduled. Take your time with every step.`
+          : `Good morning Captain Wade. For ${targetDay.weekdayLong}, you have a clear, restful schedule with no off-site travel. Enjoy a quiet day at home.`;
+        actionsWade = targetEvents.length > 0
+          ? targetEvents.slice(0, 3).map(e => e.actionForWade || `Follow unhurried routine for ${e.title}.`)
+          : ['Enjoy a restful day at home.', 'Gentle hydration and nutrition.', 'Routine pump check.'];
+        actionsElsbeth = targetEvents.length > 0
+          ? targetEvents.filter(e => e.needsTransit).map(e => `Staged departure for ${e.title} at ${e.suggestedDepartureTime || e.startTime} (+${e.mobilityPrepBufferMinutes || 25}m buffer).`)
+          : ['No transit needed today for Wade.', 'Monitor continuous infusion pump.'];
+      } else {
+        targetEvents = getDayEventsWithOverrides(dayKey, customOverrides).map(e => ({
+          ...e,
+          dateStr: targetDay.dateStr,
+          dayLabel: `${targetDay.weekdayLong} (${targetDay.badge})`,
+          fullDateFormatted: `${targetDay.weekdayLong}, ${targetDay.monthShort} ${targetDay.dayNum}`
+        }));
+        headline = `${presetDayData.focus} Routine`;
+        summary = `${presetDayData.dayLabel}: ${presetDayData.focus} schedule and coordinated mobility buffers.`;
+        dateStr = presetDayData.dateStr;
+        spokenScript = presetDayData.spokenAudioScript;
+        actionsWade = presetDayData.actionsForWade;
+        actionsElsbeth = presetDayData.actionsForElsbeth;
+        clinicalSynergy = presetDayData.clinicalMedicationSynergy;
+        weather = presetDayData.weather;
+      }
+    }
+
     // 1. INSTANT synchronous update to all UI channels
-    setActiveEvents(dayData.events);
+    setActiveEvents(targetEvents);
     setCurrentBriefing({
-      headline: `${dayData.focus} Routine`,
-      summary: `${dayData.dayLabel}: ${dayData.focus} schedule and coordinated mobility buffers.`,
-      dayTimeFormatted: `${dayData.dateStr} • 08:00 AM`,
-      spokenAudioScript: dayData.spokenAudioScript,
-      actionsForWade: dayData.actionsForWade,
-      actionsForElsbeth: dayData.actionsForElsbeth,
-      clinicalMedicationSynergy: dayData.clinicalMedicationSynergy,
-      events: dayData.events,
-      transitDepartureBuffers: dayData.events.filter(e => e.needsTransit).map(e => ({
+      headline,
+      summary,
+      dayTimeFormatted: `${dateStr} • 08:00 AM`,
+      spokenAudioScript: spokenScript,
+      actionsForWade: actionsWade,
+      actionsForElsbeth: actionsElsbeth,
+      clinicalMedicationSynergy: clinicalSynergy,
+      events: targetEvents,
+      transitDepartureBuffers: targetEvents.filter(e => e.needsTransit && (e.mobilityPrepBufferMinutes || 0) > 0).map(e => ({
         eventName: e.title,
         suggestedDepartureTime: e.suggestedDepartureTime || e.startTime,
         totalBufferMinutes: e.mobilityPrepBufferMinutes,
@@ -874,11 +1074,11 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          events: dayData.events,
+          events: targetEvents,
           personaId: selectedPersona,
           pumpHoursLeft: dayKey === 'fri' ? 4 : 14,
-          weather: dayData.weather,
-          dateFormatted: dayData.dateStr
+          weather,
+          dateFormatted: dateStr
         })
       });
 
@@ -888,8 +1088,8 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
           setCurrentBriefing(prev => ({
             ...prev,
             ...data.briefing,
-            dayTimeFormatted: `${dayData.dateStr} • 08:00 AM`,
-            events: dayData.events
+            dayTimeFormatted: `${dateStr} • 08:00 AM`,
+            events: targetEvents
           }));
         }
       }
@@ -900,58 +1100,121 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
     }
   };
 
-  // Direct Google Calendar Add Event (Creates Live Google Calendar URL)
-  const createGoogleCalendarUrl = (event: CalendarEvent) => {
-    const title = encodeURIComponent(`[Care Plan] ${event.title}`);
-    const details = encodeURIComponent(
-      `Parkinson's Care Schedule & Clinical Buffers:\n` +
-      `• Patient: Captain Wade Seymour\n` +
-      `• Staged Departure: ${event.suggestedDepartureTime || event.startTime} (+${event.mobilityPrepBufferMinutes}m Parkinson's Mobility Buffer)\n` +
-      `• Wade Guidance: ${event.actionForWade}\n` +
-      `• Caregiver Staging: ${event.actionForCaregiver}\n` +
-      (event.levodopaMealAlert ? `• Clinical Meal Alert: ${event.levodopaMealAlert}\n` : '') +
-      `\nSource of Truth: Google Calendar Sync Engine`
-    );
-    const location = encodeURIComponent(event.address || event.location);
-    return `https://calendar.google.com/calendar/render?action=TEMPLATE&text=${title}&details=${details}&location=${location}`;
+  // Open Event & Tag Editor Modal
+  const handleOpenEditEvent = (event: CalendarEvent) => {
+    setEditingEvent(event);
+    setEditForm({ ...event });
   };
 
-  // Export 7-Day Schedule to .ICS File for Google Calendar / Apple Calendar
-  const handleExportICS = () => {
-    let icsContent = [
-      'BEGIN:VCALENDAR',
-      'VERSION:2.0',
-      'PRODID:-//Captain Wade Caregiving Command//PD Shared Calendar 1.0//EN',
-      'CALSCALE:GREGORIAN',
-      'METHOD:PUBLISH',
-      'X-WR-CALNAME:Captain Wade 7-Day Parkinson\'s Care Schedule'
-    ];
+  // Close Event Editor Modal
+  const handleCloseEditModal = () => {
+    setEditingEvent(null);
+    setEditForm({});
+  };
 
-    Object.entries(WEEK_SCHEDULE_DATA).forEach(([key, dayData]) => {
-      dayData.events.forEach((evt) => {
-        icsContent.push('BEGIN:VEVENT');
-        icsContent.push(`UID:wade-event-${evt.id}@carecommand.internal`);
-        icsContent.push(`SUMMARY:${evt.title.replace(/,/g, '\\,')}`);
-        icsContent.push(`DESCRIPTION:${(evt.description || evt.actionForWade).replace(/,/g, '\\,')} [Departure Buffer: +${evt.mobilityPrepBufferMinutes}m]`);
-        icsContent.push(`LOCATION:${(evt.address || evt.location).replace(/,/g, '\\,')}`);
-        icsContent.push('STATUS:CONFIRMED');
-        icsContent.push('END:VEVENT');
-      });
-    });
+  // Save Event Tags & Customizations
+  const handleSaveEditEvent = () => {
+    if (!editingEvent || !editingEvent.id) return;
 
-    icsContent.push('END:VCALENDAR');
+    const audience = editForm.audience || editingEvent.audience || 'Captain Wade';
+    const isWade = audience === 'Captain Wade';
+    const isLA = audience === 'Elsbeth (Work/LA)' || editForm.isWorkTripLA;
+    const needsTransit = isWade ? Boolean(editForm.needsTransit) : false;
+    const buffer = needsTransit ? (Number(editForm.mobilityPrepBufferMinutes) || 0) : 0;
+    
+    let colorTag = editForm.colorTag || editingEvent.colorTag || 'emerald';
+    if (audience === 'Little Wade') colorTag = 'blue';
+    else if (audience === 'Elsbeth (Work/LA)') colorTag = 'purple';
+    else if (audience === 'Family Shared') colorTag = 'indigo';
+    else if (editForm.category === 'Physical Therapy') colorTag = 'amber';
+    else if (editForm.category === 'Clinical / Medical') colorTag = 'rose';
 
-    const blob = new Blob([icsContent.join('\r\n')], { type: 'text/calendar;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', 'captain_wade_7day_care_schedule.ics');
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
+    const updatedEvent: CalendarEvent = {
+      ...editingEvent,
+      ...editForm,
+      audience,
+      category: editForm.category || editingEvent.category || 'Routine',
+      colorTag,
+      needsTransit,
+      mobilityPrepBufferMinutes: buffer,
+      suggestedDepartureTime: (needsTransit && buffer > 0) ? (editForm.suggestedDepartureTime || editingEvent.suggestedDepartureTime) : undefined,
+      transitMode: needsTransit ? (editForm.transitMode || 'Uber Assist / Ride Required') : (isLA ? 'Caregiver Work Travel (No Transit for Dad)' : 'No Transit (Home/Virtual)'),
+      actionForWade: editForm.actionForWade || editingEvent.actionForWade || 'Rest comfortably at home.',
+      actionForCaregiver: editForm.actionForCaregiver || editingEvent.actionForCaregiver || 'Routine monitoring.',
+      wadeImpactNote: editForm.wadeImpactNote || editingEvent.wadeImpactNote || 'Zero transit or physical demand for Dad.'
+    };
 
-    setExportNotice('✅ 7-Day .ICS Care Schedule Downloaded! Ready to import into Google Calendar or Apple Calendar.');
-    setTimeout(() => setExportNotice(null), 5000);
+    const newOverrides = {
+      ...customOverrides,
+      [editingEvent.id]: updatedEvent
+    };
+
+    setCustomOverrides(newOverrides);
+    try {
+      localStorage.setItem('parkinsons_calendar_custom_overrides', JSON.stringify(newOverrides));
+    } catch (e) {
+      console.warn('LocalStorage save error:', e);
+    }
+
+    // Update active events in state
+    const updatedActiveEvents = activeEvents.map(e => e.id === editingEvent.id ? updatedEvent : e);
+    setActiveEvents(updatedActiveEvents);
+
+    // Update current briefing with updated events and re-calculated buffers
+    setCurrentBriefing(prev => ({
+      ...prev,
+      events: updatedActiveEvents,
+      transitDepartureBuffers: updatedActiveEvents.filter(e => e.needsTransit && (e.mobilityPrepBufferMinutes || 0) > 0).map(e => ({
+        eventName: e.title,
+        suggestedDepartureTime: e.suggestedDepartureTime || e.startTime,
+        totalBufferMinutes: e.mobilityPrepBufferMinutes,
+        transitMode: e.transitMode || 'Uber Assist / Ride Required'
+      }))
+    }));
+
+    setLiveSyncMessage(`✅ Saved custom tags & care settings for "${updatedEvent.title}"!`);
+    handleCloseEditModal();
+  };
+
+  // Reset Event to Original Base Config
+  const handleResetEventToDefault = (eventId: string) => {
+    const newOverrides = { ...customOverrides };
+    delete newOverrides[eventId];
+    setCustomOverrides(newOverrides);
+    try {
+      localStorage.setItem('parkinsons_calendar_custom_overrides', JSON.stringify(newOverrides));
+    } catch (e) {
+      console.warn('LocalStorage error:', e);
+    }
+
+    const baseEvents = WEEK_SCHEDULE_DATA[selectedDayKey]?.events || [];
+    const originalEvent = baseEvents.find(e => e.id === eventId);
+    if (originalEvent) {
+      const updatedActiveEvents = activeEvents.map(e => e.id === eventId ? originalEvent : e);
+      setActiveEvents(updatedActiveEvents);
+      setCurrentBriefing(prev => ({
+        ...prev,
+        events: updatedActiveEvents,
+        transitDepartureBuffers: updatedActiveEvents.filter(e => e.needsTransit && (e.mobilityPrepBufferMinutes || 0) > 0).map(e => ({
+          eventName: e.title,
+          suggestedDepartureTime: e.suggestedDepartureTime || e.startTime,
+          totalBufferMinutes: e.mobilityPrepBufferMinutes,
+          transitMode: e.transitMode || 'Uber Assist / Ride Required'
+        }))
+      }));
+      setLiveSyncMessage(`🔄 Reset "${originalEvent.title}" back to clinical default settings.`);
+    }
+    handleCloseEditModal();
+  };
+
+  // Direct Google Calendar Add Event (Direct link to original event or calendar)
+  const createGoogleCalendarUrl = (event: CalendarEvent) => {
+    // If live event with htmlLink, open exact original event in Google Calendar
+    if (event.htmlLink) {
+      return event.htmlLink;
+    }
+    // Direct link to Google Calendar web app view without creating duplicate events
+    return 'https://calendar.google.com/calendar/u/0/r';
   };
 
   const currentDayData = WEEK_SCHEDULE_DATA[selectedDayKey] || WEEK_SCHEDULE_DATA['sat'];
@@ -1043,46 +1306,16 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
 
             <button
               type="button"
-              id="btn-open-weekly-prep"
-              onClick={() => setShowWeeklyPrep(!showWeeklyPrep)}
-              className="px-3 py-2 rounded-xl bg-indigo-800/60 hover:bg-indigo-700/80 text-amber-300 text-xs font-bold transition-colors flex items-center gap-1.5 border border-indigo-600/40 cursor-pointer"
-              title="View 7-day preparation overview"
-            >
-              <CalendarDays className="w-3.5 h-3.5 text-amber-400" />
-              <span>{showWeeklyPrep ? 'Hide Weekly Prep' : 'Weekly Prep Matrix'}</span>
-            </button>
-
-            <button
-              type="button"
-              id="btn-export-care-schedule-ics"
-              onClick={handleExportICS}
-              className="px-3 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors flex items-center gap-1.5 backdrop-blur-xs cursor-pointer border border-white/15"
-              title="Download standard .ICS file for Google Calendar"
-            >
-              <Download className="w-3.5 h-3.5 text-indigo-200" />
-              <span>Export .ICS</span>
-            </button>
-
-            <button
-              type="button"
               id="btn-refresh-calendar-briefing"
-              onClick={() => isLiveSourceActive ? handleFetchLiveCalendar() : handleSelectDay(selectedDayKey)}
-              disabled={isGeneratingDayAi || isRefreshing || isSyncingLiveCalendar}
+              onClick={handleManualSync}
+              disabled={isGeneratingDayAi || isRefreshing || isSyncingLiveCalendar || isLocalSyncing}
               className="px-3.5 py-2 rounded-xl bg-amber-400 hover:bg-amber-300 text-slate-950 text-xs font-extrabold transition-all flex items-center gap-1.5 shadow-sm disabled:opacity-50 cursor-pointer"
             >
-              <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingDayAi || isRefreshing || isSyncingLiveCalendar ? 'animate-spin' : ''}`} />
-              <span>{isGeneratingDayAi ? 'Recalibrating...' : isLiveSourceActive ? 'Sync Live Events' : 'Sync Calendar'}</span>
+              <RefreshCw className={`w-3.5 h-3.5 ${isGeneratingDayAi || isRefreshing || isSyncingLiveCalendar || isLocalSyncing ? 'animate-spin' : ''}`} />
+              <span>{isGeneratingDayAi || isRefreshing || isLocalSyncing ? 'Syncing...' : isLiveSourceActive ? 'Sync Live Events' : 'Sync Calendar'}</span>
             </button>
           </div>
         </div>
-
-        {/* Download Success Notice */}
-        {exportNotice && (
-          <div className="mt-3 p-3 rounded-xl bg-emerald-900/80 border border-emerald-400/50 text-xs text-emerald-100 font-semibold animate-in fade-in flex items-center gap-2">
-            <CheckCircle2 className="w-4 h-4 text-emerald-300 shrink-0" />
-            <span>{exportNotice}</span>
-          </div>
-        )}
 
         {/* Live Sync Status Notice */}
         {liveSyncMessage && (
@@ -1105,70 +1338,85 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
           </div>
         )}
 
-
-
         {/* -------------------------------------------------------------
-            WEEKLY PREPARATION & LOGISTICS DRAWER (Ahead-of-Time Planning)
+            5-DAY AHEAD-OF-TIME NAVIGATION SELECTOR BAR
         -------------------------------------------------------------- */}
-        {showWeeklyPrep && (
-          <div className="mt-5 p-5 rounded-2xl bg-indigo-900/70 border border-indigo-700/60 text-xs text-indigo-100 space-y-4 animate-in fade-in">
-            <div className="flex items-center justify-between border-b border-indigo-800 pb-2">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-emerald-400" />
-                <span className="font-extrabold text-sm text-white uppercase tracking-wide">
-                  7-Day Ahead-of-Time Clinical & Logistics Preparation Matrix
-                </span>
-              </div>
-              <button 
-                type="button" 
-                onClick={() => setShowWeeklyPrep(false)}
-                className="text-indigo-300 hover:text-white font-bold"
-              >
-                ✕ Close
-              </button>
-            </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-              {/* Cold-Chain Cartridges */}
-              <div className="p-3.5 rounded-xl bg-black/30 border border-indigo-600/40 space-y-1.5">
-                <span className="text-[11px] font-black uppercase text-amber-300 flex items-center gap-1.5">
-                  <HeartPulse className="w-3.5 h-3.5 text-amber-400" />
-                  Vyalev Continuous Infusion Cartridges
-                </span>
-                <p className="text-slate-200 text-[11px] leading-relaxed">
-                  <strong>7 Cassettes Staged:</strong> Refrigerated cold-chain supply verified. Mandatory cassette rotation scheduled for <strong>Friday, Sep 4 at 8:30 PM</strong>.
-                </p>
-              </div>
-
-              {/* Transit Departure Buffers Staged */}
-              <div className="p-3.5 rounded-xl bg-black/30 border border-indigo-600/40 space-y-1.5">
-                <span className="text-[11px] font-black uppercase text-emerald-300 flex items-center gap-1.5">
-                  <Car className="w-3.5 h-3.5 text-emerald-400" />
-                  Transit Mobility Buffers
-                </span>
-                <p className="text-slate-200 text-[11px] leading-relaxed">
-                  <strong>+135 Total Minutes Staged:</strong> Out-of-house medical and therapy departures padded with +25m unhurried transfer buffers to prevent gait freezing.
-                </p>
-              </div>
-
-              {/* Levodopa Protein Spacing */}
-              <div className="p-3.5 rounded-xl bg-black/30 border border-indigo-600/40 space-y-1.5">
-                <span className="text-[11px] font-black uppercase text-blue-300 flex items-center gap-1.5">
-                  <Sparkles className="w-3.5 h-3.5 text-blue-400" />
-                  Protein / Levodopa Coordination
-                </span>
-                <p className="text-slate-200 text-[11px] leading-relaxed">
-                  <strong>Active Strategy:</strong> High-protein meals strictly reserved for 6:00 PM dinner on therapy days (Sat, Mon, Tue, Thu) to keep daytime Levodopa absorption clear.
-                </p>
-              </div>
-            </div>
+        <div className="mt-5 pt-4 border-t border-indigo-800/60">
+          <div className="flex items-center justify-between gap-2 mb-2">
+            <span className="text-[11px] font-bold uppercase tracking-wider text-indigo-300 flex items-center gap-1.5">
+              <Calendar className="w-3.5 h-3.5 text-amber-400" />
+              Select Day Schedule (Synchronizes Spoken Script, Actions & Buffers)
+            </span>
+            <span className="text-[10px] text-amber-300 font-semibold">
+              Current Active: {selectedDayKey === 'all_5_days' ? 'All 5 Days' : currentDayData.dayLabel}
+            </span>
           </div>
-        )}
+
+          <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-2">
+            {next5Days.map((day) => {
+              const isActive = selectedDayKey === day.key;
+              return (
+                <button
+                  key={day.key}
+                  type="button"
+                  id={`btn-select-day-${day.key}`}
+                  onClick={() => handleSelectDay(day.key)}
+                  className={`p-2.5 rounded-xl text-left transition-all cursor-pointer border flex flex-col justify-between gap-1 ${
+                    isActive
+                      ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md font-extrabold scale-[1.02]'
+                      : 'bg-white/10 hover:bg-white/15 text-indigo-100 border-white/10 font-medium'
+                  }`}
+                >
+                  <div className="flex items-center justify-between w-full">
+                    <span className="text-xs font-bold leading-tight">{day.weekdayLong}</span>
+                    <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-black uppercase ${
+                      isActive ? 'bg-slate-950 text-amber-400' : 'bg-white/20 text-indigo-200'
+                    }`}>
+                      {day.badge}
+                    </span>
+                  </div>
+                  <div className="flex items-center justify-between text-[10px] gap-1">
+                    <span className={isActive ? 'text-slate-900 font-bold' : 'text-indigo-200'}>
+                      {day.monthShort} {day.dayNum}
+                    </span>
+                    <span className={`truncate ${isActive ? 'text-slate-900 font-extrabold' : 'text-amber-200 font-semibold'}`}>
+                      {day.focus}
+                    </span>
+                  </div>
+                </button>
+              );
+            })}
+
+            {/* All 5 Days Tab */}
+            <button
+              type="button"
+              id="btn-select-day-all_5_days"
+              onClick={() => handleSelectDay('all_5_days')}
+              className={`p-2.5 rounded-xl text-left transition-all cursor-pointer border flex flex-col justify-between gap-1 ${
+                selectedDayKey === 'all_5_days'
+                  ? 'bg-amber-400 text-slate-950 border-amber-300 shadow-md font-extrabold scale-[1.02]'
+                  : 'bg-white/10 hover:bg-white/15 text-indigo-100 border-white/10 font-medium'
+              }`}
+            >
+              <div className="flex items-center justify-between w-full">
+                <span className="text-xs font-bold leading-tight">All 5 Days</span>
+                <span className={`text-[9px] px-1.5 py-0.2 rounded-full font-black uppercase ${
+                  selectedDayKey === 'all_5_days' ? 'bg-slate-950 text-amber-400' : 'bg-white/20 text-indigo-200'
+                }`}>
+                  5-Day View
+                </span>
+              </div>
+              <span className={`text-[10px] truncate ${selectedDayKey === 'all_5_days' ? 'text-slate-900 font-bold' : 'text-indigo-200'}`}>
+                Full 5-Day Agenda
+              </span>
+            </button>
+          </div>
+        </div>
 
         {/* -------------------------------------------------------------
             SPOKEN MORNING AUDIO PLAYER BOX (Tailored to Selected Day)
         -------------------------------------------------------------- */}
-        <div className="mt-5 p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex flex-col md:flex-row md:items-center justify-between gap-4">
+        <div className="mt-4 p-4 rounded-2xl bg-white/10 backdrop-blur-md border border-white/15 flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div className="flex items-start sm:items-center gap-3">
             <button
               type="button"
@@ -1316,13 +1564,13 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
 
             <div className="flex flex-wrap items-center gap-2 shrink-0">
               <a
-                href="https://calendar.google.com/calendar/render?action=TEMPLATE&text=[Care%20Plan]%20Dr.%20Arthur%20Henderson%20Neurology%20Visit&location=400%20Parnassus%20Ave,%20San%20Francisco,%20CA&details=UCSF%20Neurology%20MDS-UPDRS%20Evaluation%20with%20+30m%20Uber%20Assist%20Departure%20Buffer"
+                href="https://calendar.google.com/calendar/u/0/r"
                 target="_blank"
                 rel="noreferrer noopener"
                 className="px-3.5 py-2 rounded-xl bg-white hover:bg-rose-50 text-rose-800 border border-rose-300 text-xs font-bold transition-all flex items-center gap-1.5 shadow-2xs cursor-pointer"
               >
                 <Calendar className="w-3.5 h-3.5 text-rose-600" />
-                <span>View in Google Calendar</span>
+                <span>Open Google Calendar</span>
                 <ExternalLink className="w-3 h-3 text-slate-400" />
               </a>
               <button
@@ -1413,7 +1661,7 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
                   </div>
                   <div>
                     <h4 className="font-bold text-sm text-slate-900">
-                      Wade's Spoken Guidance ({currentDayData.dayLabel.split(' ')[0]})
+                      Wade's Guidance ({currentDayData.dayLabel.split(' ')[0]})
                     </h4>
                     <p className="text-xs text-indigo-700/80 font-medium">
                       Zero-pressure, single-focus clarity
@@ -1475,85 +1723,90 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
 
             <div className="text-[11px] text-emerald-800/80 font-medium bg-emerald-100/50 px-3 py-2 rounded-xl flex items-center gap-2">
               <Car className="w-3.5 h-3.5 text-emerald-600 shrink-0" />
-              <span>Transit departures padded with +20m mobility buffers automatically.</span>
+              <span>Transit departures padded with +25m mobility buffers automatically.</span>
             </div>
           </div>
         </div>
 
         {/* -------------------------------------------------------------
-            INTERACTIVE TIMELINE & GOOGLE CALENDAR DIRECT INTEGRATION
+            INTERACTIVE TIMELINE (Dad-Centric Event Analysis)
         -------------------------------------------------------------- */}
         <div className="pt-2">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-            <div className="flex items-center gap-2">
-              <button
-                type="button"
-                id="toggle-schedule-details-btn"
-                onClick={() => setShowFullSchedule(!showFullSchedule)}
-                className="flex items-center gap-2 text-xs font-bold text-slate-800 hover:text-indigo-600 cursor-pointer"
-              >
-                <Calendar className="w-4 h-4 text-indigo-600" />
-                <span>{currentDayData.dayLabel} Schedule Timeline ({activeEvents.length} Events)</span>
-                {showFullSchedule ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
-              </button>
-            </div>
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <button
+              type="button"
+              id="toggle-schedule-details-btn"
+              onClick={() => setShowFullSchedule(!showFullSchedule)}
+              className="flex items-center gap-2 text-xs font-bold text-slate-800 hover:text-indigo-600 cursor-pointer"
+            >
+              <Calendar className="w-4 h-4 text-indigo-600" />
+              <span>{currentDayData.dayLabel} Schedule Timeline ({activeEvents.length} Events)</span>
+              {showFullSchedule ? <ChevronUp className="w-4 h-4 text-slate-400" /> : <ChevronDown className="w-4 h-4 text-slate-400" />}
+            </button>
 
-            <div className="flex items-center gap-2">
-              {/* Audience Filter Pills */}
-              <div className="flex items-center bg-slate-100 p-0.5 rounded-xl text-[11px] font-bold">
-                {(['All', 'Captain Wade', 'Little Wade', 'Elsbeth (Work/LA)', 'Family Shared'] as const).map((filterOpt) => (
-                  <button
-                    key={filterOpt}
-                    type="button"
-                    onClick={() => setAudienceFilter(filterOpt)}
-                    className={`px-2.5 py-1 rounded-lg transition-all cursor-pointer ${
-                      audienceFilter === filterOpt
-                        ? 'bg-white text-slate-900 shadow-2xs font-extrabold'
-                        : 'text-slate-500 hover:text-slate-800'
-                    }`}
-                  >
-                    {filterOpt === 'Captain Wade' ? 'Captain Wade' :
-                     filterOpt === 'Little Wade' ? 'Little Wade' :
-                     filterOpt === 'Elsbeth (Work/LA)' ? 'LA / Work' :
-                     filterOpt === 'Family Shared' ? 'Family' : 'All Events'}
-                  </button>
-                ))}
-              </div>
+            <div className="text-[11px] text-slate-500 font-semibold">
+              Showing all events with Big Wade impact analysis
             </div>
           </div>
 
           {showFullSchedule && (
-            <div className="space-y-3">
-              {activeEvents
-                .filter(evt => audienceFilter === 'All' || evt.audience === audienceFilter)
-                .map((evt) => {
+            <div className="space-y-3.5">
+              {activeEvents.length === 0 ? (
+                <div className="p-8 text-center rounded-2xl bg-slate-50 border border-dashed border-slate-300 space-y-2">
+                  <div className="w-10 h-10 rounded-full bg-emerald-100 text-emerald-700 mx-auto flex items-center justify-center font-bold">
+                    <CheckCircle2 className="w-5 h-5" />
+                  </div>
+                  <h4 className="font-bold text-sm text-slate-800">Clear Care Schedule for this Day</h4>
+                  <p className="text-xs text-slate-500 max-w-md mx-auto">
+                    No scheduled off-site appointments or transit events found for this date. Wade can rest comfortably at home with steady pump flow and routine hydration.
+                  </p>
+                  <button
+                    type="button"
+                    onClick={() => handleSelectDay('all_5_days')}
+                    className="mt-2 inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-indigo-50 hover:bg-indigo-100 text-indigo-800 text-xs font-bold transition-all cursor-pointer"
+                  >
+                    <Calendar className="w-3.5 h-3.5" />
+                    <span>View All 5 Days</span>
+                  </button>
+                </div>
+              ) : (
+                activeEvents.map((evt) => {
                   const googleCalUrl = createGoogleCalendarUrl(evt);
+                  const isWadeEvent = evt.audience === 'Captain Wade';
                   const isUber = evt.transitMode === 'Uber Assist / Ride Required';
                   const isLA = evt.isWorkTripLA || evt.audience === 'Elsbeth (Work/LA)';
 
-                  // Border & background accents based on colorTag
+                  // Border & background accents based on audience & colorTag
                   const cardBorderColor = 
-                    evt.colorTag === 'purple' ? 'border-purple-200 hover:border-purple-300 bg-purple-50/20' :
-                    evt.colorTag === 'blue' ? 'border-blue-200 hover:border-blue-300 bg-blue-50/20' :
+                    isLA ? 'border-purple-200 hover:border-purple-300 bg-purple-50/20' :
+                    evt.audience === 'Little Wade' ? 'border-blue-200 hover:border-blue-300 bg-blue-50/20' :
+                    evt.audience === 'Family Shared' ? 'border-indigo-200 hover:border-indigo-300 bg-indigo-50/20' :
                     evt.colorTag === 'amber' ? 'border-amber-200 hover:border-amber-300 bg-amber-50/20' :
                     evt.colorTag === 'rose' ? 'border-rose-200 hover:border-rose-300 bg-rose-50/20' :
-                    evt.colorTag === 'indigo' ? 'border-indigo-200 hover:border-indigo-300 bg-indigo-50/20' :
                     'border-slate-200 hover:border-emerald-300 bg-white';
 
                   return (
                     <div 
                       key={evt.id} 
-                      className={`p-4 sm:p-5 rounded-2xl border ${cardBorderColor} transition-all shadow-2xs flex flex-col md:flex-row md:items-center justify-between gap-4`}
+                      className={`p-4 sm:p-5 rounded-2xl border ${cardBorderColor} transition-all shadow-2xs space-y-3`}
                     >
-                      <div className="space-y-2">
+                      <div className="flex flex-col md:flex-row md:items-center justify-between gap-2">
                         <div className="flex flex-wrap items-center gap-2">
+                          {/* Date Badge */}
+                          {(evt.dayLabel || evt.fullDateFormatted || evt.dateStr) && (
+                            <span className="px-2.5 py-0.5 rounded-md text-[11px] font-black bg-indigo-900 text-amber-300 border border-indigo-700/50 flex items-center gap-1 shadow-2xs">
+                              <Calendar className="w-3 h-3 text-amber-300" />
+                              {evt.dayLabel || evt.fullDateFormatted || evt.dateStr}
+                            </span>
+                          )}
+
                           <span className="font-extrabold text-sm text-slate-900">
                             {evt.timeFormatted}
                           </span>
 
                           {/* Audience Tag Badge */}
                           {evt.audience && (
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1 ${
+                            <span className={`px-2.5 py-0.5 rounded-full text-[10px] font-extrabold flex items-center gap-1 ${
                               evt.audience === 'Captain Wade' ? 'bg-amber-100 text-amber-900 border border-amber-300' :
                               evt.audience === 'Little Wade' ? 'bg-blue-100 text-blue-900 border border-blue-300' :
                               evt.audience === 'Elsbeth (Work/LA)' ? 'bg-purple-100 text-purple-900 border border-purple-300' :
@@ -1564,79 +1817,429 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
                             </span>
                           )}
 
-                          {/* Transit Need Badge (Uber Assist vs Flight vs Drive) */}
-                          {evt.needsTransit && evt.transitMode && (
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-black tracking-tight flex items-center gap-1 ${
-                              isUber ? 'bg-amber-500 text-white shadow-2xs' :
-                              isLA ? 'bg-purple-600 text-white' :
-                              'bg-slate-700 text-white'
-                            }`}>
+                        {/* Transit Badge (Uber for Wade vs No Transit for Wade) */}
+                        {isWadeEvent ? (
+                          evt.needsTransit && evt.transitMode ? (
+                            <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-amber-500 text-white flex items-center gap-1 shadow-2xs">
                               <Car className="w-2.5 h-2.5" />
                               {evt.transitMode}
                             </span>
-                          )}
-
-                          <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
-                            evt.category === 'Physical Therapy' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
-                            evt.category === 'Clinical / Medical' ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' :
-                            evt.category === 'Travel / Work Trip' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
-                            evt.category === 'Community / Social' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                            evt.category === 'Routine' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
-                            'bg-slate-100 text-slate-700'
-                          }`}>
-                            {evt.category}
+                          ) : (
+                            <span className="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-50 text-emerald-800 border border-emerald-200 flex items-center gap-1">
+                              <CheckCircle2 className="w-2.5 h-2.5 text-emerald-600" />
+                              Home / Virtual (No Transit)
+                            </span>
+                          )
+                        ) : (
+                          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-black bg-slate-100 text-slate-700 border border-slate-300 flex items-center gap-1">
+                            <CheckCircle2 className="w-2.5 h-2.5 text-slate-500" />
+                            No Uber / Transit required for Big Wade
                           </span>
+                        )}
 
-                          {evt.fatigueRiskLevel && !isLA && (
-                            <span className={`px-2 py-0.5 rounded-full text-[10px] font-bold ${
-                              evt.fatigueRiskLevel === 'Low' ? 'bg-emerald-50 text-emerald-700 border border-emerald-200' :
-                              evt.fatigueRiskLevel === 'Moderate' ? 'bg-amber-50 text-amber-700 border border-amber-200' :
-                              'bg-red-50 text-red-700 border border-red-200'
-                            }`}>
-                              {evt.fatigueRiskLevel} Fatigue Risk
-                            </span>
-                          )}
-                        </div>
-
-                        <h4 className="font-bold text-sm text-slate-800 flex items-center gap-2">
-                          {evt.title}
-                          {isLA && (
-                            <span className="text-[10px] px-1.5 py-0.5 bg-purple-200 text-purple-900 rounded-md font-extrabold uppercase">
-                              ✈️ LA Work Trip
-                            </span>
-                          )}
-                        </h4>
-
-                        <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500">
-                          <span className="flex items-center gap-1">
-                            <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                            {evt.location}
-                          </span>
-                          {evt.suggestedDepartureTime && (
-                            <span className={`flex items-center gap-1 font-semibold ${isUber ? 'text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200' : 'text-indigo-700'}`}>
-                              <Car className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
-                              Staged Departure: {evt.suggestedDepartureTime} (+{evt.mobilityPrepBufferMinutes}m PD buffer)
-                            </span>
-                          )}
-                        </div>
-
-                        <p className="text-xs text-slate-600 leading-relaxed font-medium">
-                          {evt.description || evt.actionForCaregiver}
-                        </p>
-                      </div>
-
-                      <div className="shrink-0 flex flex-col sm:flex-row md:flex-col items-start md:items-end gap-1 text-xs">
-                        <span className="text-[11px] text-slate-500 font-medium bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
-                          Wade Guidance: {evt.actionForWade}
+                        <span className={`px-2 py-0.5 rounded-md text-[10px] font-black uppercase ${
+                          evt.category === 'Physical Therapy' ? 'bg-amber-100 text-amber-800 border border-amber-200' :
+                          evt.category === 'Clinical / Medical' ? 'bg-indigo-100 text-indigo-800 border border-indigo-200' :
+                          evt.category === 'Travel / Work Trip' ? 'bg-purple-100 text-purple-800 border border-purple-200' :
+                          evt.category === 'Community / Social' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                          evt.category === 'Routine' ? 'bg-emerald-100 text-emerald-800 border border-emerald-200' :
+                          'bg-slate-100 text-slate-700'
+                        }`}>
+                          {evt.category}
                         </span>
                       </div>
+
+                      <div className="flex items-center gap-2 shrink-0">
+                        <button
+                          type="button"
+                          onClick={() => handleOpenEditEvent(evt)}
+                          className="text-[11px] text-slate-700 hover:text-indigo-600 font-bold flex items-center gap-1 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-slate-200 hover:border-indigo-300 shadow-2xs transition-colors"
+                          title="Edit audience, category, transit mode, and mobility buffer tags"
+                        >
+                          <Edit3 className="w-3 h-3 text-indigo-500" />
+                          <span>Edit Tags</span>
+                        </button>
+                        <a
+                          href={googleCalUrl}
+                          target="_blank"
+                          rel="noreferrer noopener"
+                          className="text-[11px] text-slate-500 hover:text-indigo-600 font-semibold flex items-center gap-1 cursor-pointer bg-white px-2.5 py-1 rounded-lg border border-slate-200 hover:border-indigo-300 shadow-2xs transition-colors"
+                          title={evt.htmlLink ? "Open original event in Google Calendar" : "Open Google Calendar"}
+                        >
+                          <Calendar className="w-3 h-3 text-indigo-500" />
+                          <span>{evt.htmlLink ? "Google Calendar" : "Calendar"}</span>
+                          <ExternalLink className="w-2.5 h-2.5 text-slate-400" />
+                        </a>
+                      </div>
                     </div>
-                  );
-                })}
+
+                    <div>
+                      <h4 className="font-bold text-sm text-slate-900 flex items-center gap-2">
+                        {evt.title}
+                        {isLA && (
+                          <span className="text-[10px] px-1.5 py-0.5 bg-purple-200 text-purple-900 rounded-md font-extrabold uppercase">
+                            ✈️ LA Work Trip
+                          </span>
+                        )}
+                      </h4>
+
+                      <div className="flex flex-wrap items-center gap-x-4 gap-y-1 text-xs text-slate-500 mt-1">
+                        <span className="flex items-center gap-1">
+                          <MapPin className="w-3.5 h-3.5 text-slate-400 shrink-0" />
+                          {evt.location}
+                        </span>
+                        {evt.suggestedDepartureTime && isWadeEvent && evt.needsTransit && (evt.mobilityPrepBufferMinutes || 0) > 0 && (
+                          <span className={`flex items-center gap-1 font-semibold ${isUber ? 'text-amber-800 bg-amber-50 px-2 py-0.5 rounded-md border border-amber-200' : 'text-indigo-700'}`}>
+                            <Car className="w-3.5 h-3.5 text-indigo-600 shrink-0" />
+                            Staged Departure: {evt.suggestedDepartureTime} (+{evt.mobilityPrepBufferMinutes}m PD buffer)
+                          </span>
+                        )}
+                      </div>
+
+                      <p className="text-xs text-slate-600 leading-relaxed font-medium mt-1.5">
+                        {evt.description || evt.actionForCaregiver}
+                      </p>
+                    </div>
+
+                    {/* Dad-Centric Output & Impact Container */}
+                    <div className={`p-3 rounded-xl border text-xs leading-relaxed ${
+                      isWadeEvent 
+                        ? 'bg-amber-50/50 border-amber-200/70 text-amber-950'
+                        : 'bg-blue-50/60 border-blue-200/70 text-blue-950'
+                    }`}>
+                      <div className="flex items-center gap-1.5 font-extrabold text-[11px] mb-1 uppercase tracking-wide">
+                        <UserCheck className={`w-3.5 h-3.5 ${isWadeEvent ? 'text-amber-600' : 'text-blue-600'}`} />
+                        <span>{isWadeEvent ? "Captain Wade Action Guidance" : "Impact on Big Wade (Dad)"}</span>
+                      </div>
+                      <p className="font-medium text-slate-700">
+                        {isWadeEvent 
+                          ? (evt.actionForWade || evt.wadeImpactNote)
+                          : (evt.wadeImpactNote || 'Dad relaxes comfortably at home; zero transit or physical demands on Wade. Caregiver coordinates activity.')
+                        }
+                      </p>
+                    </div>
+                  </div>
+                );
+              }))}
             </div>
           )}
         </div>
       </div>
+
+      {/* -------------------------------------------------------------
+          MODAL: EDIT EVENT TAGS & PARKINSON'S CARE SETTINGS
+      -------------------------------------------------------------- */}
+      {editingEvent && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/60 backdrop-blur-xs animate-in fade-in duration-200">
+          <div className="bg-white rounded-3xl border border-slate-200 shadow-2xl max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6 sm:p-7 space-y-6">
+            
+            {/* Modal Header */}
+            <div className="flex items-start justify-between gap-4 border-b border-slate-100 pb-4">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2">
+                  <span className="px-2.5 py-0.5 rounded-full bg-indigo-100 text-indigo-800 text-[10px] font-black uppercase tracking-wider flex items-center gap-1">
+                    <Tag className="w-3 h-3 text-indigo-600" />
+                    Tag & Schedule Customizer
+                  </span>
+                </div>
+                <h3 className="text-lg font-black text-slate-900">
+                  Edit Event Tags & Clinical Buffers
+                </h3>
+                <p className="text-xs text-slate-500 font-medium">
+                  Adjust audience attribution, category, and Parkinson's mobility buffer for this event.
+                </p>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloseEditModal}
+                className="w-8 h-8 rounded-full bg-slate-100 hover:bg-slate-200 text-slate-500 hover:text-slate-700 flex items-center justify-center transition-colors cursor-pointer"
+              >
+                <X className="w-4 h-4" />
+              </button>
+            </div>
+
+            {/* Modal Form Content */}
+            <div className="space-y-5">
+              
+              {/* Event Title */}
+              <div className="space-y-1.5">
+                <label className="block text-xs font-bold text-slate-700">
+                  Event Title
+                </label>
+                <input
+                  type="text"
+                  value={editForm.title || ''}
+                  onChange={(e) => setEditForm({ ...editForm, title: e.target.value })}
+                  className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-sm font-semibold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  placeholder="e.g. Dr. Henderson Telehealth Neurologist Check-In"
+                />
+              </div>
+
+              {/* Time & Location */}
+              <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Time Formatted
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.timeFormatted || ''}
+                    onChange={(e) => setEditForm({ ...editForm, timeFormatted: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    placeholder="e.g. 10:00 AM – 11:30 AM"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Location Name
+                  </label>
+                  <input
+                    type="text"
+                    value={editForm.location || ''}
+                    onChange={(e) => setEditForm({ ...editForm, location: e.target.value })}
+                    className="w-full px-3.5 py-2.5 rounded-xl border border-slate-300 text-xs font-semibold text-slate-900 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500"
+                    placeholder="e.g. UCSF Neuro Clinic or Home / Patio"
+                  />
+                </div>
+              </div>
+
+              {/* AUDIENCE ATTRIBUTION TAG */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-700">
+                  Audience Attribution Tag
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
+                  {[
+                    { id: 'Captain Wade', label: 'Captain Wade', desc: 'Primary Patient', color: 'border-amber-400 bg-amber-50 text-amber-900' },
+                    { id: 'Little Wade', label: 'Little Wade', desc: 'Youth Activities', color: 'border-blue-400 bg-blue-50 text-blue-900' },
+                    { id: 'Elsbeth (Work/LA)', label: 'Elsbeth (LA)', desc: 'Work / Travel', color: 'border-purple-400 bg-purple-50 text-purple-900' },
+                    { id: 'Family Shared', label: 'Family Shared', desc: 'Home / Meals', color: 'border-indigo-400 bg-indigo-50 text-indigo-900' }
+                  ].map((aud) => {
+                    const isSelected = (editForm.audience || editingEvent.audience) === aud.id;
+                    return (
+                      <button
+                        key={aud.id}
+                        type="button"
+                        onClick={() => {
+                          const isWade = aud.id === 'Captain Wade';
+                          setEditForm({ 
+                            ...editForm, 
+                            audience: aud.id as EventAudience,
+                            needsTransit: isWade ? editForm.needsTransit : false,
+                            mobilityPrepBufferMinutes: isWade ? editForm.mobilityPrepBufferMinutes : 0
+                          });
+                        }}
+                        className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                          isSelected
+                            ? `${aud.color} ring-2 ring-indigo-500/30 font-bold shadow-xs`
+                            : 'border-slate-200 bg-slate-50/60 hover:bg-slate-100 text-slate-700 font-medium'
+                        }`}
+                      >
+                        <div className="text-xs font-bold leading-tight">{aud.label}</div>
+                        <div className="text-[10px] text-slate-500 mt-0.5">{aud.desc}</div>
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* CATEGORY TAG */}
+              <div className="space-y-2">
+                <label className="block text-xs font-bold text-slate-700">
+                  Event Category Tag
+                </label>
+                <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+                  {[
+                    'Physical Therapy',
+                    'Clinical / Medical',
+                    'Community / Social',
+                    'Family / Rest',
+                    'Travel / Work Trip',
+                    'Routine'
+                  ].map((cat) => {
+                    const isSelected = (editForm.category || editingEvent.category) === cat;
+                    return (
+                      <button
+                        key={cat}
+                        type="button"
+                        onClick={() => setEditForm({ ...editForm, category: cat })}
+                        className={`px-3 py-2 rounded-xl text-xs font-bold border text-center transition-all cursor-pointer ${
+                          isSelected
+                            ? 'bg-slate-900 text-white border-slate-900 shadow-xs'
+                            : 'bg-white text-slate-700 hover:bg-slate-50 border-slate-200'
+                        }`}
+                      >
+                        {cat}
+                      </button>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {/* TRANSIT & MOBILITY BUFFER SETTINGS (Only for Captain Wade events) */}
+              {(editForm.audience === 'Captain Wade' || (!editForm.audience && editingEvent.audience === 'Captain Wade')) ? (
+                <div className="p-4 rounded-2xl bg-amber-50/60 border border-amber-200/80 space-y-4">
+                  <div className="flex items-center justify-between">
+                    <div className="space-y-0.5">
+                      <h4 className="text-xs font-bold text-amber-950 flex items-center gap-1.5">
+                        <Car className="w-3.5 h-3.5 text-amber-600" />
+                        Requires Vehicular / Uber Assist Transit for Wade?
+                      </h4>
+                      <p className="text-[11px] text-amber-800 font-medium">
+                        Enable to calculate staged departure times and Parkinson's mobility buffers.
+                      </p>
+                    </div>
+                    <label className="relative inline-flex items-center cursor-pointer">
+                      <input
+                        type="checkbox"
+                        checked={Boolean(editForm.needsTransit)}
+                        onChange={(e) => {
+                          const checked = e.target.checked;
+                          setEditForm({
+                            ...editForm,
+                            needsTransit: checked,
+                            mobilityPrepBufferMinutes: checked ? (editForm.mobilityPrepBufferMinutes || 25) : 0,
+                            transitMode: checked ? (editForm.transitMode || 'Uber Assist / Ride Required') : 'No Transit (Home/Virtual)',
+                            suggestedDepartureTime: checked ? (editForm.suggestedDepartureTime || '09:55 AM') : undefined
+                          });
+                        }}
+                        className="sr-only peer"
+                      />
+                      <div className="w-11 h-6 bg-slate-200 peer-focus:outline-hidden rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-slate-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-amber-600"></div>
+                    </label>
+                  </div>
+
+                  {editForm.needsTransit && (
+                    <div className="space-y-3 pt-2 border-t border-amber-200/60">
+                      
+                      {/* Transit Mode Selection */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-amber-950">
+                          Transit Mode
+                        </label>
+                        <select
+                          value={editForm.transitMode || 'Uber Assist / Ride Required'}
+                          onChange={(e) => setEditForm({ ...editForm, transitMode: e.target.value as TransitMode })}
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-semibold text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-amber-500/20"
+                        >
+                          <option value="Uber Assist / Ride Required">Uber Assist / Ride Required</option>
+                          <option value="Caregiver Driving">Caregiver Driving</option>
+                          <option value="Caregiver Local Drive (No Uber for Dad)">Caregiver Local Drive (No Uber for Dad)</option>
+                          <option value="Flight / Out of Town">Flight / Out of Town</option>
+                        </select>
+                      </div>
+
+                      {/* Mobility Buffer Minutes */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-amber-950">
+                          Parkinson's Mobility Preparation Buffer
+                        </label>
+                        <div className="grid grid-cols-3 sm:grid-cols-6 gap-1.5">
+                          {[0, 15, 20, 25, 30, 45].map((mins) => {
+                            const isSelected = (editForm.mobilityPrepBufferMinutes ?? editingEvent.mobilityPrepBufferMinutes) === mins;
+                            return (
+                              <button
+                                key={mins}
+                                type="button"
+                                onClick={() => setEditForm({ ...editForm, mobilityPrepBufferMinutes: mins })}
+                                className={`py-1.5 px-2 rounded-lg text-xs font-bold text-center border transition-all cursor-pointer ${
+                                  isSelected
+                                    ? 'bg-amber-600 text-white border-amber-600 shadow-2xs'
+                                    : 'bg-white text-slate-700 border-amber-200 hover:bg-amber-100/50'
+                                }`}
+                              >
+                                {mins === 0 ? '0m (None)' : `+${mins}m`}
+                              </button>
+                            );
+                          })}
+                        </div>
+                      </div>
+
+                      {/* Staged Departure Time */}
+                      <div className="space-y-1.5">
+                        <label className="block text-xs font-bold text-amber-950">
+                          Staged Departure Time
+                        </label>
+                        <input
+                          type="text"
+                          value={editForm.suggestedDepartureTime || ''}
+                          onChange={(e) => setEditForm({ ...editForm, suggestedDepartureTime: e.target.value })}
+                          className="w-full px-3 py-2 rounded-xl border border-amber-300 bg-white text-xs font-semibold text-slate-900"
+                          placeholder="e.g. 09:55 AM"
+                        />
+                      </div>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 text-xs text-slate-600">
+                  ℹ️ Non-patient event (assigned to {editForm.audience || editingEvent.audience}). Transit is marked as not required for Dad; no staged departure buffers will be applied.
+                </div>
+              )}
+
+              {/* Guidance & Staging Notes */}
+              <div className="space-y-3">
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Captain Wade Spoken Guidance / Action
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={editForm.actionForWade || ''}
+                    onChange={(e) => setEditForm({ ...editForm, actionForWade: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
+                    placeholder="Clear, unhurried guidance for Wade..."
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <label className="block text-xs font-bold text-slate-700">
+                    Caregiver Logistics Action (Elsbeth)
+                  </label>
+                  <textarea
+                    rows={2}
+                    value={editForm.actionForCaregiver || ''}
+                    onChange={(e) => setEditForm({ ...editForm, actionForCaregiver: e.target.value })}
+                    className="w-full px-3 py-2 rounded-xl border border-slate-300 text-xs text-slate-800 focus:outline-hidden focus:ring-2 focus:ring-indigo-500/20"
+                    placeholder="Logistics and preparation instructions for caregiver..."
+                  />
+                </div>
+              </div>
+
+            </div>
+
+            {/* Modal Actions */}
+            <div className="flex flex-col-reverse sm:flex-row sm:items-center justify-between gap-3 pt-4 border-t border-slate-100">
+              <button
+                type="button"
+                onClick={() => handleResetEventToDefault(editingEvent.id)}
+                className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:text-rose-600 hover:bg-rose-50 border border-slate-200 transition-colors cursor-pointer flex items-center justify-center gap-1.5"
+              >
+                <RotateCcw className="w-3.5 h-3.5" />
+                <span>Reset to Clinical Default</span>
+              </button>
+
+              <div className="flex items-center gap-2">
+                <button
+                  type="button"
+                  onClick={handleCloseEditModal}
+                  className="px-4 py-2.5 rounded-xl text-xs font-bold text-slate-600 hover:bg-slate-100 transition-colors cursor-pointer"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSaveEditEvent}
+                  className="px-5 py-2.5 rounded-xl text-xs font-black text-white bg-indigo-600 hover:bg-indigo-700 shadow-md transition-all cursor-pointer flex items-center justify-center gap-1.5"
+                >
+                  <Save className="w-3.5 h-3.5" />
+                  <span>Save Tags & Update Schedule</span>
+                </button>
+              </div>
+            </div>
+
+          </div>
+        </div>
+      )}
 
     </div>
   );

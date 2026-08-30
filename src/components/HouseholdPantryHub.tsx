@@ -30,9 +30,6 @@ export const HouseholdPantryHub: React.FC<Props> = ({
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedCategory, setSelectedCategory] = useState<string>('All');
   const [showAddItemModal, setShowAddItemModal] = useState(false);
-  const [showDocExportModal, setShowDocExportModal] = useState(false);
-  const [showWalmartModal, setShowWalmartModal] = useState(false);
-  const [copiedDocSuccess, setCopiedDocSuccess] = useState(false);
   const [copiedCsvSuccess, setCopiedCsvSuccess] = useState(false);
   const [restockedToast, setRestockedToast] = useState<string | null>(null);
 
@@ -129,63 +126,6 @@ export const HouseholdPantryHub: React.FC<Props> = ({
       setRestockedToast(`Added and restocked ${shoppingItem.name} to Kitchen Pantry!`);
     }
     setTimeout(() => setRestockedToast(null), 3500);
-  };
-
-  // Generate Google Doc formatted text
-  const generateGoogleDocContent = () => {
-    const dateStr = new Date().toLocaleDateString('en-US', { weekday: 'long', month: 'long', day: 'numeric', year: 'numeric' });
-    let text = `=====================================================\n`;
-    text += `HOUSEHOLD SHOPPING & PANTRY RECONCILIATION LIST\n`;
-    text += `Generated: ${dateStr}\n`;
-    text += `For Captain Wade Care & Household Restock\n`;
-    text += `=====================================================\n\n`;
-
-    const categories = ['Groceries', 'Hydration', 'Medical/Pump Supplies', 'Household', 'Personal Care'];
-    
-    categories.forEach(cat => {
-      const itemsInCat = unpurchasedItems.filter(i => i.category === cat);
-      if (itemsInCat.length > 0) {
-        text += `\n[ ${cat.toUpperCase()} ]\n`;
-        itemsInCat.forEach(item => {
-          const match = findPantryMatch(item.name);
-          const pantryStatus = match ? `(In Pantry: ${match.quantity} ${match.unit} in ${match.location})` : `(In Pantry: 0 - Out of Stock)`;
-          text += ` [ ] ${item.name} - Qty: ${item.quantity} ${item.unit} | Urgency: ${item.urgency} | ${pantryStatus}\n`;
-          text += `     Walmart Link: ${getWalmartSearchUrl(item.name)}\n`;
-        });
-      }
-    });
-
-    text += `\n-----------------------------------------------------\n`;
-    text += `PANTRY STOCK REFERENCE SUMMARY:\n`;
-    pantryItems.forEach(p => {
-      text += ` - ${p.name}: ${p.quantity} ${p.unit} (${p.location}) [Min: ${p.minThreshold}]\n`;
-    });
-    text += `=====================================================\n`;
-    return text;
-  };
-
-  const handleCopyGoogleDoc = () => {
-    const content = generateGoogleDocContent();
-    navigator.clipboard.writeText(content);
-    setCopiedDocSuccess(true);
-    setTimeout(() => setCopiedDocSuccess(false), 3000);
-  };
-
-  const handleDownloadDoc = () => {
-    const content = generateGoogleDocContent();
-    const blob = new Blob([content], { type: 'text/plain;charset=utf-8' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `Household-Shopping-List-${new Date().toISOString().slice(0,10)}.txt`;
-    link.click();
-    URL.revokeObjectURL(url);
-  };
-
-  const handleOpenAllWalmartTabs = () => {
-    unpurchasedItems.slice(0, 5).forEach(item => {
-      window.open(getWalmartSearchUrl(item.name), '_blank', 'noopener,noreferrer');
-    });
   };
 
   const handleCopyCsvSpreadsheet = () => {
@@ -285,43 +225,6 @@ export const HouseholdPantryHub: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Integration Quick Action Bar (Walmart + Google Docs + Restock) */}
-        <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50/90 via-indigo-50/80 to-amber-50/80 border border-blue-200/80 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
-          <div className="space-y-0.5">
-            <div className="flex items-center gap-2">
-              <Store className="w-4 h-4 text-blue-700" />
-              <span className="font-extrabold text-xs text-slate-900">
-                Connected Services: Walmart.com & Google Docs / Sheets
-              </span>
-            </div>
-            <p className="text-[11px] text-slate-600">
-              Export your live queue directly to Walmart.com search carts, copy structured Google Docs with checkboxes, or cross-check stock against pantry shelves.
-            </p>
-          </div>
-
-          <div className="flex flex-wrap items-center gap-2 shrink-0">
-            <button
-              type="button"
-              id="walmart-connect-btn"
-              onClick={() => setShowWalmartModal(true)}
-              className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs"
-            >
-              <Store className="w-3.5 h-3.5" />
-              <span>Walmart.com List ({unpurchasedItems.length})</span>
-            </button>
-
-            <button
-              type="button"
-              id="google-doc-export-btn"
-              onClick={() => setShowDocExportModal(true)}
-              className="px-3.5 py-2 bg-white hover:bg-slate-100 text-slate-800 border border-slate-300 rounded-xl text-xs font-bold flex items-center gap-1.5 transition-all shadow-2xs"
-            >
-              <FileText className="w-3.5 h-3.5 text-indigo-600" />
-              <span>Export to Google Doc / Sheet</span>
-            </button>
-          </div>
-        </div>
-
         {/* AI Role Explanation Banner */}
         <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-200/80 text-xs text-indigo-950 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
           <div className="flex items-start gap-2.5">
@@ -329,7 +232,7 @@ export const HouseholdPantryHub: React.FC<Props> = ({
             <div>
               <span className="font-extrabold text-indigo-900">What the Pantry AI Does: </span>
               <span className="text-indigo-800">
-                When Wade asks for items (e.g. orange juice, root beer, pudding), Gemini cross-references household stock in real time. If already stocked, it reassures Wade warmly while suppressing unnecessary duplicate purchases. If low or missing, it silently routes items to your Walmart.com queue and master shopping document.
+                When Wade asks for items (e.g. orange juice, root beer, pudding), Gemini cross-references household stock in real time. If already stocked, it reassures Wade warmly while suppressing duplicate purchases. If low or missing, it automatically updates your shared shopping list and master inventory spreadsheet.
               </span>
             </div>
           </div>
@@ -457,7 +360,13 @@ export const HouseholdPantryHub: React.FC<Props> = ({
 
               <button
                 type="button"
-                onClick={() => setShowDocExportModal(true)}
+                onClick={() => {
+                  if (navigator.clipboard) {
+                    navigator.clipboard.writeText(window.location.href);
+                    setRestockedToast('Shareable link copied to clipboard!');
+                    setTimeout(() => setRestockedToast(null), 3000);
+                  }
+                }}
                 className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
               >
                 <Share2 className="w-3.5 h-3.5" />
@@ -641,7 +550,7 @@ export const HouseholdPantryHub: React.FC<Props> = ({
         </div>
       )}
 
-      {/* 1. SHOPPING LIST TAB (With direct Walmart buttons) */}
+      {/* 1. SHOPPING LIST TAB */}
       {activeTab === 'shopping' && (
         <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-5">
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
@@ -656,23 +565,9 @@ export const HouseholdPantryHub: React.FC<Props> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowWalmartModal(true)}
-                className="px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
-              >
-                <Store className="w-3.5 h-3.5" />
-                <span>Walmart 1-Click Cart</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={() => setShowDocExportModal(true)}
-                className="px-3.5 py-2 bg-slate-900 hover:bg-slate-800 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
-              >
-                <Copy className="w-3.5 h-3.5" />
-                <span>Google Doc</span>
-              </button>
+              <span className="px-3 py-1.5 bg-slate-100 text-slate-700 rounded-xl text-xs font-bold">
+                {unpurchasedItems.length} Items Queued
+              </span>
             </div>
           </div>
 
@@ -798,14 +693,9 @@ export const HouseholdPantryHub: React.FC<Props> = ({
             </div>
 
             <div className="flex items-center gap-2">
-              <button
-                type="button"
-                onClick={() => setShowDocExportModal(true)}
-                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 transition-colors"
-              >
-                <FileText className="w-3.5 h-3.5" />
-                <span>Export Cross-Check Doc</span>
-              </button>
+              <span className="px-3 py-1.5 bg-indigo-50 text-indigo-800 rounded-xl text-xs font-bold border border-indigo-200">
+                Live Inventory Reconciled
+              </span>
             </div>
           </div>
 
@@ -1051,170 +941,6 @@ export const HouseholdPantryHub: React.FC<Props> = ({
                 </div>
               </div>
             ))}
-          </div>
-        </div>
-      )}
-
-      {/* WALMART.COM LIST & CART LAUNCHER MODAL */}
-      {showWalmartModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-slate-200 max-h-[85vh] overflow-y-auto space-y-5">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-blue-600 text-white flex items-center justify-center shadow-md">
-                  <Store className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">Walmart.com Shopping List & Cart</h3>
-                  <p className="text-xs text-slate-500">
-                    Directly order needed items or search Walmart.com inventory in 1 click.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowWalmartModal(false)}
-                className="text-slate-400 hover:text-slate-700 text-sm font-bold p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Quick Action Buttons */}
-            <div className="p-4 rounded-2xl bg-blue-50 border border-blue-200 flex flex-col sm:flex-row sm:items-center justify-between gap-3">
-              <div className="text-xs text-blue-950">
-                <span className="font-bold block">Batch Purchase Ready</span>
-                <span>{unpurchasedItems.length} items currently queued on your active caregiver list.</span>
-              </div>
-              <button
-                type="button"
-                onClick={handleOpenAllWalmartTabs}
-                className="px-4 py-2.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm shrink-0"
-              >
-                <ExternalLink className="w-4 h-4" />
-                <span>Open Top 5 in Walmart</span>
-              </button>
-            </div>
-
-            {/* Item-by-item direct links */}
-            <div className="space-y-2">
-              <h4 className="text-xs font-extrabold uppercase text-slate-700 tracking-wider">
-                Queued Items for Walmart.com
-              </h4>
-              {unpurchasedItems.map((item) => {
-                const match = findPantryMatch(item.name);
-                return (
-                  <div
-                    key={item.id}
-                    className="p-3.5 rounded-xl border border-slate-200 bg-slate-50/50 hover:bg-white flex items-center justify-between gap-3 transition-colors"
-                  >
-                    <div>
-                      <span className="text-xs font-bold text-slate-900">{item.name}</span>
-                      <div className="flex items-center gap-2 text-[11px] text-slate-500 mt-0.5">
-                        <span>{item.quantity} {item.unit}</span>
-                        <span>•</span>
-                        <span>{item.category}</span>
-                        {match && (
-                          <span className="text-amber-800 font-medium">
-                            (Pantry has {match.quantity})
-                          </span>
-                        )}
-                      </div>
-                    </div>
-
-                    <a
-                      href={getWalmartSearchUrl(item.name)}
-                      target="_blank"
-                      rel="noopener noreferrer"
-                      className="px-3 py-1.5 bg-blue-600 hover:bg-blue-700 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-2xs transition-colors shrink-0"
-                    >
-                      <span>Find on Walmart</span>
-                      <ExternalLink className="w-3 h-3" />
-                    </a>
-                  </div>
-                );
-              })}
-            </div>
-
-            <div className="flex items-center justify-end pt-3 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowWalmartModal(false)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold"
-              >
-                Done
-              </button>
-            </div>
-          </div>
-        </div>
-      )}
-
-      {/* GOOGLE DOC / PRINTABLE SHOPPING SHEET MODAL */}
-      {showDocExportModal && (
-        <div className="fixed inset-0 bg-slate-900/60 backdrop-blur-xs flex items-center justify-center p-4 z-50 animate-in fade-in">
-          <div className="bg-white rounded-3xl p-6 sm:p-8 max-w-2xl w-full shadow-2xl border border-slate-200 max-h-[85vh] overflow-y-auto space-y-5">
-            <div className="flex items-start justify-between gap-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-2xl bg-indigo-600 text-white flex items-center justify-center shadow-md">
-                  <FileText className="w-5 h-5" />
-                </div>
-                <div>
-                  <h3 className="text-lg font-black text-slate-900">Google Doc & Shopping Sheet Export</h3>
-                  <p className="text-xs text-slate-500">
-                    Copy or download a structured, aisle-organized document with pantry stock verification.
-                  </p>
-                </div>
-              </div>
-
-              <button
-                type="button"
-                onClick={() => setShowDocExportModal(false)}
-                className="text-slate-400 hover:text-slate-700 text-sm font-bold p-1"
-              >
-                ✕
-              </button>
-            </div>
-
-            {/* Copy / Download Bar */}
-            <div className="flex flex-wrap items-center gap-2">
-              <button
-                type="button"
-                onClick={handleCopyGoogleDoc}
-                className="px-4 py-2.5 bg-indigo-600 hover:bg-indigo-700 text-white rounded-xl text-xs font-bold flex items-center gap-2 shadow-sm transition-all"
-              >
-                <Copy className="w-4 h-4" />
-                <span>{copiedDocSuccess ? 'Copied to Clipboard!' : 'Copy Formatted Google Doc'}</span>
-              </button>
-
-              <button
-                type="button"
-                onClick={handleDownloadDoc}
-                className="px-4 py-2.5 bg-white hover:bg-slate-100 text-slate-700 border border-slate-300 rounded-xl text-xs font-bold flex items-center gap-2 shadow-2xs transition-all"
-              >
-                <Download className="w-4 h-4" />
-                <span>Download .txt / Markdown</span>
-              </button>
-            </div>
-
-            {/* Document Preview Box */}
-            <div className="p-4 bg-slate-900 text-slate-200 rounded-2xl font-mono text-[11px] leading-relaxed max-h-72 overflow-y-auto border border-slate-800 whitespace-pre-wrap select-all">
-              {generateGoogleDocContent()}
-            </div>
-
-            <p className="text-[11px] text-slate-500">
-              💡 <strong>Tip:</strong> Click "Copy Formatted Google Doc" and paste (Ctrl+V / Cmd+V) directly into a new document at <strong>docs.google.com</strong> or your favorite notes app!
-            </p>
-
-            <div className="flex items-center justify-end pt-3 border-t border-slate-100">
-              <button
-                type="button"
-                onClick={() => setShowDocExportModal(false)}
-                className="px-4 py-2 bg-slate-100 hover:bg-slate-200 text-slate-700 rounded-xl text-xs font-bold"
-              >
-                Close
-              </button>
-            </div>
           </div>
         </div>
       )}

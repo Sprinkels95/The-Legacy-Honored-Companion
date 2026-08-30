@@ -1378,53 +1378,70 @@ Clinical & Logistical Reasoning Directives:
       });
     }
 
-    // High quality fallback
+    // High quality dynamic fallback from actual events passed in
+    const mainEvents = Array.isArray(events) ? events : [];
+    const firstEvent = mainEvents[0];
+    const ptEvent = mainEvents.find((e: any) => e.category === 'Physical Therapy' || (e.title && e.title.toLowerCase().includes('therapy')));
+    const clinicalEvent = mainEvents.find((e: any) => e.category === 'Clinical / Medical' || (e.title && (e.title.toLowerCase().includes('dr') || e.title.toLowerCase().includes('telehealth') || e.title.toLowerCase().includes('neurolog'))));
+    const transitEvent = mainEvents.find((e: any) => e.needsTransit && e.audience === 'Captain Wade');
+
+    const primaryHeadline = firstEvent ? `${firstEvent.title} Focus` : 'Daily Care & Rest Routine';
+    const departureStr = transitEvent?.suggestedDepartureTime || transitEvent?.startTime || '9:55 AM';
+
     const fallbackScript = personaId === 'dr-evil'
-      ? `Greetings, Captain Wade! Today is ${formattedDate}. You have physical therapy at 10:30, so our luxury transport leaves at 9:55 AM sharp! Your continuous infusion pump has 14 hours of pure gold remaining. Relax this afternoon while my henchmen guard your rest! Riiiight.`
+      ? `Greetings, Captain Wade! Today is ${formattedDate}. ${transitEvent ? `We have ${transitEvent.title} with departure staged for ${departureStr} sharp!` : 'Your day is set for comfortable rest and therapy.'} Your continuous infusion pump has ${pumpHoursLeft} hours of pure gold remaining. Relax this afternoon while my henchmen guard your rest! Riiiight.`
       : personaId === 'first-mate'
-      ? `Morning muster, Captain Wade! Today is ${formattedDate}. We set sail for physical therapy departure at 09:55 hours with full 25-minute sea buffer. Infusion pump reservoir holding steady at 14 hours. Standing by for smooth sailing!`
-      : `Good morning, Captain. You have a relaxed morning ahead until physical therapy at 10:30. We've scheduled our departure for 9:55 AM to ensure a calm, unhurried walk to the car. Your continuous infusion pump has 14 hours remaining and is flowing smoothly. Everything is well in hand, so take your time today.`;
+      ? `Morning muster, Captain Wade! Today is ${formattedDate}. ${transitEvent ? `We set sail for ${transitEvent.title} with departure at ${departureStr} hours and full Parkinson's buffer.` : 'Course set for smooth sailing and calm rest.'} Infusion pump reservoir holding steady at ${pumpHoursLeft} hours. Standing by!`
+      : `Good morning, Captain. Today is ${formattedDate}. ${transitEvent ? `You have ${transitEvent.title}, and we have staged our departure for ${departureStr} to ensure a calm, unhurried walk to the car.` : 'You have a calm, restful routine today with everything well in hand.'} Your continuous infusion pump has ${pumpHoursLeft} hours remaining and is flowing smoothly. Take your time and enjoy the day.`;
+
+    const dynamicWadeActions = mainEvents.length > 0 
+      ? mainEvents.map((e: any) => e.actionForWade || `Enjoy ${e.title} at an unhurried, comfortable pace.`).slice(0, 4)
+      : ['Enjoy your breakfast at your own pace.', 'Take your time with morning routine.', 'Afternoon quiet rest in the living room recliner.'];
+
+    const dynamicCaregiverActions = mainEvents.length > 0
+      ? mainEvents.map((e: any) => e.actionForCaregiver || `Coordinate timing and support for ${e.title}.`).slice(0, 4)
+      : ['Check continuous Vyalev pump infusion line.', 'Ensure hydration with low-protein morning snacks.', 'Stage mobility walker and review evening schedule.'];
+
+    const dynamicTransitBuffers = mainEvents
+      .filter((e: any) => e.needsTransit && e.audience === 'Captain Wade')
+      .map((e: any) => ({
+        eventId: e.id || `event-buffer-${Math.random()}`,
+        eventTitle: e.title || 'Scheduled Appointment',
+        appointmentTime: e.startTime || '10:30 AM',
+        departureTime: e.suggestedDepartureTime || '09:55 AM',
+        bufferMinutes: e.mobilityPrepBufferMinutes || 25,
+        driveMinutes: e.estimatedDriveMinutes || 10,
+        instructions: `Padded with +${e.mobilityPrepBufferMinutes || 25}m Parkinson's mobility buffer for unhurried transfer, shoes, and walker staging.`
+      }));
 
     const fallbackBriefing = {
       id: `cal-briefing-${Date.now()}`,
       date: formattedDate,
       dayTimeFormatted: `${formattedDate} • ${formattedTime}`,
-      headline: `Good Morning, Captain Wade`,
+      headline: primaryHeadline,
       spokenAudioScript: fallbackScript,
       personaId,
       pumpHoursLeft,
-      weatherCondition: 'Mild & Sunny, 68°F (Optimal outdoor conditions)',
-      morningAnchor: 'Relaxed breakfast and gentle morning routine until departure for physical therapy at 9:55 AM.',
-      middayAnchor: 'Light lunch and post-therapy quiet downtime in the living room recliner (1:30 PM – 3:00 PM).',
+      weatherCondition: weather || 'Mild & Sunny, 68°F (Optimal outdoor conditions)',
+      morningAnchor: transitEvent 
+        ? `Relaxed breakfast and unhurried routine until departure for ${transitEvent.title} at ${departureStr}.`
+        : 'Relaxed breakfast and gentle morning routine at Captain Wade\'s pace.',
+      middayAnchor: ptEvent 
+        ? `Light lunch and post-${ptEvent.title} quiet downtime in the recliner.`
+        : 'Light lunch, quiet hydration, and comfortable indoor activities.',
       afternoonRest: 'Scheduled afternoon rest to maintain high neurological energy and smooth motor fluidity.',
-      eveningRoutine: 'Telehealth review with Dr. Henderson at 3:30 PM, followed by evening family dinner at 6:00 PM.',
+      eveningRoutine: clinicalEvent
+        ? `${clinicalEvent.title} follow-up, followed by evening family dinner.`
+        : 'Evening family dinner at 6:00 PM and continuous infusion pump check.',
       clinicalMedicationSynergy: {
         levodopaAbsorptionAdvice: 'Light low-protein morning meal ensures smooth levodopa transport; protein scheduled for evening dinner.',
-        vyalevPumpCheck: 'Continuous pump cartridge has 14h reserve — steady flow through all scheduled activities.',
-        hydrationTiming: 'Take 8 oz electrolyte water with low-acid juice at 9:15 AM before departing for therapy.'
+        vyalevPumpCheck: `Continuous pump cartridge has ${pumpHoursLeft}h reserve — steady flow through all scheduled activities.`,
+        hydrationTiming: 'Take 8 oz electrolyte water with low-acid juice before afternoon activities.'
       },
-      actionsForWade: [
-        'Enjoy your breakfast and orange juice at your own pace.',
-        'Physical therapy with Sarah at 10:30 AM (departure at 9:55 AM — no rush).',
-        'Recline for quiet afternoon rest between 1:30 PM and 3:00 PM.'
-      ],
-      actionsForElsbeth: [
-        'Stage walker by front entry for 9:55 AM departure.',
-        'Ensure light hydration before physical therapy session.',
-        'Have the Gemini Clinical Weekly Report open for Dr. Henderson at 3:30 PM.'
-      ],
+      actionsForWade: dynamicWadeActions,
+      actionsForElsbeth: dynamicCaregiverActions,
       events,
-      transitBuffers: [
-        {
-          eventId: 'cal-2',
-          eventTitle: 'Physical Therapy with Sarah',
-          appointmentTime: '10:30 AM',
-          departureTime: '09:55 AM',
-          bufferMinutes: 25,
-          driveMinutes: 10,
-          instructions: '10 min drive + 25 min mobility preparation buffer for unhurried transfer, shoes, and walker staging.'
-        }
-      ],
+      transitBuffers: dynamicTransitBuffers,
       discordAlertSent: true,
       generatedAt: formattedTime
     };

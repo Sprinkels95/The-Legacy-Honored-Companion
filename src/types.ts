@@ -320,7 +320,13 @@ export interface NeedsIntakeResponse {
 }
 
 export type EventAudience = 'Captain Wade' | 'Little Wade' | 'Elsbeth (Work/LA)' | 'Family Shared';
-export type TransitMode = 'Uber Assist / Ride Required' | 'Caregiver Driving' | 'No Transit (Home/Virtual)' | 'Flight / Out of Town';
+export type TransitMode = 
+  | 'Uber Assist / Ride Required' 
+  | 'Caregiver Driving' 
+  | 'Caregiver Local Drive (No Uber for Dad)' 
+  | 'Caregiver Work Travel (No Transit for Dad)'
+  | 'No Transit (Home/Virtual)' 
+  | 'Flight / Out of Town';
 
 export interface CalendarEvent {
   id: string;
@@ -334,12 +340,20 @@ export interface CalendarEvent {
   category: 'Clinical / Medical' | 'Physical Therapy' | 'Community / Social' | 'Family / Rest' | 'Routine' | 'Travel / Work Trip';
   description?: string;
   
+  // Date and Day Context (for multi-day scheduling & live calendar syncing)
+  dateStr?: string; // e.g. "Saturday, Aug 29"
+  isoDate?: string; // e.g. "2026-08-29"
+  dayLabel?: string; // e.g. "Today", "Tomorrow", "Monday", "Tuesday"
+  fullDateFormatted?: string; // e.g. "Today (Sat, Aug 29)"
+
   // Color-coded Audience & Family Tagging
   audience?: EventAudience;
   needsTransit?: boolean;
   transitMode?: TransitMode;
   isWorkTripLA?: boolean;
   colorTag?: 'amber' | 'blue' | 'purple' | 'emerald' | 'rose' | 'indigo';
+  wadeImpactNote?: string; // Explicit impact assessment for Big Wade (Dad)
+  htmlLink?: string; // Direct link to original Google Calendar event
 
   mobilityPrepBufferMinutes: number; // e.g. +20-30 min PD mobility buffer
   suggestedDepartureTime?: string;

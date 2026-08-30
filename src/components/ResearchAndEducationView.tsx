@@ -4,12 +4,13 @@ import {
   BookOpen, Layers, CheckCircle2, TrendingUp, Users, HeartPulse, 
   FileText, ShieldAlert, Award, ArrowRight, ExternalLink, Zap, 
   HelpCircle, Sliders, HandMetal, Sparkles, UserCheck, Stethoscope,
-  MessageSquare, PhoneCall, Syringe, Calendar, Check, Heart, Quote, Compass, Truck
+  MessageSquare, PhoneCall, Syringe, Calendar, Check, Heart, Quote, Compass, Truck,
+  CalendarDays, Car
 } from 'lucide-react';
 import { CAPTAIN_WADE_CAREER_MILESTONES } from '../data/initialData';
 
 export const ResearchAndEducationView: React.FC = () => {
-  const [activeTab, setActiveTab] = useState<'occupational' | 'user-stories-matrix' | 'protocols-pillars' | 'interactive-sandbox'>('occupational');
+  const [activeTab, setActiveTab] = useState<'occupational' | 'user-stories-matrix' | 'weekly-prep-matrix' | 'protocols-pillars' | 'interactive-sandbox'>('occupational');
 
   // Interactive Tremor Damping Demo State
   const [demoTapCount, setDemoTapCount] = useState(0);
@@ -69,6 +70,20 @@ export const ResearchAndEducationView: React.FC = () => {
           >
             <Users className="w-4 h-4 text-emerald-600" />
             <span>📖 User Stories & Problem-Feature Matrix</span>
+          </button>
+
+          <button
+            type="button"
+            id="tab-weekly-prep-matrix"
+            onClick={() => setActiveTab('weekly-prep-matrix')}
+            className={`px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+              activeTab === 'weekly-prep-matrix'
+                ? 'bg-indigo-600 text-white shadow-xs ring-2 ring-indigo-400/40 font-black'
+                : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-200'
+            }`}
+          >
+            <CalendarDays className="w-4 h-4 text-indigo-500" />
+            <span>🗓️ 7-Day Weekly Prep Matrix</span>
           </button>
 
           <button
@@ -763,6 +778,237 @@ export const ResearchAndEducationView: React.FC = () => {
                 </div>
               </div>
 
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* SECTION: 7-DAY CLINICAL & LOGISTICS PREPARATION MATRIX */}
+      {activeTab === 'weekly-prep-matrix' && (
+        <div className="space-y-6 animate-in fade-in">
+          {/* Hero Banner */}
+          <div className="bg-gradient-to-r from-indigo-950 via-slate-900 to-indigo-900 text-white rounded-3xl p-6 sm:p-8 border border-indigo-800 shadow-xl space-y-4">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-indigo-700/60 pb-4">
+              <div>
+                <div className="flex items-center gap-2 mb-1">
+                  <span className="text-[10px] font-black uppercase tracking-wider text-amber-300 bg-amber-500/20 px-2.5 py-0.5 rounded-md border border-amber-400/30">
+                    Proactive Clinical Logistics
+                  </span>
+                  <span className="text-xs text-indigo-300 font-semibold flex items-center gap-1">
+                    <ShieldCheck className="w-3.5 h-3.5 text-emerald-400" />
+                    Ahead-of-Time Preparedness
+                  </span>
+                </div>
+                <h2 className="text-xl sm:text-2xl font-black text-white font-serif">
+                  🗓️ 7-Day Ahead-of-Time Clinical & Logistics Preparation Matrix
+                </h2>
+              </div>
+              <span className="text-xs text-slate-300 bg-black/40 px-3 py-1.5 rounded-xl border border-white/10 shrink-0">
+                Synchronized with Google Calendar
+              </span>
+            </div>
+            <p className="text-xs sm:text-sm text-slate-300 max-w-3xl leading-relaxed">
+              Parkinson's Disease Dementia care requires anticipatory staging rather than reactive scrambling. This 7-day matrix coordinates cold-chain pharmaceutical supplies, transit departure buffers, protein-levodopa diet timing, and multi-family communication.
+            </p>
+          </div>
+
+          {/* 3 Core Pillar Cards for Weekly Logistics */}
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {/* Cold-Chain Cartridges */}
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-amber-50 text-amber-700 flex items-center justify-center font-black">
+                <HeartPulse className="w-5 h-5 text-amber-600" />
+              </div>
+              <div>
+                <span className="text-[11px] font-black uppercase text-amber-800 tracking-wider block">
+                  Cold-Chain Syringes & Cassettes
+                </span>
+                <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
+                  Vyalev Continuous Infusion
+                </h3>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                <strong>7 Cassettes Staged:</strong> Refrigerated cold-chain supply verified. Mandatory cassette rotation and cannula swap scheduled for <strong>Friday, Sep 4 at 8:30 PM</strong>.
+              </p>
+              <div className="p-3 bg-amber-50/70 rounded-xl border border-amber-200/80 text-[11px] text-amber-950 font-semibold space-y-1">
+                <div>• Storage: 2°C – 8°C in dedicated medical chiller</div>
+                <div>• Next Pharmacy Reorder: Thursday morning</div>
+              </div>
+            </div>
+
+            {/* Transit Departure Buffers Staged */}
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-emerald-50 text-emerald-700 flex items-center justify-center font-black">
+                <Car className="w-5 h-5 text-emerald-600" />
+              </div>
+              <div>
+                <span className="text-[11px] font-black uppercase text-emerald-800 tracking-wider block">
+                  Parkinson's Mobility Buffers
+                </span>
+                <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
+                  +135 Total Minutes Staged
+                </h3>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                Out-of-house medical and therapy departures padded with +25m unhurried transfer buffers to eliminate time-pressure gait freezing and tremor spikes.
+              </p>
+              <div className="p-3 bg-emerald-50/70 rounded-xl border border-emerald-200/80 text-[11px] text-emerald-950 font-semibold space-y-1">
+                <div>• Sat: +25m for Rock Steady Boxing</div>
+                <div>• Mon/Tue/Thu: +25m for PT & Speech</div>
+                <div>• Fri: +30m for UCSF Movement Clinic</div>
+              </div>
+            </div>
+
+            {/* Levodopa Protein Spacing */}
+            <div className="bg-white rounded-3xl p-5 sm:p-6 border border-slate-200 shadow-sm space-y-3">
+              <div className="w-10 h-10 rounded-2xl bg-blue-50 text-blue-700 flex items-center justify-center font-black">
+                <Sparkles className="w-5 h-5 text-blue-600" />
+              </div>
+              <div>
+                <span className="text-[11px] font-black uppercase text-blue-800 tracking-wider block">
+                  Nutritional Pharmacokinetics
+                </span>
+                <h3 className="text-base font-extrabold text-slate-900 mt-0.5">
+                  Protein / Levodopa Strategy
+                </h3>
+              </div>
+              <p className="text-xs text-slate-600 leading-relaxed">
+                High-protein meals strictly reserved for 6:00 PM dinner on therapy days to prevent large neutral amino acids from blocking levodopa blood-brain barrier uptake.
+              </p>
+              <div className="p-3 bg-blue-50/70 rounded-xl border border-blue-200/80 text-[11px] text-blue-950 font-semibold space-y-1">
+                <div>• Morning: Low-protein toast & fruit</div>
+                <div>• Midday: Light hydration & gentle carbs</div>
+                <div>• Evening: Rich protein recovery meal</div>
+              </div>
+            </div>
+          </div>
+
+          {/* 7-Day Day-by-Day Preparedness Schedule Grid */}
+          <div className="bg-white rounded-3xl p-6 sm:p-8 border border-slate-200 shadow-sm space-y-5">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 border-b border-slate-100 pb-3">
+              <div>
+                <h3 className="text-base sm:text-lg font-black text-slate-900">
+                  Day-by-Day Ahead-of-Time Clinical Staging Timeline
+                </h3>
+                <p className="text-xs text-slate-500">
+                  Anticipatory action items organized for Captain Wade and family caregivers
+                </p>
+              </div>
+              <span className="text-xs font-bold text-indigo-700 bg-indigo-50 px-3 py-1 rounded-full border border-indigo-200">
+                Saturday Aug 29 – Friday Sep 4
+              </span>
+            </div>
+
+            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-7 gap-3">
+              {/* SATURDAY */}
+              <div className="p-3.5 rounded-2xl bg-indigo-50/70 border border-indigo-200/80 space-y-2">
+                <div className="flex items-center justify-between">
+                  <span className="text-xs font-black text-indigo-900">Sat, Aug 29</span>
+                  <span className="text-[9px] font-black uppercase px-1.5 py-0.5 bg-indigo-600 text-white rounded">Today</span>
+                </div>
+                <span className="text-[11px] font-extrabold text-indigo-700 block">Boxing & Family</span>
+                <p className="text-[11px] text-slate-600 leading-snug">
+                  • 10:00 AM Rock Steady Boxing (+25m buffer)<br/>
+                  • Little Wade soccer (Dad rests at home)<br/>
+                  • 6:00 PM Family dinner
+                </p>
+              </div>
+
+              {/* SUNDAY */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-xs font-black text-slate-800 block">Sun, Aug 30</span>
+                <span className="text-[11px] font-extrabold text-emerald-700 block">Rest & Peer Telehealth</span>
+                <p className="text-[11px] text-slate-600 leading-snug">
+                  • Zero transit required<br/>
+                  • 2:00 PM Peer Support Zoom<br/>
+                  • Afternoon porch relaxation
+                </p>
+              </div>
+
+              {/* MONDAY */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-xs font-black text-slate-800 block">Mon, Aug 31</span>
+                <span className="text-[11px] font-extrabold text-blue-700 block">PT & Hydration</span>
+                <p className="text-[11px] text-slate-600 leading-snug">
+                  • 10:30 AM Physical Therapy (+25m buffer)<br/>
+                  • Hydration check: 64oz water goal<br/>
+                  • 3:00 PM Rest period
+                </p>
+              </div>
+
+              {/* TUESDAY */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-xs font-black text-slate-800 block">Tue, Sep 1</span>
+                <span className="text-[11px] font-extrabold text-teal-700 block">PT & Speech Therapy</span>
+                <p className="text-[11px] text-slate-600 leading-snug">
+                  • 10:30 AM PT Sutter Health<br/>
+                  • 02:00 PM LSVT LOUD Virtual<br/>
+                  • Math pickup (Dad rests at home)
+                </p>
+              </div>
+
+              {/* WEDNESDAY */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-xs font-black text-slate-800 block">Wed, Sep 2</span>
+                <span className="text-[11px] font-extrabold text-purple-700 block">LA Trip & Backup Nurse</span>
+                <p className="text-[11px] text-slate-600 leading-snug">
+                  • Elsbeth LA work flight<br/>
+                  • Nurse Maria on-duty at home<br/>
+                  • 11:00 AM Garden coffee circle
+                </p>
+              </div>
+
+              {/* THURSDAY */}
+              <div className="p-3.5 rounded-2xl bg-slate-50 border border-slate-200 space-y-2">
+                <span className="text-xs font-black text-slate-800 block">Thu, Sep 3</span>
+                <span className="text-[11px] font-extrabold text-amber-700 block">OT & Cartridge Order</span>
+                <p className="text-[11px] text-slate-600 leading-snug">
+                  • 11:00 AM Occupational Therapy<br/>
+                  • Acaria Health refill dispatch<br/>
+                  • Pre-neurologist dossier review
+                </p>
+              </div>
+
+              {/* FRIDAY */}
+              <div className="p-3.5 rounded-2xl bg-rose-50/70 border border-rose-200 space-y-2">
+                <span className="text-xs font-black text-rose-900 block">Fri, Sep 4</span>
+                <span className="text-[11px] font-extrabold text-rose-700 block">Neurologist & Swap</span>
+                <p className="text-[11px] text-slate-600 leading-snug">
+                  • 1:30 PM Dr. Henderson UCSF (+30m buffer)<br/>
+                  • EMR Dossier hand-off<br/>
+                  • 8:30 PM Sterile Cassette Swap
+                </p>
+              </div>
+            </div>
+          </div>
+
+          {/* Caregiver Contingency & Offloading Protocol */}
+          <div className="bg-slate-900 text-white rounded-3xl p-6 sm:p-8 border border-slate-800 shadow-sm space-y-4">
+            <div className="flex items-center gap-2 border-b border-slate-800 pb-3">
+              <ShieldAlert className="w-5 h-5 text-amber-400" />
+              <h3 className="text-base sm:text-lg font-black text-white">
+                Emergency & Caregiver Offloading Safeguards
+              </h3>
+            </div>
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 text-xs">
+              <div className="p-4 bg-white/5 rounded-2xl border border-white/10 space-y-1.5">
+                <span className="font-extrabold text-amber-300 block">Discord #caregiver-alerts Bot</span>
+                <p className="text-slate-300 text-[11px] leading-relaxed">
+                  Real-time webhook pushes automated alerts if pump reserve drops below 14h, pharmacy refill encounters delay, or Dad triggers express assistance.
+                </p>
+              </div>
+              <div className="p-4 bg-white/5 rounded-2xl border border-white/10 space-y-1.5">
+                <span className="font-extrabold text-emerald-300 block">1-Click Clinical EMR Dossier</span>
+                <p className="text-slate-300 text-[11px] leading-relaxed">
+                  Compiles pump adherence, tremor logs, and infusion site rotation logs into a structured PDF ready for the movement disorder neurologist.
+                </p>
+              </div>
+              <div className="p-4 bg-white/5 rounded-2xl border border-white/10 space-y-1.5">
+                <span className="font-extrabold text-sky-300 block">Zero-Frustration Voice Intake</span>
+                <p className="text-slate-300 text-[11px] leading-relaxed">
+                  Semantic deduplication agent checks pantry inventory instantly to prevent duplicate purchases when Dad requests favorite comfort snacks.
+                </p>
+              </div>
             </div>
           </div>
         </div>

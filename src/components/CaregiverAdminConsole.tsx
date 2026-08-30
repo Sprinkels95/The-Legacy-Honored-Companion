@@ -634,7 +634,7 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
                   }`}
                 >
                   <Package className="w-3 h-3" />
-                  <span>Shared Drive Pantry & Walmart Cart</span>
+                  <span>Pantry & Shopping Queue</span>
                   <span className="text-[9px] px-1.5 py-0.2 bg-black/20 rounded-md">Agent 4</span>
                 </button>
 
@@ -649,7 +649,7 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
                   }`}
                 >
                   <Sparkles className="w-3 h-3" />
-                  <span>Wade's Mid-Century Favorites</span>
+                  <span>Wade's Favorites & Quick Orders</span>
                   <span className="text-[9px] px-1.5 py-0.2 bg-black/20 rounded-md">Ranker</span>
                 </button>
               </div>
