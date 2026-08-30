@@ -37,6 +37,13 @@ export const CaregiverAlertsOpsSection: React.FC<Props> = ({ onOpenDiscordModal 
     timestamp: string;
   } | null>(null);
 
+  const [isCallingPhone, setIsCallingPhone] = useState(false);
+  const [phoneCallResult, setPhoneCallResult] = useState<{
+    success: boolean;
+    message: string;
+    callSid?: string;
+  } | null>(null);
+
   const [feedItems, setFeedItems] = useState<DiscordFeedItem[]>([
     {
       id: 'feed-1',
@@ -155,6 +162,41 @@ export const CaregiverAlertsOpsSection: React.FC<Props> = ({ onOpenDiscordModal 
     }
   };
 
+  const handleDispatchTwilioCall = async (callType: 'caregiver-urgent' | 'pharmacy-refill' | 'routine-checkin') => {
+    setIsCallingPhone(true);
+    acousticVoice.playEarcon('mic-active');
+    setPhoneCallResult(null);
+
+    try {
+      const res = await fetch('/api/telephony/dispatch-call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: '+19494410137',
+          callType,
+          customMessage: customText.trim() || undefined,
+          medicationName: 'Vyalev 24h Subcutaneous Infusion'
+        })
+      });
+
+      const data = await res.json();
+      acousticVoice.playEarcon('chime');
+      setPhoneCallResult({
+        success: data.success,
+        message: data.message || 'Call dispatched!',
+        callSid: data.callSid
+      });
+    } catch (err: any) {
+      console.error('Error placing Twilio call:', err);
+      setPhoneCallResult({
+        success: false,
+        message: err.message || 'Failed to place call.'
+      });
+    } finally {
+      setIsCallingPhone(false);
+    }
+  };
+
   return (
     <div className="space-y-6">
       
@@ -210,24 +252,49 @@ export const CaregiverAlertsOpsSection: React.FC<Props> = ({ onOpenDiscordModal 
           </span>
         </div>
 
-        {/* Quick Webhook Status & Reset */}
-        <div className="p-3.5 rounded-2xl bg-[#2B2D31] border border-slate-700/80 flex flex-col sm:flex-row sm:items-center justify-between gap-3 text-xs">
-          <div className="flex items-center gap-2.5">
-            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
-            <span className="font-bold text-slate-200">Caregiver Alert Endpoint:</span>
-            <span className="text-emerald-300 font-medium font-mono text-[11px]">
-              {webhookUrl.startsWith('http') ? '🟢 Live Discord Mobile Push Active' : '🟡 Simulated Relay Online'}
-            </span>
+        {/* Quick Webhook Status & Update Endpoint */}
+        <div className="p-3.5 rounded-2xl bg-[#2B2D31] border border-slate-700/80 space-y-2.5 text-xs">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <div className="flex items-center gap-2.5">
+              <span className="w-2.5 h-2.5 rounded-full bg-emerald-400 animate-pulse"></span>
+              <span className="font-bold text-slate-200">Caregiver Alert Endpoint:</span>
+              <span className="text-emerald-300 font-medium font-mono text-[11px]">
+                {webhookUrl.startsWith('http') ? '🟢 Live Mobile Push Active' : '🟡 Simulated Relay Online'}
+              </span>
+            </div>
+            {saveStatus && (
+              <span className="text-[11px] text-emerald-300 font-bold animate-in fade-in">
+                {saveStatus}
+              </span>
+            )}
           </div>
-          {webhookUrl && (
+
+          <div className="flex items-center gap-2">
+            <input 
+              type="url"
+              value={webhookUrl}
+              onChange={(e) => setWebhookUrl(e.target.value)}
+              placeholder="Paste new Discord Webhook URL (https://discord.com/api/webhooks/...)"
+              className="flex-1 px-3.5 py-2 rounded-xl bg-[#1E1F22] border border-slate-700 text-xs text-indigo-200 font-mono placeholder:text-slate-500 focus:outline-none focus:border-indigo-500"
+            />
             <button
               type="button"
-              onClick={() => handleSaveWebhook('')}
-              className="text-xs text-slate-400 hover:text-rose-300 transition-colors font-medium self-end sm:self-auto cursor-pointer"
+              onClick={() => handleSaveWebhook()}
+              className="px-3.5 py-2 rounded-xl bg-indigo-600 hover:bg-indigo-500 text-white text-xs font-bold transition-all shrink-0 cursor-pointer shadow-xs"
             >
-              Reset Endpoint
+              Update URL
             </button>
-          )}
+            {webhookUrl && (
+              <button
+                type="button"
+                onClick={() => handleSaveWebhook('')}
+                className="px-2.5 py-2 rounded-xl bg-slate-800 hover:bg-rose-950/60 hover:text-rose-300 text-slate-400 text-xs font-semibold transition-all shrink-0 cursor-pointer"
+                title="Clear saved webhook"
+              >
+                Clear
+              </button>
+            )}
+          </div>
         </div>
 
         {/* Quick Test Trigger Buttons */}
@@ -338,6 +405,97 @@ export const CaregiverAlertsOpsSection: React.FC<Props> = ({ onOpenDiscordModal 
             <p className="text-[11px] leading-relaxed opacity-95">
               {deliveryResult.message}
             </p>
+          </div>
+        )}
+      </div>
+
+      {/* Real Outbound Telephony Calling (Twilio Carrier) */}
+      <div className="p-5 sm:p-6 rounded-3xl bg-slate-900 border border-slate-800 text-white space-y-4 shadow-lg">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-3 border-b border-slate-800">
+          <div className="flex items-center gap-2.5">
+            <div className="p-2 rounded-xl bg-emerald-500/20 text-emerald-400">
+              <PhoneCall className="w-5 h-5" />
+            </div>
+            <div>
+              <h4 className="font-extrabold text-sm text-white">
+                Real Outbound Phone Calling (Twilio Telephony Carrier)
+              </h4>
+              <p className="text-xs text-slate-400">
+                From: <span className="font-mono text-emerald-300 font-bold">(951) 338-8439</span> &rarr; Ringing: <span className="font-mono text-indigo-300 font-bold">(949) 441-0137</span>
+              </p>
+            </div>
+          </div>
+          <span className="text-[11px] font-black uppercase tracking-wider text-emerald-400 bg-emerald-950/60 px-3 py-1 rounded-full border border-emerald-500/30 self-start sm:self-auto">
+            Live PSTN Gateway Active
+          </span>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+          <button
+            type="button"
+            onClick={() => handleDispatchTwilioCall('caregiver-urgent')}
+            disabled={isCallingPhone}
+            className="p-4 rounded-2xl bg-rose-950/50 hover:bg-rose-900/60 border border-rose-500/40 text-left transition-all flex items-center justify-between disabled:opacity-50 cursor-pointer shadow-xs group"
+          >
+            <div className="space-y-1">
+              <span className="block font-black text-xs text-rose-100 flex items-center gap-1.5">
+                <Bell className="w-4 h-4 text-rose-400 animate-bounce" />
+                Trigger Urgent Emergency Phone Call
+              </span>
+              <span className="text-[11px] text-rose-300 block">
+                Actually dials (949) 441-0137 and speaks alert via Amazon Polly voice
+              </span>
+            </div>
+            <PhoneCall className="w-5 h-5 text-rose-400 group-hover:scale-110 transition-transform shrink-0" />
+          </button>
+
+          <button
+            type="button"
+            onClick={() => handleDispatchTwilioCall('pharmacy-refill')}
+            disabled={isCallingPhone}
+            className="p-4 rounded-2xl bg-emerald-950/50 hover:bg-emerald-900/60 border border-emerald-500/40 text-left transition-all flex items-center justify-between disabled:opacity-50 cursor-pointer shadow-xs group"
+          >
+            <div className="space-y-1">
+              <span className="block font-black text-xs text-emerald-100 flex items-center gap-1.5">
+                <Radio className="w-4 h-4 text-emerald-400" />
+                Trigger Specialty Pharmacy Voice Refill Call
+              </span>
+              <span className="text-[11px] text-emerald-300 block">
+                Places outbound call & speaks Vyalev 24h pump refill authorization
+              </span>
+            </div>
+            <PhoneCall className="w-5 h-5 text-emerald-400 group-hover:scale-110 transition-transform shrink-0" />
+          </button>
+        </div>
+
+        {phoneCallResult && (
+          <div className={`p-3.5 rounded-2xl border text-xs font-semibold animate-in fade-in ${
+            phoneCallResult.rateLimited
+              ? 'bg-amber-950/80 border-amber-500/60 text-amber-200'
+              : phoneCallResult.success 
+                ? 'bg-emerald-950/80 border-emerald-500/60 text-emerald-200' 
+                : 'bg-rose-950/80 border-rose-500/60 text-rose-200'
+          }`}>
+            <div className="flex items-center gap-2 font-bold mb-0.5">
+              {phoneCallResult.rateLimited ? (
+                <ShieldCheck className="w-4 h-4 text-amber-400" />
+              ) : phoneCallResult.success ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-400" />
+              ) : (
+                <AlertTriangle className="w-4 h-4 text-rose-400" />
+              )}
+              <span>
+                {phoneCallResult.rateLimited 
+                  ? 'Escalation Guardrail: 15-Minute Cooldown Active' 
+                  : phoneCallResult.success 
+                    ? 'Twilio Call Dispatched' 
+                    : 'Telephony Dispatch Notice'}
+              </span>
+              {phoneCallResult.callSid && (
+                <span className="text-[10px] font-mono text-slate-400 ml-auto">{phoneCallResult.callSid}</span>
+              )}
+            </div>
+            <p className="text-[11px] opacity-95">{phoneCallResult.message}</p>
           </div>
         )}
       </div>

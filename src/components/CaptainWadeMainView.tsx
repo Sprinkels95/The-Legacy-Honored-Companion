@@ -65,6 +65,7 @@ export const CaptainWadeMainView: React.FC<CaptainWadeMainViewProps> = ({
   const [recognitionInstance, setRecognitionInstance] = useState<any>(null);
   const [tremorDebounceActive, setTremorDebounceActive] = useState(false);
   const lastTapTimeRef = React.useRef<number>(0);
+  const lastContactTapTimeRef = React.useRef<number>(0);
 
   // Contact Elsbeth State
   const [isSendingDiscordAlert, setIsSendingDiscordAlert] = useState(false);
@@ -225,8 +226,17 @@ export const CaptainWadeMainView: React.FC<CaptainWadeMainViewProps> = ({
     });
   };
 
-  // Contact Elsbeth via Discord & Mobile Dispatch
+  // Contact Elsbeth via Discord & Mobile Dispatch with Tremor-Debounce & Rate-Limit Protection
   const handleContactElsbeth = async (urgency: 'normal' | 'urgent' = 'normal', note?: string) => {
+    const now = Date.now();
+    // 1200ms Parkinson's Tremor Damping: If Captain Wade's hand double-taps the call button, absorb it cleanly
+    if (now - lastContactTapTimeRef.current < 1200) {
+      setTremorDebounceActive(true);
+      setTimeout(() => setTremorDebounceActive(false), 1500);
+      return;
+    }
+    lastContactTapTimeRef.current = now;
+
     setIsSendingDiscordAlert(true);
     acousticVoice.playEarcon('mic-active');
 
@@ -244,6 +254,17 @@ export const CaptainWadeMainView: React.FC<CaptainWadeMainViewProps> = ({
           webhookUrl: savedWebhook
         })
       });
+
+      // Also trigger real Twilio outbound phone call to Elsbeth's phone
+      fetch('/api/telephony/dispatch-call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: '+19494410137',
+          callType: urgency === 'urgent' ? 'caregiver-urgent' : 'routine-checkin',
+          customMessage: note || (urgency === 'urgent' ? 'Captain Wade tapped urgent assistance button from home console.' : 'Captain Wade sent a check-in message.')
+        })
+      }).catch(err => console.log('[Telephony background trigger]', err));
 
       const data = await res.json();
       if (data.success) {
@@ -824,6 +845,12 @@ export const CaptainWadeMainView: React.FC<CaptainWadeMainViewProps> = ({
               </div>
 
               <div className="flex items-center gap-2">
+                {tremorDebounceActive && (
+                  <span className="inline-flex items-center gap-1 text-[11px] font-bold text-amber-800 bg-amber-100 px-2.5 py-1 rounded-full border border-amber-300 animate-in fade-in">
+                    <ShieldCheck className="w-3 h-3 text-amber-700" />
+                    Double-Tap Filtered
+                  </span>
+                )}
                 <button
                   type="button"
                   id="badge-open-discord-channel"

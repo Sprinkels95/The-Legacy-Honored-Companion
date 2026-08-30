@@ -319,6 +319,9 @@ export interface NeedsIntakeResponse {
   auditEntry: NeedsAuditLog;
 }
 
+export type EventAudience = 'Captain Wade' | 'Little Wade' | 'Elsbeth (Work/LA)' | 'Family Shared';
+export type TransitMode = 'Uber Assist / Ride Required' | 'Caregiver Driving' | 'No Transit (Home/Virtual)' | 'Flight / Out of Town';
+
 export interface CalendarEvent {
   id: string;
   title: string;
@@ -328,8 +331,16 @@ export interface CalendarEvent {
   location: string;
   address?: string;
   attendees?: string[];
-  category: 'Clinical / Medical' | 'Physical Therapy' | 'Community / Social' | 'Family / Rest' | 'Routine';
+  category: 'Clinical / Medical' | 'Physical Therapy' | 'Community / Social' | 'Family / Rest' | 'Routine' | 'Travel / Work Trip';
   description?: string;
+  
+  // Color-coded Audience & Family Tagging
+  audience?: EventAudience;
+  needsTransit?: boolean;
+  transitMode?: TransitMode;
+  isWorkTripLA?: boolean;
+  colorTag?: 'amber' | 'blue' | 'purple' | 'emerald' | 'rose' | 'indigo';
+
   mobilityPrepBufferMinutes: number; // e.g. +20-30 min PD mobility buffer
   suggestedDepartureTime?: string;
   estimatedDriveMinutes?: number;

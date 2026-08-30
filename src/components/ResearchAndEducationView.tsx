@@ -903,6 +903,55 @@ export const ResearchAndEducationView: React.FC = () => {
               </span>
             </div>
 
+            {/* Cognitive Offloading & Dual-Channel Orchestration Matrix */}
+            <div className="p-5 bg-white/5 rounded-2xl border border-white/10 space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+                <div className="flex items-center gap-2">
+                  <Sparkles className="w-4 h-4 text-amber-400" />
+                  <span className="font-black text-white text-xs uppercase tracking-wider">
+                    Cognitive Offloading & Dual-Channel Orchestration Matrix
+                  </span>
+                </div>
+                <span className="text-[10.5px] text-indigo-300 bg-indigo-950/80 px-2.5 py-1 rounded-full border border-indigo-700/50">
+                  Wade Receives Single-Focus Calm • Caregiver Receives Staging Logistics
+                </span>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-xs">
+                {/* Wade Channel */}
+                <div className="p-4 rounded-xl bg-black/40 border border-indigo-500/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-indigo-300 flex items-center gap-1.5">
+                      <UserCheck className="w-4 h-4 text-indigo-400" />
+                      Captain Wade's Spoken Guidance Channel
+                    </span>
+                    <span className="text-[10px] uppercase font-bold text-indigo-200 bg-indigo-900/60 px-2 py-0.5 rounded">
+                      Zero-Anxiety
+                    </span>
+                  </div>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
+                    Stripped of all logistical stress, dates, packing lists, and departure alarms. He is spoken to in gentle, warm conversational cadence ("Enjoy your breakfast at your own pace; physical therapy is ready when you are"). Memory is fully offloaded so he is never corrected or rushed.
+                  </p>
+                </div>
+
+                {/* Caregiver Channel */}
+                <div className="p-4 rounded-xl bg-black/40 border border-emerald-500/30 space-y-2.5">
+                  <div className="flex items-center justify-between">
+                    <span className="font-bold text-emerald-300 flex items-center gap-1.5">
+                      <ShieldCheck className="w-4 h-4 text-emerald-400" />
+                      Caregiver Logistics & Clinical Channel
+                    </span>
+                    <span className="text-[10px] uppercase font-bold text-emerald-200 bg-emerald-900/60 px-2 py-0.5 rounded">
+                      Actionable Staging
+                    </span>
+                  </div>
+                  <p className="text-slate-300 text-[11px] leading-relaxed">
+                    Receives exact actionable staging: vehicle departures padded with +20m mobility buffers, walker placement alerts at front entry, hydration prep, Vyalev pump cassette checks, and MDS-UPDRS clinical summary reports ready for the neurologist.
+                  </p>
+                </div>
+              </div>
+            </div>
+
           </div>
 
           {/* Part B: The 4 Pillars of PDD Software Engineering */}

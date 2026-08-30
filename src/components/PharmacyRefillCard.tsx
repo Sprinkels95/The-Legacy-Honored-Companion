@@ -74,6 +74,19 @@ export function PharmacyRefillCard({
     });
 
     try {
+      // Trigger live Twilio voice call in background if telephony configured
+      fetch('/api/telephony/dispatch-call', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          to: '+19494410137',
+          callType: 'pharmacy-refill',
+          medicationName: `${med.name} (${med.deliveryMethod})`,
+          rxNumber: med.rxNumber,
+          patientName: 'Wade Seymour'
+        })
+      }).catch(err => console.log('[Pharmacy Telephony call trigger]', err));
+
       const response = await fetch('/api/agent/call-pharmacy', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
