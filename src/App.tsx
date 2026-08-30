@@ -17,54 +17,139 @@ import {
   INITIAL_ADAPTIVE_VOICE_ORDERS, INITIAL_INFUSION_SITES, INITIAL_SYRINGE_REFILLS,
   INITIAL_PUMP_CYCLES
 } from './data/initialData';
+import { loadStoredState, saveStoredState } from './utils/persistence';
 import { AgentPersonaSelector } from './components/AgentPersonaSelector';
 import { CaptainWadeMainView } from './components/CaptainWadeMainView';
 import { CaregiverAdminConsole } from './components/CaregiverAdminConsole';
 import { QuickSyringeRefillModal } from './components/QuickSyringeRefillModal';
 import { HackathonArchitectureModal } from './components/HackathonArchitectureModal';
-import { CognitiveResearchModal } from './components/CognitiveResearchModal';
-import { TokenEfficiencyModal } from './components/TokenEfficiencyModal';
-import { AcousticVoiceInspector } from './components/AcousticVoiceInspector';
-import { ResearchAndEducationView } from './components/ResearchAndEducationView';
-import { ResearchAndEducationModal } from './components/ResearchAndEducationModal';
 import { MemoryLaneOriginModal } from './components/MemoryLaneOriginModal';
 import { DiscordCaregiverModal } from './components/DiscordCaregiverModal';
 import { acousticVoice } from './utils/acousticVoiceEngine';
 import { Brain, Zap, Syringe, Flame, BookOpen, MessageSquare } from 'lucide-react';
 
 export default function App() {
-  const [selectedPersona, setSelectedPersona] = useState<AgentPersonaId>('dr-evil');
+  const [selectedPersona, setSelectedPersona] = useState<AgentPersonaId>(() => 
+    loadStoredState('SELECTED_PERSONA', 'dr-evil')
+  );
   const [currentViewMode, setCurrentViewMode] = useState<'captain-wade' | 'caregiver-admin'>('captain-wade');
   const [showAcousticInspector, setShowAcousticInspector] = useState(false);
   
-  // Shared Live State
-  const [pantryItems, setPantryItems] = useState<PantryItem[]>(INITIAL_PANTRY);
-  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(INITIAL_SHOPPING_LIST);
-  const [auditLogs, setAuditLogs] = useState<NeedsAuditLog[]>(INITIAL_AUDIT_LOGS);
-  const [medications, setMedications] = useState<MedicationRefillItem[]>(INITIAL_MEDICATIONS);
-  const [pharmacyCalls, setPharmacyCalls] = useState<PharmacyCallLog[]>(INITIAL_PHARMACY_CALLS);
-  const [speechAcoustics, setSpeechAcoustics] = useState<SpeechAcousticEvent[]>(INITIAL_SPEECH_ACOUSTICS);
-  const [dailyBriefing, setDailyBriefing] = useState<DailyGeminiBriefing>(INITIAL_DAILY_BRIEFING);
-  const [calendarBriefing, setCalendarBriefing] = useState<DailyCalendarBriefing>(INITIAL_DAILY_CALENDAR_BRIEFING);
-  const [adaptiveVoiceOrders, setAdaptiveVoiceOrders] = useState<AdaptiveVoiceOrderItem[]>(INITIAL_ADAPTIVE_VOICE_ORDERS);
-  const [infusionSites, setInfusionSites] = useState<InfusionSiteLog[]>(INITIAL_INFUSION_SITES);
-  const [syringeRefills, setSyringeRefills] = useState<SyringeRefillLog[]>(INITIAL_SYRINGE_REFILLS);
-  const [pumpCycles, setPumpCycles] = useState<VyalevPumpCycle[]>(INITIAL_PUMP_CYCLES);
+  // Shared Live State with persistent memory across refreshes
+  const [pantryItems, setPantryItems] = useState<PantryItem[]>(() => 
+    loadStoredState('PANTRY', INITIAL_PANTRY)
+  );
+  const [shoppingItems, setShoppingItems] = useState<ShoppingItem[]>(() => 
+    loadStoredState('SHOPPING', INITIAL_SHOPPING_LIST)
+  );
+  const [auditLogs, setAuditLogs] = useState<NeedsAuditLog[]>(() => 
+    loadStoredState('AUDIT_LOGS', INITIAL_AUDIT_LOGS)
+  );
+  const [medications, setMedications] = useState<MedicationRefillItem[]>(() => 
+    loadStoredState('MEDICATIONS', INITIAL_MEDICATIONS)
+  );
+  const [pharmacyCalls, setPharmacyCalls] = useState<PharmacyCallLog[]>(() => 
+    loadStoredState('PHARMACY_CALLS', INITIAL_PHARMACY_CALLS)
+  );
+  const [speechAcoustics, setSpeechAcoustics] = useState<SpeechAcousticEvent[]>(() => 
+    loadStoredState('SPEECH_ACOUSTICS', INITIAL_SPEECH_ACOUSTICS)
+  );
+  const [dailyBriefing, setDailyBriefing] = useState<DailyGeminiBriefing>(() => 
+    loadStoredState('DAILY_BRIEFING', INITIAL_DAILY_BRIEFING)
+  );
+  const [calendarBriefing, setCalendarBriefing] = useState<DailyCalendarBriefing>(() => 
+    loadStoredState('CALENDAR_BRIEFING', INITIAL_DAILY_CALENDAR_BRIEFING)
+  );
+  const [adaptiveVoiceOrders, setAdaptiveVoiceOrders] = useState<AdaptiveVoiceOrderItem[]>(() => 
+    loadStoredState('ADAPTIVE_VOICE_ORDERS', INITIAL_ADAPTIVE_VOICE_ORDERS)
+  );
+  const [infusionSites, setInfusionSites] = useState<InfusionSiteLog[]>(() => 
+    loadStoredState('INFUSION_SITES', INITIAL_INFUSION_SITES)
+  );
+  const [syringeRefills, setSyringeRefills] = useState<SyringeRefillLog[]>(() => 
+    loadStoredState('SYRINGE_REFILLS', INITIAL_SYRINGE_REFILLS)
+  );
+  const [pumpCycles, setPumpCycles] = useState<VyalevPumpCycle[]>(() => 
+    loadStoredState('PUMP_CYCLES', INITIAL_PUMP_CYCLES)
+  );
   const [isQuickRefillModalOpen, setIsQuickRefillModalOpen] = useState<boolean>(false);
   
   // Adaptive Brevity & Energy State
-  const [energyState, setEnergyState] = useState<EnergyState>('GOOD_ENERGY');
-  const [brevityMode, setBrevityMode] = useState<BrevityMode>('STANDARD_SENTENCE');
+  const [energyState, setEnergyState] = useState<EnergyState>(() => 
+    loadStoredState('ENERGY_STATE', 'GOOD_ENERGY')
+  );
+  const [brevityMode, setBrevityMode] = useState<BrevityMode>(() => 
+    loadStoredState('BREVITY_MODE', 'STANDARD_SENTENCE')
+  );
   const [isRefreshingBriefing, setIsRefreshingBriefing] = useState(false);
+
+  // Sync to local storage on any state changes
+  useEffect(() => {
+    saveStoredState('PANTRY', pantryItems);
+  }, [pantryItems]);
+
+  useEffect(() => {
+    saveStoredState('SHOPPING', shoppingItems);
+  }, [shoppingItems]);
+
+  useEffect(() => {
+    saveStoredState('AUDIT_LOGS', auditLogs);
+  }, [auditLogs]);
+
+  useEffect(() => {
+    saveStoredState('MEDICATIONS', medications);
+  }, [medications]);
+
+  useEffect(() => {
+    saveStoredState('PHARMACY_CALLS', pharmacyCalls);
+  }, [pharmacyCalls]);
+
+  useEffect(() => {
+    saveStoredState('SPEECH_ACOUSTICS', speechAcoustics);
+  }, [speechAcoustics]);
+
+  useEffect(() => {
+    saveStoredState('DAILY_BRIEFING', dailyBriefing);
+  }, [dailyBriefing]);
+
+  useEffect(() => {
+    saveStoredState('CALENDAR_BRIEFING', calendarBriefing);
+  }, [calendarBriefing]);
+
+  useEffect(() => {
+    saveStoredState('ADAPTIVE_VOICE_ORDERS', adaptiveVoiceOrders);
+  }, [adaptiveVoiceOrders]);
+
+  useEffect(() => {
+    saveStoredState('INFUSION_SITES', infusionSites);
+  }, [infusionSites]);
+
+  useEffect(() => {
+    saveStoredState('SYRINGE_REFILLS', syringeRefills);
+  }, [syringeRefills]);
+
+  useEffect(() => {
+    saveStoredState('PUMP_CYCLES', pumpCycles);
+  }, [pumpCycles]);
+
+  useEffect(() => {
+    saveStoredState('SELECTED_PERSONA', selectedPersona);
+  }, [selectedPersona]);
+
+  useEffect(() => {
+    saveStoredState('ENERGY_STATE', energyState);
+  }, [energyState]);
+
+  useEffect(() => {
+    saveStoredState('BREVITY_MODE', brevityMode);
+  }, [brevityMode]);
   
   const [isArchitectureModalOpen, setIsArchitectureModalOpen] = useState(false);
-  const [hackathonInitialTab, setHackathonInitialTab] = useState<'overview' | 'efficiency' | 'memory' | 'protocols'>('overview');
-  const [isResearchModalOpen, setIsResearchModalOpen] = useState(false);
-  const [isTokenEfficiencyModalOpen, setIsTokenEfficiencyModalOpen] = useState(false);
+  const [hackathonInitialTab, setHackathonInitialTab] = useState<'overview' | 'security' | 'efficiency' | 'memory' | 'protocols'>('overview');
   const [isOriginModalOpen, setIsOriginModalOpen] = useState(false);
   const [isDiscordModalOpen, setIsDiscordModalOpen] = useState(false);
 
-  const openHackathonModalWithTab = (tab: 'overview' | 'efficiency' | 'memory' | 'protocols') => {
+  const openHackathonModalWithTab = (tab: 'overview' | 'security' | 'efficiency' | 'memory' | 'protocols') => {
     setHackathonInitialTab(tab);
     setIsArchitectureModalOpen(true);
   };
@@ -366,44 +451,32 @@ export default function App() {
               </div>
             </div>
 
-            {/* Top Bar for Judges & Reviewers: Founding Story, Technical Specs & Clinical Research (All Popups) */}
-            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
-              {/* 1. The Founding Heart & Story Modal Button */}
+            {/* Top Bar for Reviewers: Founding Story & Research Foundations, and System Architecture & Benchmarks */}
+            <div className="flex items-center gap-2 sm:gap-3 shrink-0">
+              {/* 1. The Founding Story & Research Foundations */}
               <button
                 type="button"
                 id="header-origin-story-btn"
                 onClick={() => setIsOriginModalOpen(true)}
-                className="px-3 sm:px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 text-white text-xs font-black items-center gap-1.5 transition-all flex shadow-xs hover:opacity-95 cursor-pointer ring-2 ring-amber-300/40"
-                title="The Founding Story: Written by Elsbeth for Captain Wade — Legacy Honored"
+                className="px-3.5 sm:px-4 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 text-white text-xs font-black items-center gap-1.5 transition-all flex shadow-xs hover:opacity-95 cursor-pointer ring-2 ring-amber-300/40"
+                title="The Founding Story & Research Foundations: Written by Elsbeth for Captain Wade"
               >
                 <span>🌅</span>
-                <span className="font-extrabold hidden sm:inline">The Founding Story</span>
-                <span className="font-extrabold sm:hidden">Story</span>
+                <span className="font-extrabold hidden sm:inline">The Founding Story & Research</span>
+                <span className="font-extrabold sm:hidden">Story & Research</span>
               </button>
 
-              {/* 2. Technical Specifications Modal (Tokens, 4-Tier Memory, 10 Agents Specs) */}
+              {/* 2. System Architecture & Benchmarks */}
               <button
                 type="button"
                 id="open-hackathon-specs-btn"
                 onClick={() => openHackathonModalWithTab('overview')}
-                className="px-3 sm:px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold items-center gap-1.5 transition-colors flex shadow-xs cursor-pointer ring-1 ring-slate-700"
-                title="Open Technical Specifications: 10 Autonomous Agents, Token Efficiency, 4-Tier Memory & Infusion Protocols"
+                className="px-3.5 sm:px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold items-center gap-1.5 transition-colors flex shadow-xs cursor-pointer ring-1 ring-slate-700"
+                title="Open Technical Specifications: 10 Autonomous Agents, Token Benchmarks, 4-Tier Memory & Architecture"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span className="font-extrabold">⚙️ Technical Specs</span>
-              </button>
-
-              {/* 3. Clinical Research & Occupational Education Modal */}
-              <button
-                type="button"
-                id="header-research-education-btn"
-                onClick={() => setIsResearchModalOpen(true)}
-                className="px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold items-center gap-1.5 transition-all flex shadow-xs cursor-pointer bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200"
-                title="Open Research, Clinical Problem Matrix & Occupational Parkinson's Education Modal"
-              >
-                <BookOpen className="w-3.5 h-3.5 text-rose-600" />
-                <span className="font-extrabold hidden sm:inline">📚 Research & Education</span>
-                <span className="font-extrabold sm:hidden">📚 Research</span>
+                <span className="font-extrabold hidden sm:inline">⚙️ System Architecture & Benchmarks</span>
+                <span className="font-extrabold sm:hidden">⚙️ Architecture</span>
               </button>
             </div>
           </div>
@@ -555,29 +628,13 @@ export default function App() {
       <HackathonArchitectureModal
         isOpen={isArchitectureModalOpen}
         onClose={() => setIsArchitectureModalOpen(false)}
-        initialTab={hackathonInitialTab}
+        initialTab={hackathonInitialTab as any}
       />
 
-      {/* Clinical Research & Occupational Education Modal */}
-      <ResearchAndEducationModal
-        isOpen={isResearchModalOpen}
-        onClose={() => setIsResearchModalOpen(false)}
-      />
-
-      {/* Token & Architecture Efficiency Modal */}
-      <TokenEfficiencyModal
-        isOpen={isTokenEfficiencyModalOpen}
-        onClose={() => setIsTokenEfficiencyModalOpen(false)}
-      />
-
-      {/* The Founding Story Modal */}
+      {/* The Founding Story & Clinical Research Modal */}
       <MemoryLaneOriginModal
         isOpen={isOriginModalOpen}
         onClose={() => setIsOriginModalOpen(false)}
-        onExploreResearch={() => {
-          setIsOriginModalOpen(false);
-          setIsResearchModalOpen(true);
-        }}
       />
     </div>
   );

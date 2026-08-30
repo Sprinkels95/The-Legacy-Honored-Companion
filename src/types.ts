@@ -273,6 +273,47 @@ export interface WeeklySynthesisReport {
   generatedAt: string;
 }
 
+export interface DriverDetails {
+  name: string;
+  vehicle: string;
+  licensePlate: string;
+  rating: number;
+  phone: string;
+  etaMinutes: number;
+  avatarColor?: string;
+}
+
+export interface InsuranceReimbursementClaim {
+  id: string;
+  proposalId: string;
+  appointmentTitle: string;
+  clinicName: string;
+  doctorName: string;
+  doctorNpi?: string;
+  dateOfService: string;
+  originAddress: string;
+  destinationAddress: string;
+  distanceMiles: number;
+  fareAmount: number;
+  fareFormatted: string;
+  receiptNumber: string;
+  transitMode: 'Uber Assist' | 'Uber WAV' | 'Uber Health' | 'Specialty NEMT';
+  primaryDiagnosisIcd10: string; // e.g. 'G20 - Parkinson\'s Disease'
+  secondaryDiagnosisIcd10?: string; // e.g. 'R26.81 - Unsteadiness on feet'
+  hcpcsCode: string; // e.g. 'A0100 - Non-Emergency Transportation: Taxi/Rideshare'
+  medicalNecessityStatement: string;
+  proofOfAttendance: 'Verified Clinic EHR Check-In' | 'Caregiver Attestation' | 'Pending Provider Sign-off';
+  payerName: string; // e.g. 'Blue Shield of California / Medicare Advantage'
+  memberId: string; // e.g. 'BSC-99201482-W'
+  groupNumber?: string;
+  claimStatus: 'READY_TO_SUBMIT' | 'SUBMITTED' | 'REIMBURSED' | 'PENDING_DOCUMENTATION';
+  submittedDate?: string;
+  reimbursedAmount?: number;
+  reimbursementCheckNumber?: string;
+  generatedByAgent: string;
+  createdAt: string;
+}
+
 export interface MobilityProposal {
   id: string;
   appointmentTitle: string;
@@ -280,14 +321,26 @@ export interface MobilityProposal {
   doctorName: string;
   appointmentTime: string;
   destinationAddress: string;
+  pickupAddress?: string;
   distanceMiles: number;
   estimatedDriveMinutes: number;
   mobilityPreparationBufferMinutes: number;
   suggestedDepartureTime: string;
   transitServiceType: 'Uber Assist' | 'Wheelchair Van' | 'Caregiver Driven' | 'Medical Transport';
+  uberTier?: 'Uber Assist' | 'Uber WAV' | 'Uber Health' | 'Uber Comfort';
   fareEstimate: string;
   fatigueRiskLevel: 'Low' | 'Moderate' | 'High';
   status: 'PROPOSED' | 'APPROVED' | 'DISPATCHED' | 'COMPLETED';
+  driverDetails?: DriverDetails;
+  specialInstructions?: string[];
+  uberDeepLink?: string;
+  caregiverPhoneNotified?: boolean;
+  insuranceClaim?: InsuranceReimbursementClaim;
+  timeline?: Array<{
+    timestamp: string;
+    step: string;
+    status: 'COMPLETED' | 'ACTIVE' | 'PENDING';
+  }>;
 }
 
 export interface CommunityEvent {

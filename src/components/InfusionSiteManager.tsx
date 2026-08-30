@@ -397,11 +397,11 @@ export const InfusionSiteManager: React.FC<Props> = ({
         </div>
       </div>
 
-      {/* Main Grid: Interactive Belly Button Radial Map vs Reaction Telemetry */}
-      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+      {/* Main Grid: Interactive Belly Button Radial Map vs Reaction Telemetry (Side-by-Side) */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 items-stretch">
         
-        {/* Left Col: Interactive Circular Periumbilical Diagram (5 Cols) */}
-        <div className="lg:col-span-5 bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between space-y-5">
+        {/* Left Col: Interactive Circular Periumbilical Diagram */}
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm flex flex-col justify-between space-y-5 h-full">
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3 mb-4">
               <div className="flex items-center gap-2">
@@ -479,7 +479,7 @@ export const InfusionSiteManager: React.FC<Props> = ({
                       left: `${slot.cxPercent}%`,
                       transform: 'translate(-50%, -50%)',
                     }}
-                    className={`w-11 h-11 rounded-2xl border-2 flex flex-col items-center justify-center transition-all ${bgClass} ${
+                    className={`w-11 h-11 rounded-2xl border-2 flex flex-col items-center justify-center transition-all cursor-pointer ${bgClass} ${
                       isSelected ? 'scale-115 ring-3 ring-slate-900 z-30 shadow-lg' : 'z-10'
                     }`}
                     title={`${slot.position} - ${eligibility.badgeLabel}`}
@@ -518,8 +518,8 @@ export const InfusionSiteManager: React.FC<Props> = ({
           </div>
         </div>
 
-        {/* Right Col: Selected Site Inspection & Reaction Telemetry (7 Cols) */}
-        <div className="lg:col-span-7 bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-5 flex flex-col justify-between">
+        {/* Right Col: Selected Site Inspection & Reaction Telemetry */}
+        <div className="bg-white rounded-3xl border border-slate-200 p-6 shadow-sm space-y-5 flex flex-col justify-between h-full">
           <div>
             <div className="flex items-center justify-between border-b border-slate-100 pb-3">
               <div>

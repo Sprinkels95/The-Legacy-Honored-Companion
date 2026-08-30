@@ -269,7 +269,7 @@ export const WeeklyBehaviorReportView: React.FC<Props> = ({
                   <span>Minimum Necessary Standard</span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  Only de-identified temporal motor logs and dosage patterns are passed to Gemini reasoning prompts; raw names are stripped.
+                  Only de-identified temporal motor logs and dosage patterns are passed to Gemini reasoning prompts; raw names and MRNs are stripped.
                 </p>
               </div>
 
@@ -279,17 +279,47 @@ export const WeeklyBehaviorReportView: React.FC<Props> = ({
                   <span>Data Sovereign Google Workspace</span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
-                  No PHI is permanently stored on external intermediate servers. Reports transfer directly into the user's private Google Drive & Gmail.
+                  No PHI is permanently stored on external intermediate servers. Reports transfer directly into the user's private Google Drive &amp; Gmail.
                 </p>
               </div>
 
               <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
                 <div className="flex items-center gap-1.5 font-bold text-slate-200">
                   <Server className="w-3.5 h-3.5 text-emerald-400" />
-                  <span>End-to-End TLS 1.3 & RBAC</span>
+                  <span>End-to-End TLS 1.3 &amp; RBAC</span>
                 </div>
                 <p className="text-[11px] text-slate-400 leading-relaxed">
                   Strict client-level role segregation: Captain Wade sees simple memory-safe guidance, while caregivers unlock clinical metrics.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-slate-200">
+                  <Lock className="w-3.5 h-3.5 text-sky-400" />
+                  <span>Air-Gapped Server API Proxy</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Backend API keys remain strictly isolated on Cloud Run server routes; credentials are never exposed to browser bundles.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-slate-200">
+                  <Sparkles className="w-3.5 h-3.5 text-purple-400" />
+                  <span>Ephemeral Zero-Retention Processing</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Synthesis runs in transient RAM with immediate garbage collection; no cold storage footprint on intermediate infrastructure.
+                </p>
+              </div>
+
+              <div className="p-3 rounded-xl bg-slate-900/80 border border-slate-800 space-y-1">
+                <div className="flex items-center gap-1.5 font-bold text-slate-200">
+                  <HeartPulse className="w-3.5 h-3.5 text-rose-400" />
+                  <span>Acoustic &amp; Dignity Safeguards</span>
+                </div>
+                <p className="text-[11px] text-slate-400 leading-relaxed">
+                  Anti-startle Web Audio DSP chain (528Hz pure-tone triads, 8kHz low-pass filter) with non-confrontational conversational guardrails.
                 </p>
               </div>
             </div>

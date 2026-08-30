@@ -7,26 +7,28 @@ import {
 } from 'lucide-react';
 import { TokenEfficiencySection } from './TokenEfficiencySection';
 import { AgentMemoryHierarchySection } from './AgentMemoryHierarchySection';
-import { ResearchAndEducationView } from './ResearchAndEducationView';
+import { SecurityArchitectureSection } from './SecurityArchitectureSection';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  initialTab?: 'overview' | 'efficiency' | 'memory' | 'protocols' | 'research';
+  initialTab?: 'overview' | 'security' | 'efficiency' | 'memory' | 'protocols';
+  onOpenResearch?: () => void;
 }
 
 export const HackathonArchitectureModal: React.FC<Props> = ({ 
   isOpen, 
   onClose,
-  initialTab = 'overview'
+  initialTab = 'overview',
+  onOpenResearch
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'efficiency' | 'memory' | 'research'>(
-    initialTab === 'protocols' ? 'overview' : (initialTab as any)
+  const [activeTab, setActiveTab] = useState<'overview' | 'security' | 'efficiency' | 'memory'>(
+    initialTab === 'protocols' || (initialTab as string) === 'research' ? 'overview' : (initialTab as any)
   );
 
   useEffect(() => {
     if (isOpen && initialTab) {
-      setActiveTab(initialTab === 'protocols' ? 'overview' : (initialTab as any));
+      setActiveTab(initialTab === 'protocols' || (initialTab as string) === 'research' ? 'overview' : (initialTab as any));
     }
   }, [isOpen, initialTab]);
 
@@ -65,58 +67,61 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
         </div>
 
         {/* Tab Switcher Header */}
-        <div className="flex items-center gap-1 sm:gap-2 py-2.5 border-b border-slate-100 overflow-x-auto shrink-0 scrollbar-none">
-          <button
-            type="button"
-            onClick={() => setActiveTab('overview')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-              activeTab === 'overview'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
-            }`}
-          >
-            <Sparkles className="w-3.5 h-3.5 text-amber-400" />
-            <span>Architecture & 10 Agents</span>
-          </button>
+        <div className="flex items-center justify-between py-2.5 border-b border-slate-100 gap-2 shrink-0">
+          <div className="flex items-center gap-1 sm:gap-2 overflow-x-auto scrollbar-none">
+            <button
+              type="button"
+              onClick={() => setActiveTab('overview')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+                activeTab === 'overview'
+                  ? 'bg-slate-900 text-white shadow-xs'
+                  : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+              }`}
+            >
+              <Sparkles className="w-3.5 h-3.5 text-amber-400" />
+              <span>Architecture & 10 Agents</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('efficiency')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-              activeTab === 'efficiency'
-                ? 'bg-emerald-600 text-white shadow-xs'
-                : 'text-emerald-800 bg-emerald-50/70 hover:bg-emerald-100'
-            }`}
-          >
-            <Zap className="w-3.5 h-3.5 fill-current" />
-            <span>⚡ Token & Compute Efficiency</span>
-          </button>
+            <button
+              type="button"
+              id="security-specs-tab-btn"
+              onClick={() => setActiveTab('security')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+                activeTab === 'security'
+                  ? 'bg-indigo-600 text-white shadow-xs'
+                  : 'text-indigo-800 bg-indigo-50/70 hover:bg-indigo-100'
+              }`}
+            >
+              <ShieldCheck className="w-3.5 h-3.5" />
+              <span>🛡️ HIPAA & Security</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('memory')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-              activeTab === 'memory'
-                ? 'bg-purple-600 text-white shadow-xs'
-                : 'text-purple-700 bg-purple-50/70 hover:bg-purple-100'
-            }`}
-          >
-            <Database className="w-3.5 h-3.5" />
-            <span>🧠 4-Tier Memory Bank</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('efficiency')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+                activeTab === 'efficiency'
+                  ? 'bg-emerald-600 text-white shadow-xs'
+                  : 'text-emerald-800 bg-emerald-50/70 hover:bg-emerald-100'
+              }`}
+            >
+              <Zap className="w-3.5 h-3.5 fill-current" />
+              <span>⚡ Token & Compute Efficiency</span>
+            </button>
 
-          <button
-            type="button"
-            onClick={() => setActiveTab('research')}
-            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-              activeTab === 'research'
-                ? 'bg-rose-600 text-white shadow-xs'
-                : 'text-rose-700 bg-rose-50/70 hover:bg-rose-100'
-            }`}
-          >
-            <BookOpen className="w-3.5 h-3.5 text-rose-500" />
-            <span>📚 Clinical Research & Matrix</span>
-          </button>
+            <button
+              type="button"
+              onClick={() => setActiveTab('memory')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+                activeTab === 'memory'
+                  ? 'bg-purple-600 text-white shadow-xs'
+                  : 'text-purple-700 bg-purple-50/70 hover:bg-purple-100'
+              }`}
+            >
+              <Database className="w-3.5 h-3.5" />
+              <span>🧠 4-Tier Memory Bank</span>
+            </button>
+          </div>
         </div>
 
         {/* Modal Scrollable Body */}
@@ -322,15 +327,15 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-900 text-[11px] flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-teal-500"></span>
-                        8. Proactive Mobility & Transit Staging Agent
+                        8. Uber Assist & Health Mobility Dispatcher
                       </span>
                       <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-teal-50 text-teal-800 rounded-md border border-teal-200">
-                        Buffer Logic
+                        Transit & Buffer
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-600 leading-relaxed">
-                      <strong>Trigger:</strong> Clinic appointments & community outings.<br/>
-                      <strong>Mechanism:</strong> Embeds +20–25 minute Parkinson's gait and dressing buffers into transit estimates, pre-stages wheelchair ramp vehicles, and dispatches driver readiness alerts.
+                      <strong>Trigger:</strong> Clinic appointments & community outings requiring vehicular transit.<br/>
+                      <strong>Mechanism:</strong> Autonomously plans and stages Uber Assist/WAV rides with +25–35 minute Parkinson's preparation buffers, transmits door-to-door mobility & quiet-ride protocols to certified drivers, and syncs live tracking with caregiver alerts.
                     </p>
                   </div>
 
@@ -408,24 +413,24 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
             </div>
           )}
 
-          {/* TAB 2: TOKEN & COMPUTE EFFICIENCY */}
+          {/* TAB 2: HIPAA & SECURITY ARCHITECTURE */}
+          {activeTab === 'security' && (
+            <div className="space-y-4">
+              <SecurityArchitectureSection />
+            </div>
+          )}
+
+          {/* TAB 3: TOKEN & COMPUTE EFFICIENCY */}
           {activeTab === 'efficiency' && (
             <div className="space-y-4">
               <TokenEfficiencySection />
             </div>
           )}
 
-          {/* TAB 3: AGENT MEMORY HIERARCHY (4 TIERS) */}
+          {/* TAB 4: AGENT MEMORY HIERARCHY (4 TIERS) */}
           {activeTab === 'memory' && (
             <div className="space-y-4">
               <AgentMemoryHierarchySection />
-            </div>
-          )}
-
-          {/* TAB 4: CLINICAL RESEARCH & MATRIX */}
-          {activeTab === 'research' && (
-            <div className="space-y-4">
-              <ResearchAndEducationView />
             </div>
           )}
 

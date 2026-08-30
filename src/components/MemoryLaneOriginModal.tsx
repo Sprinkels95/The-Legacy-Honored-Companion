@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { 
   Heart, Flame, Compass, ShieldCheck, Sparkles, X, 
   ArrowRight, BookOpen, Quote, Clock, CheckCircle2, User, Award,
-  Truck, ShieldAlert, Zap, AlertTriangle
+  Truck, ShieldAlert, Zap, AlertTriangle, HeartPulse
 } from 'lucide-react';
 import { CAPTAIN_WADE_CAREER_MILESTONES } from '../data/initialData';
+import { ResearchAndEducationView } from './ResearchAndEducationView';
 
 interface MemoryLaneOriginModalProps {
   isOpen: boolean;
@@ -17,14 +18,14 @@ export const MemoryLaneOriginModal: React.FC<MemoryLaneOriginModalProps> = ({
   onClose,
   onExploreResearch
 }) => {
-  const [activeEssay, setActiveEssay] = useState<'part1' | 'philosophy'>('part1');
+  const [activeEssay, setActiveEssay] = useState<'part1' | 'philosophy' | 'research'>('part1');
 
   if (!isOpen) return null;
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-4 md:p-6 bg-slate-950/80 backdrop-blur-sm overflow-y-auto animate-in fade-in duration-200">
       <div 
-        className="relative w-full max-w-4xl bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh]"
+        className={`relative w-full ${activeEssay === 'research' ? 'max-w-6xl' : 'max-w-4xl'} bg-white rounded-3xl shadow-2xl border border-slate-200 overflow-hidden flex flex-col max-h-[92vh] transition-all duration-200`}
         role="dialog"
         aria-modal="true"
         aria-labelledby="origin-modal-title"
@@ -42,7 +43,7 @@ export const MemoryLaneOriginModal: React.FC<MemoryLaneOriginModalProps> = ({
 
           <div className="flex items-center gap-2.5 mb-2">
             <span className="px-3 py-1 rounded-full text-xs font-black uppercase tracking-wider bg-white/20 text-amber-200 border border-white/20 backdrop-blur-xs flex items-center gap-1.5">
-              <span>🌅</span> The Founding Story
+              <span>🌅</span> The Founding Story & Research
             </span>
             <span className="text-xs text-rose-100 font-medium hidden sm:inline">
               Written by Elsbeth for Captain Wade
@@ -50,7 +51,7 @@ export const MemoryLaneOriginModal: React.FC<MemoryLaneOriginModalProps> = ({
           </div>
 
           <h2 id="origin-modal-title" className="text-2xl sm:text-3xl font-black tracking-tight text-white">
-            Legacy Honored: Building for My Dad
+            Legacy Honored: Story & Clinical Foundations
           </h2>
 
           {/* Switcher Tabs */}
@@ -58,7 +59,7 @@ export const MemoryLaneOriginModal: React.FC<MemoryLaneOriginModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveEssay('part1')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeEssay === 'part1'
                   ? 'bg-white text-slate-900 shadow-md font-extrabold'
                   : 'bg-white/15 text-white hover:bg-white/25'
@@ -69,13 +70,24 @@ export const MemoryLaneOriginModal: React.FC<MemoryLaneOriginModalProps> = ({
             <button
               type="button"
               onClick={() => setActiveEssay('philosophy')}
-              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 ${
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
                 activeEssay === 'philosophy'
                   ? 'bg-white text-slate-900 shadow-md font-extrabold'
                   : 'bg-white/15 text-white hover:bg-white/25'
               }`}
             >
-              <span>✨ The Core Design Philosophy</span>
+              <span>✨ 4 Foundational Pillars</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => setActiveEssay('research')}
+              className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                activeEssay === 'research'
+                  ? 'bg-white text-slate-900 shadow-md font-extrabold'
+                  : 'bg-white/15 text-white hover:bg-white/25'
+              }`}
+            >
+              <span>📚 Research & Evidence Base</span>
             </button>
           </div>
         </div>
@@ -192,42 +204,29 @@ export const MemoryLaneOriginModal: React.FC<MemoryLaneOriginModalProps> = ({
             </div>
           )}
 
+          {/* RESEARCH & EVIDENCE BASE TAB */}
+          {activeEssay === 'research' && (
+            <div className="space-y-4 animate-in fade-in duration-150">
+              <ResearchAndEducationView />
+            </div>
+          )}
+
         </div>
 
         {/* Footer Actions */}
-        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-col md:flex-row md:items-center justify-between gap-4 shrink-0">
-          <div className="space-y-1 max-w-xl">
-            <div className="flex items-center gap-1.5 text-xs font-black text-slate-900">
-              <Truck className="w-4 h-4 text-amber-600 shrink-0" />
-              <span>32-Year LA County Fire Service Record & Occupational Studies</span>
-            </div>
-            <p className="text-xs text-slate-600 leading-relaxed">
-              Explore Captain Wade's 7 career milestones, line-of-duty exposures, and peer-reviewed firefighter neurodegenerative research in the Clinical & Occupational Research Portal.
-            </p>
+        <div className="p-4 sm:p-5 bg-slate-50 border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 shrink-0">
+          <div className="flex items-center gap-2 text-xs font-bold text-slate-700">
+            <Sparkles className="w-4 h-4 text-amber-500" />
+            <span>Legacy Honored: Lived Experience × Clinical Rigor</span>
           </div>
 
-          <div className="flex items-center gap-2 shrink-0 self-end md:self-auto">
-            {onExploreResearch && (
-              <button
-                type="button"
-                onClick={() => {
-                  onClose();
-                  onExploreResearch();
-                }}
-                className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer shadow-xs"
-              >
-                <span>View Service Record & Research</span>
-                <ArrowRight className="w-3.5 h-3.5 text-amber-400" />
-              </button>
-            )}
-            <button
-              type="button"
-              onClick={onClose}
-              className="px-4 py-2.5 rounded-xl bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 text-xs font-bold transition-all cursor-pointer"
-            >
-              Close
-            </button>
-          </div>
+          <button
+            type="button"
+            onClick={onClose}
+            className="px-5 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold transition-all cursor-pointer shadow-xs w-full sm:w-auto"
+          >
+            Close Story & Foundations
+          </button>
         </div>
 
       </div>

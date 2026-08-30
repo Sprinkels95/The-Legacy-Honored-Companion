@@ -10,6 +10,9 @@ const provider = new GoogleAuthProvider();
 // Required Google Calendar Scopes
 provider.addScope('https://www.googleapis.com/auth/calendar.readonly');
 provider.addScope('https://www.googleapis.com/auth/calendar.events');
+provider.setCustomParameters({
+  prompt: 'select_account'
+});
 
 const TOKEN_STORAGE_KEY = 'gcal_access_token';
 
@@ -54,7 +57,7 @@ export const googleSignIn = async (): Promise<{ user: User; accessToken: string 
     const credential = GoogleAuthProvider.credentialFromResult(result);
     const token = credential?.accessToken;
     if (!token) {
-      throw new Error('Google Sign-In succeeded, but calendar access token was not returned.');
+      throw new Error('Google Sign-In succeeded, but Google Calendar access token was not returned. Please ensure you grant Calendar permissions.');
     }
 
     cachedAccessToken = token;
@@ -83,23 +86,23 @@ export const logoutGoogle = async () => {
   } catch {}
 };
 
-// Fetch live events from Google Calendar API (focused on the next 5 days)
+// Fetch live events from Google Calendar API (focused on the 7-day horizon)
 export const fetchLiveGoogleCalendarEvents = async (token?: string): Promise<CalendarEvent[]> => {
   const activeToken = token || cachedAccessToken || localStorage.getItem(TOKEN_STORAGE_KEY);
   if (!activeToken) {
-    throw new Error('Google Calendar access token is required to fetch live events.');
+    throw new Error('Google Calendar access token missing. Please connect your Google Calendar.');
   }
 
   const now = new Date();
   // Start of today (00:00:00 local time)
-  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
-  // Next 5 days window (End of Day 5 at 23:59:59)
-  const endOfWindow = new Date(startOfToday.getTime() + 5 * 24 * 60 * 60 * 1000 - 1);
+  const startOfWindow = new Date(now.getFullYear(), now.getMonth(), now.getDate(), 0, 0, 0);
+  // Next 7 days window (to cover the 7-day horizon without pulling subsequent weeks)
+  const endOfWindow = new Date(startOfWindow.getTime() + 7 * 24 * 60 * 60 * 1000);
 
-  const timeMin = startOfToday.toISOString();
+  const timeMin = startOfWindow.toISOString();
   const timeMax = endOfWindow.toISOString();
 
-  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=50`;
+  const url = `https://www.googleapis.com/calendar/v3/calendars/primary/events?timeMin=${encodeURIComponent(timeMin)}&timeMax=${encodeURIComponent(timeMax)}&singleEvents=true&orderBy=startTime&maxResults=100`;
 
   const response = await fetch(url, {
     headers: {
@@ -109,28 +112,54 @@ export const fetchLiveGoogleCalendarEvents = async (token?: string): Promise<Cal
   });
 
   if (!response.ok) {
+    if (response.status === 401) {
+      cachedAccessToken = null;
+      try {
+        localStorage.removeItem(TOKEN_STORAGE_KEY);
+      } catch {}
+      throw new Error('Google Calendar authorization expired. Please click "Connect Google Calendar" to re-authenticate.');
+    }
     const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.error?.message || `Google Calendar API error: ${response.statusText}`);
+    throw new Error(errorData.error?.message || `Google Calendar API error (${response.status}): ${response.statusText}`);
   }
 
   const data = await response.json();
   const rawItems = data.items || [];
 
-  return rawItems.map((item: any, index: number): CalendarEvent => {
-    const startDateTimeStr = item.start?.dateTime || item.start?.date;
-    const endDateTimeStr = item.end?.dateTime || item.end?.date;
+  const mappedEvents = rawItems.map((item: any, index: number): CalendarEvent => {
+    const isAllDay = !!(item.start?.date && !item.start?.dateTime);
+    let startDate: Date;
+    let endDate: Date;
+    let isoDate: string;
+    let startTimeFormatted: string;
+    let endTimeFormatted: string;
 
-    const startDate = startDateTimeStr ? new Date(startDateTimeStr) : new Date();
-    const endDate = endDateTimeStr ? new Date(endDateTimeStr) : new Date(startDate.getTime() + 60 * 60 * 1000);
+    if (isAllDay) {
+      // All day event: parse YYYY-MM-DD explicitly to prevent UTC timezone offset rollbacks
+      const dateParts = (item.start.date || '').split('-').map(Number);
+      if (dateParts.length === 3) {
+        startDate = new Date(dateParts[0], dateParts[1] - 1, dateParts[2], 9, 0, 0);
+      } else {
+        startDate = new Date();
+      }
+      endDate = new Date(startDate.getTime() + 8 * 60 * 60 * 1000);
+      isoDate = item.start.date;
+      startTimeFormatted = 'All Day';
+      endTimeFormatted = '';
+    } else {
+      const startDateTimeStr = item.start?.dateTime || item.start?.date;
+      const endDateTimeStr = item.end?.dateTime || item.end?.date;
+      startDate = startDateTimeStr ? new Date(startDateTimeStr) : new Date();
+      endDate = endDateTimeStr ? new Date(endDateTimeStr) : new Date(startDate.getTime() + 60 * 60 * 1000);
 
-    const startTimeFormatted = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
-    const endTimeFormatted = endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      const year = startDate.getFullYear();
+      const month = String(startDate.getMonth() + 1).padStart(2, '0');
+      const day = String(startDate.getDate()).padStart(2, '0');
+      isoDate = `${year}-${month}-${day}`;
 
-    // Date calculations
-    const year = startDate.getFullYear();
-    const month = String(startDate.getMonth() + 1).padStart(2, '0');
-    const day = String(startDate.getDate()).padStart(2, '0');
-    const isoDate = `${year}-${month}-${day}`;
+      startTimeFormatted = startDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+      endTimeFormatted = endDate.toLocaleTimeString('en-US', { hour: 'numeric', minute: '2-digit' });
+    }
 
     const weekdayLong = startDate.toLocaleDateString('en-US', { weekday: 'long' });
     const monthShort = startDate.toLocaleDateString('en-US', { month: 'short' });
@@ -328,4 +357,21 @@ export const fetchLiveGoogleCalendarEvents = async (token?: string): Promise<Cal
         : `Home/Virtual routine: Routine monitoring and comfort checks.`
     };
   });
+
+  // Strict deduplication by Google event ID and title+date+startTime signature
+  const seenIds = new Set<string>();
+  const seenSignatures = new Set<string>();
+  const deduplicatedEvents: CalendarEvent[] = [];
+
+  for (const evt of mappedEvents) {
+    const signature = `${evt.title.toLowerCase().trim()}|${evt.isoDate}|${evt.startTime}`;
+    if (seenIds.has(evt.id) || seenSignatures.has(signature)) {
+      continue;
+    }
+    seenIds.add(evt.id);
+    seenSignatures.add(signature);
+    deduplicatedEvents.push(evt);
+  }
+
+  return deduplicatedEvents;
 };
