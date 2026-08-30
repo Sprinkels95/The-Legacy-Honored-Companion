@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { 
   Zap, Cpu, Clock, TrendingDown, RefreshCw, BarChart3, 
   ShieldCheck, DollarSign, Volume2, ArrowRight, Sparkles,
-  Layers, CheckCircle2, Server
+  Layers, CheckCircle2, Server, Database
 } from 'lucide-react';
 
 interface AgentEfficiencyMetric {
@@ -401,6 +401,102 @@ export const TokenEfficiencySection: React.FC = () => {
             <div className="text-[9px] text-emerald-100 uppercase font-black">Our Optimized Stack</div>
             <div className="text-base font-black">${costPer1kOptimized}</div>
           </div>
+        </div>
+      </div>
+
+      {/* 4-Tier Memory Bank Architecture Integration Summary */}
+      <div className="bg-gradient-to-br from-purple-950 via-slate-900 to-indigo-950 text-white rounded-3xl p-6 sm:p-8 border border-purple-800/60 shadow-md space-y-6">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-white/10 pb-4">
+          <div className="flex items-center gap-3">
+            <div className="p-2.5 rounded-2xl bg-purple-600 text-white shadow-sm">
+              <Database className="w-6 h-6" />
+            </div>
+            <div>
+              <div className="flex items-center gap-2">
+                <span className="text-[10px] font-black uppercase tracking-wider text-purple-300 bg-purple-900/60 px-2 py-0.5 rounded border border-purple-700">
+                  Agentic Cognitive Infrastructure
+                </span>
+                <span className="text-xs text-emerald-400 font-bold">● Active 4-Layer Persistence</span>
+              </div>
+              <h3 className="text-lg sm:text-xl font-black text-white">
+                🧠 4-Tier Memory Bank Architecture
+              </h3>
+            </div>
+          </div>
+          <span className="text-xs text-purple-200 bg-white/10 px-3 py-1.5 rounded-xl border border-white/15">
+            Zero-Token Local Cache ➔ Distributed Cloud Graph
+          </span>
+        </div>
+
+        <p className="text-xs sm:text-sm text-slate-300 leading-relaxed">
+          How our agent ecosystem eliminates repetitive query frustration without exploding token bills or latency. Rather than injecting hundreds of historical turns into every prompt context window, state is segregated across 4 specialized storage tiers:
+        </p>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          {/* Tier 1 */}
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 relative hover:bg-white/10 transition-colors">
+            <div className="flex items-center justify-between">
+              <span className="w-6 h-6 rounded-lg bg-emerald-500 text-slate-950 font-black text-xs flex items-center justify-center">T1</span>
+              <span className="text-[9px] font-bold uppercase text-emerald-400">0 Tokens / &lt;1ms</span>
+            </div>
+            <div className="font-extrabold text-sm text-white">Ephemeral Session RAM</div>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              Holds active speech transcript, live 400ms debounce filters, and immediate turn state in React memory. Discarded cleanly on turn completion.
+            </p>
+          </div>
+
+          {/* Tier 2 */}
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 relative hover:bg-white/10 transition-colors">
+            <div className="flex items-center justify-between">
+              <span className="w-6 h-6 rounded-lg bg-sky-500 text-slate-950 font-black text-xs flex items-center justify-center">T2</span>
+              <span className="text-[9px] font-bold uppercase text-sky-400">0 Tokens / 5ms</span>
+            </div>
+            <div className="font-extrabold text-sm text-white">Client Key-Value State</div>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              Stores Captain Wade's quick-tap frequency counts, audio DSP equalizer filters (+3.8dB 220Hz boost), and local audit timeline logs.
+            </p>
+          </div>
+
+          {/* Tier 3 */}
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 relative hover:bg-white/10 transition-colors">
+            <div className="flex items-center justify-between">
+              <span className="w-6 h-6 rounded-lg bg-purple-500 text-white font-black text-xs flex items-center justify-center">T3</span>
+              <span className="text-[9px] font-bold uppercase text-purple-300">Managed Google Sync</span>
+            </div>
+            <div className="font-extrabold text-sm text-white">Cloud Master Store</div>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              Durable source of truth: Google Drive Spreadsheet pantry balance, Google Calendar medical timelines, and Discord care updates.
+            </p>
+          </div>
+
+          {/* Tier 4 */}
+          <div className="p-4 rounded-2xl bg-white/5 border border-white/10 space-y-2 relative hover:bg-white/10 transition-colors">
+            <div className="flex items-center justify-between">
+              <span className="w-6 h-6 rounded-lg bg-rose-500 text-white font-black text-xs flex items-center justify-center">T4</span>
+              <span className="text-[9px] font-bold uppercase text-rose-300">768-Dim Cosine Top-3</span>
+            </div>
+            <div className="font-extrabold text-sm text-white">Semantic Vector RAG</div>
+            <p className="text-[11px] text-slate-300 leading-relaxed">
+              Stores Wade's life history, Station 4 memories, and favorite comfort foods. Only top-3 relevant facts (0.85+ similarity) are retrieved into prompts.
+            </p>
+          </div>
+        </div>
+
+        <div className="p-3.5 rounded-2xl bg-white/5 border border-white/10 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs">
+          <div className="flex items-center gap-2 text-slate-200">
+            <Sparkles className="w-4 h-4 text-purple-400 shrink-0" />
+            <span>Interactive sandbox available in the <strong>🧠 4-Tier Memory Bank</strong> sub-tab above with live 768-dim cosine similarity search.</span>
+          </div>
+          <button
+            type="button"
+            onClick={() => {
+              const memoryTabBtn = document.getElementById('subtab-memory');
+              if (memoryTabBtn) memoryTabBtn.click();
+            }}
+            className="px-4 py-2 rounded-xl bg-purple-600 hover:bg-purple-500 text-white font-bold text-xs shadow-xs transition-all whitespace-nowrap"
+          >
+            Launch Memory Search Sandbox →
+          </button>
         </div>
       </div>
 

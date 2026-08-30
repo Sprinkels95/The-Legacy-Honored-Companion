@@ -13,6 +13,7 @@ interface DailyBriefingCardProps {
   selectedPersona: AgentPersonaId;
   onRefreshBriefing: () => void;
   isRefreshing: boolean;
+  onOpenDiscordModal?: () => void;
 }
 
 export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
@@ -23,7 +24,6 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
 }) => {
   const [isPlayingAudio, setIsPlayingAudio] = useState(false);
   const [showFullSchedule, setShowFullSchedule] = useState(true);
-  const [discordDispatched, setDiscordDispatched] = useState(false);
   const [showAiDetails, setShowAiDetails] = useState(false);
 
   const handleToggleAudio = () => {
@@ -44,11 +44,6 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
         }
       );
     }
-  };
-
-  const handleDispatchDiscordAlert = () => {
-    setDiscordDispatched(true);
-    setTimeout(() => setDiscordDispatched(false), 3500);
   };
 
   return (
@@ -94,20 +89,10 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
               id="btn-refresh-calendar-briefing"
               onClick={onRefreshBriefing}
               disabled={isRefreshing}
-              className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors flex items-center gap-1.5 backdrop-blur-xs disabled:opacity-50"
+              className="px-3.5 py-2 rounded-xl bg-white/10 hover:bg-white/20 text-white text-xs font-bold transition-colors flex items-center gap-1.5 backdrop-blur-xs disabled:opacity-50 cursor-pointer"
             >
               <RefreshCw className={`w-3.5 h-3.5 ${isRefreshing ? 'animate-spin' : ''}`} />
               <span>{isRefreshing ? 'Reasoning...' : 'Sync Calendar'}</span>
-            </button>
-
-            <button
-              type="button"
-              id="btn-dispatch-discord-alert"
-              onClick={handleDispatchDiscordAlert}
-              className="px-3.5 py-2 rounded-xl bg-emerald-500 hover:bg-emerald-600 text-white text-xs font-bold transition-colors flex items-center gap-1.5 shadow-xs"
-            >
-              <Send className="w-3.5 h-3.5" />
-              <span>{discordDispatched ? 'Caregiver Alert Sent!' : 'Alert Caregiver'}</span>
             </button>
           </div>
         </div>

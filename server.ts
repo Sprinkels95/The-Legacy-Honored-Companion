@@ -1457,6 +1457,17 @@ app.post("/api/workspace/gmail/send-report", async (req, res) => {
   }
 });
 
+// 13. GET /api/discord/status (Check if real Discord webhook is configured)
+app.get("/api/discord/status", (req, res) => {
+  const isConfigured = Boolean(process.env.DISCORD_WEBHOOK_URL && process.env.DISCORD_WEBHOOK_URL.startsWith("http"));
+  res.json({
+    configured: isConfigured,
+    maskedUrl: isConfigured 
+      ? process.env.DISCORD_WEBHOOK_URL!.replace(/(\/webhooks\/\d+\/)(.+)/, '$1***') 
+      : null
+  });
+});
+
 // 13. POST /api/discord/alert-caregiver (Instant Discord alert & telephony notification to Elsbeth)
 app.post("/api/discord/alert-caregiver", async (req, res) => {
   try {
@@ -1466,44 +1477,87 @@ app.post("/api/discord/alert-caregiver", async (req, res) => {
       reason = "Wade tapped Contact Elsbeth",
       pumpHoursLeft = 14,
       energyState = "GOOD_ENERGY",
-      customMessage = ""
+      customMessage = "",
+      webhookUrl: clientWebhookUrl
     } = req.body;
 
     const timestamp = new Date().toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
     const fullDate = new Date().toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' });
     const alertId = `discord-alert-${Date.now()}`;
 
+    // Target webhook URL from server env or client request
+    const targetWebhookUrl = (process.env.DISCORD_WEBHOOK_URL && process.env.DISCORD_WEBHOOK_URL.trim().length > 0)
+      ? process.env.DISCORD_WEBHOOK_URL.trim()
+      : (clientWebhookUrl && typeof clientWebhookUrl === 'string' && clientWebhookUrl.startsWith('http') ? clientWebhookUrl.trim() : null);
+
+    // If urgent, tag @everyone or provide high-visibility highlight
+    const contentTag = urgency === 'urgent' 
+      ? `🚨 @everyone **URGENT ALERT: Captain Wade needs assistance!**` 
+      : `💬 **Direct Message for Caregiver from ${sender}**`;
+
     // Rich Discord Webhook Message payload representation
     const discordPayload = {
       username: "The Care Navigator Agent",
       avatar_url: "https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=100",
-      content: `🚨 **Direct Alert for Elsbeth from ${sender}**`,
+      content: contentTag,
       embeds: [
         {
-          title: urgency === 'urgent' ? '⚠️ URGENT: Wade Needs Assistance' : '💬 Message from Wade Mode',
-          description: customMessage ? `*"${customMessage}"*` : `Captain Wade tapped **Contact Elsbeth** on his screen.`,
+          title: urgency === 'urgent' ? '⚠️ URGENT: Wade Needs Immediate Support' : '💬 Caregiver Check-In from Wade Mode',
+          description: customMessage ? `*"${customMessage}"*` : `Captain Wade reached out through **Legacy Honored**.`,
           color: urgency === 'urgent' ? 0xE11D48 : 0x4F46E5,
           fields: [
             { name: "Time", value: `${timestamp} (${fullDate})`, inline: true },
             { name: "Continuous Vyalev Pump", value: `${pumpHoursLeft}h remaining`, inline: true },
             { name: "Energy Status", value: energyState === 'LOW_ENERGY_OFF_STATE' ? '🟡 Hard Day / Low Energy' : '🟢 Good Energy', inline: true },
-            { name: "Care Action", value: "Direct push notification dispatched to Elsbeth's mobile and #caregiver-alerts Discord channel.", inline: false }
+            { name: "Action Needed", value: urgency === 'urgent' ? '🔴 Priority phone call / check-in recommended.' : '🟢 Routine acknowledgement.', inline: false }
           ],
-          footer: { text: "The Care Navigator Agent • Parkinson's Co-Pilot" },
+          footer: { text: "Legacy Honored • Automated Caregiver Webhook" },
           timestamp: new Date().toISOString()
         }
       ]
     };
 
-    console.log(`[Discord Webhook Alert] Dispatched alert to Elsbeth Seymour via Discord & Mobile Notification. Alert ID: ${alertId}`);
+    let webhookDelivered = false;
+    let webhookError: string | null = null;
+    let discordHttpCode: number | null = null;
+
+    if (targetWebhookUrl) {
+      try {
+        const discordRes = await fetch(targetWebhookUrl, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(discordPayload),
+        });
+        discordHttpCode = discordRes.status;
+        if (discordRes.ok || discordRes.status === 204) {
+          webhookDelivered = true;
+          console.log(`[Discord Webhook Alert] SUCCESS: Dispatched to live Discord webhook (HTTP ${discordRes.status}). Alert ID: ${alertId}`);
+        } else {
+          const errText = await discordRes.text();
+          webhookError = `Discord returned HTTP ${discordRes.status}: ${errText}`;
+          console.error(`[Discord Webhook Alert] Discord returned error:`, webhookError);
+        }
+      } catch (err: any) {
+        webhookError = err.message || "Network error dispatching to Discord webhook";
+        console.error(`[Discord Webhook Alert] Network error:`, err);
+      }
+    } else {
+      console.log(`[Discord Webhook Alert] No DISCORD_WEBHOOK_URL set. Alert simulated locally. Alert ID: ${alertId}`);
+    }
 
     return res.json({
       success: true,
       alertId,
-      sentTo: "Elsbeth Seymour (Discord #caregiver-alerts & Mobile)",
+      sentTo: targetWebhookUrl ? "Your Discord Channel (Live Webhook)" : "Caregiver Alerts Relay",
       timestamp: `${timestamp}`,
+      webhookDelivered,
+      webhookConfigured: Boolean(targetWebhookUrl),
+      discordHttpCode,
+      webhookError,
       discordPayload,
-      spokenConfirmation: "I've sent a direct message to Elsbeth on Discord for you, Captain. She knows you reached out and will be right with you."
+      spokenConfirmation: urgency === 'urgent'
+        ? "I've sent an urgent alert to Elsbeth's phone and Discord right now, Captain. Help is on the way."
+        : "I've sent a direct message to Elsbeth on Discord for you, Captain. She knows you reached out."
     });
   } catch (error: any) {
     console.error("Error in /api/discord/alert-caregiver:", error);

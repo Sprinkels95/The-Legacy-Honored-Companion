@@ -384,3 +384,15 @@ export interface DailyCalendarBriefing {
   discordAlertSent?: boolean;
   generatedAt: string;
 }
+
+export interface FirefighterCareerMilestone {
+  id: string;
+  years: string;
+  role: string;
+  division: string;
+  badgeCode: string;
+  icon: string;
+  description: string;
+  memories: string;
+  exposureContext?: string;
+}

@@ -1009,4 +1009,84 @@ export const INITIAL_ADAPTIVE_VOICE_ORDERS: AdaptiveVoiceOrderItem[] = [
   }
 ];
 
+export const CAPTAIN_WADE_CAREER_MILESTONES: import('../types').FirefighterCareerMilestone[] = [
+  {
+    id: 'mile-tiller',
+    years: 'LA County Fire Department',
+    role: 'Tiller Truck Rear-Steer Operator ("The Crazy One in the Back")',
+    division: 'Truck Company Operations • 100ft Aerial Tiller',
+    badgeCode: 'TILLER-REAR-STEER',
+    icon: '🚒',
+    description: 'Steered the independent rear axle of massive 57-foot tractor-drawn aerial tiller trucks through tight canyon roads, sharp metropolitan intersections, and hillside responses.',
+    memories: '“I still smile every time I see a tiller truck drive by knowing my dad was the crazy one in the back.” — High-adrenaline mastery navigating tight turns at top speed.',
+    exposureContext: 'Heavy diesel exhaust particulates, structural collapse response, high-torque physical steering demands.'
+  },
+  {
+    id: 'mile-wildland',
+    years: 'Summers with US Forest Service',
+    role: 'Wildland Brush Mitigation & Fire Attack',
+    division: 'US Forest Service / LA County Wildland Strike Team',
+    badgeCode: 'USFS-WILDLAND-CREW',
+    icon: '🌲',
+    description: 'Spent grueling summers clearing fuel breaks, cutting brush lines with hand tools and chainsaws, and battling destructive California wildland fires across Malibu and Southern California canyons.',
+    memories: 'Loved the hard, honest work of clearing brush—creating order out of potential threats. Came home with prized fire shirts that felt like pure gold.',
+    exposureContext: 'Acute particulate inhalation (PM2.5, carbon monoxide, acrolein, polycyclic aromatic hydrocarbons) during weeks-long uncontained wildfire suppression.'
+  },
+  {
+    id: 'mile-riots',
+    years: '1992 Civil Disturbance Response',
+    role: 'LA Riots Frontline Fire Attack',
+    division: 'Task Force Strike Team • Heavy Metro Operations',
+    badgeCode: 'LA-RIOTS-VETERAN',
+    icon: '🔥',
+    description: 'Dispatched to frontline structure fires during the historic LA Riots under active civil chaos, extinguishing multiple simultaneous commercial and residential fires.',
+    memories: 'Lived through the LA Riots and never, ever talked about it. Absorbed the immense chaos and trauma in silence so his family wouldn’t have to carry it.',
+    exposureContext: 'Continuous synthetic combustion byproducts, untreated plastics/solvents, extreme continuous thermal and psychological strain.'
+  },
+  {
+    id: 'mile-no-gloves',
+    years: 'Early Paramedic Pioneer Era',
+    role: 'First-Generation Paramedic & Fire Paramedic',
+    division: 'LA County EMS & Fire Rescue',
+    badgeCode: 'PIONEER-NO-GLOVES',
+    icon: '🧤',
+    description: 'Started before modern structural firefighting standards or universal medical precaution gloves existed; handled medical trauma and structure fires bare-handed.',
+    memories: 'Worked his way up from street paramedic to fire paramedic, establishing the foundation of emergency pre-hospital medicine in Southern California.',
+    exposureContext: 'Direct transdermal contact with biological fluids, untreated soot, toxic chemical accelerants before NFPA 1971 structural glove mandates.'
+  },
+  {
+    id: 'mile-hazmat',
+    years: 'Specialist Certification',
+    role: 'Hazmat Specialist / Chemical Incident Responder',
+    division: 'Hazardous Materials Task Force',
+    badgeCode: 'HAZMAT-SPECIALIST',
+    icon: '☣️',
+    description: 'Certified specialist responding to major industrial chemical spills, railcar leaks, volatile organic compound off-gassing, and pesticide incidents across the County.',
+    memories: 'Trained in complex chemical identification and containment; faced the most hazardous industrial toxins in California.',
+    exposureContext: 'Direct occupational exposure to organophosphates, halogenated solvents, benzene derivatives, and neurotoxic heavy metal compounds.'
+  },
+  {
+    id: 'mile-air-sea',
+    years: 'Air Ops & Marine Firefighting',
+    role: 'Helitack Water-Drop & Fireboat Certified',
+    division: 'Air Operations / Coastal Harbor Marine Task Force',
+    badgeCode: 'HELITACK-FIREBOAT-OPS',
+    icon: '🚁',
+    description: 'Helicopter water drop certified for precision aerial drops on mountain ridges, and marine fireboat certified for coastal harbor and vessel firefighting.',
+    memories: 'Multi-domain mastery spanning ocean fireboats to aerial helicopter mountain drops, pulling trees out of the ground with his bare hands.',
+    exposureContext: 'Aviation turbine exhaust, marine fuels, heavy salt-water suppression mist, high-altitude wildfire smoke plumes.'
+  },
+  {
+    id: 'mile-roof-falls',
+    years: 'Line of Duty Structural Incidents',
+    role: 'Structural Ventilation & Roof Collapse Survivor',
+    division: 'Station Captain & Truck Company Leader',
+    badgeCode: 'ROOF-FALL-SURVIVOR',
+    icon: '🛡️',
+    description: 'Fell through burning roofs while conducting vertical ventilation operations to release superheated gases and save trapped occupants.',
+    memories: 'The strongest man in the world—survived multiple structural roof collapses and line-of-duty physical trauma with unwavering courage.',
+    exposureContext: 'Direct fall trauma, acute flashover smoke inhalation, structural carcinogens, asbestos fibers, thermal degradation gases.'
+  }
+];
+
 

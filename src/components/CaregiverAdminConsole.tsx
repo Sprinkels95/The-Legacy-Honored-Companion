@@ -3,7 +3,7 @@ import {
   Package, PhoneForwarded, Stethoscope, Car, Users, Activity, 
   Settings, Radio, Sparkles, Mic, FileText, CheckCircle2, ShieldCheck,
   Zap, HeartPulse, Calendar, Brain, BookOpen, ShoppingBag, Layers,
-  Clock, Volume2, ArrowRight
+  Clock, Volume2, ArrowRight, Database, MessageSquare
 } from 'lucide-react';
 import { 
   AgentPersonaId, PantryItem, ShoppingItem, NeedsAuditLog, 
@@ -22,8 +22,7 @@ import { DailyBriefingCard } from './DailyBriefingCard';
 import { AgentPersonaSelector } from './AgentPersonaSelector';
 import { WadeFavoritesManager } from './WadeFavoritesManager';
 import { InfusionSiteManager } from './InfusionSiteManager';
-import { CognitiveResearchSection } from './CognitiveResearchSection';
-import { TokenEfficiencySection } from './TokenEfficiencySection';
+import { CaregiverAlertsOpsSection } from './CaregiverAlertsOpsSection';
 import { 
   INITIAL_MOTOR_LOGS, INITIAL_PUMP_CYCLES, INITIAL_ROUTINES 
 } from '../data/initialData';
@@ -61,9 +60,10 @@ interface CaregiverAdminConsoleProps {
   onAddAuditLog: (log: NeedsAuditLog) => void;
   onAddShoppingItem: (item: ShoppingItem) => void;
   onSimulateAcousticEvent: (wpm: number, text: string) => void;
+  onOpenDiscordModal?: () => void;
 }
 
-export type MainHubId = 'medical' | 'schedule' | 'shopping' | 'audio' | 'community' | 'specs';
+export type MainHubId = 'medical' | 'schedule' | 'shopping' | 'audio' | 'community' | 'alerts';
 
 export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
   selectedPersona,
@@ -97,7 +97,8 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
   onAddPharmacyCall,
   onAddAuditLog,
   onAddShoppingItem,
-  onSimulateAcousticEvent
+  onSimulateAcousticEvent,
+  onOpenDiscordModal
 }) => {
   // Main Consolidated Hubs
   const [mainHub, setMainHub] = useState<MainHubId>('medical');
@@ -107,7 +108,6 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
   const [scheduleSubTab, setScheduleSubTab] = useState<'briefing' | 'mobility'>('briefing');
   const [shoppingSubTab, setShoppingSubTab] = useState<'pantry' | 'favorites'>('pantry');
   const [audioSubTab, setAudioSubTab] = useState<'acoustics' | 'dsp'>('acoustics');
-  const [specsSubTab, setSpecsSubTab] = useState<'research' | 'efficiency'>('research');
 
   const urgentRefillCount = medications.filter(m => m.daysRemaining <= m.refillThresholdDays).length;
 
@@ -137,15 +137,17 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
         </div>
 
         {/* Quick System Badge */}
-        <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-3 shrink-0">
-          <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
-            10
-          </div>
-          <div className="text-left text-xs">
-            <div className="font-extrabold text-slate-900">Autonomous Agents</div>
-            <div className="text-emerald-600 font-semibold flex items-center gap-1">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
-              All Systems Operational
+        <div className="flex flex-wrap items-center gap-3 shrink-0">
+          <div className="flex items-center gap-3 bg-slate-50 border border-slate-200 rounded-2xl p-3 shrink-0">
+            <div className="w-10 h-10 rounded-xl bg-indigo-600 text-white flex items-center justify-center font-black text-sm shadow-xs">
+              10
+            </div>
+            <div className="text-left text-xs">
+              <div className="font-extrabold text-slate-900">Autonomous Agents</div>
+              <div className="text-emerald-600 font-semibold flex items-center gap-1">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse"></span>
+                All Systems Operational
+              </div>
             </div>
           </div>
         </div>
@@ -356,34 +358,34 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
             </div>
           </button>
 
-          {/* HUB 6: PDD RESEARCH & TOKEN BENCHMARKS */}
+          {/* HUB 6: CAREGIVER ALERTS & DISCORD PHONE NOTIFICATIONS */}
           <button
             type="button"
-            id="hub-tab-specs"
-            onClick={() => setMainHub('specs')}
+            id="hub-tab-alerts"
+            onClick={() => setMainHub('alerts')}
             className={`p-3 rounded-2xl text-left transition-all border relative flex flex-col justify-between ${
-              mainHub === 'specs'
-                ? 'bg-emerald-950 text-white border-emerald-500 shadow-sm ring-2 ring-emerald-400/40'
-                : 'bg-white text-slate-800 border-slate-200 hover:border-emerald-300 hover:bg-emerald-50/30'
+              mainHub === 'alerts'
+                ? 'bg-[#1E1F22] text-white border-indigo-500 shadow-sm ring-2 ring-indigo-400/40'
+                : 'bg-white text-slate-800 border-slate-200 hover:border-indigo-300 hover:bg-indigo-50/30'
             }`}
           >
             <div className="flex items-center justify-between gap-1 mb-2">
               <div className={`p-1.5 rounded-xl flex items-center justify-center shrink-0 ${
-                mainHub === 'specs' ? 'bg-emerald-500 text-slate-950' : 'bg-emerald-50 text-emerald-700'
+                mainHub === 'alerts' ? 'bg-[#5865F2] text-white' : 'bg-indigo-50 text-[#5865F2]'
               }`}>
-                <Zap className="w-4 h-4 fill-current" />
+                <MessageSquare className="w-4 h-4" />
               </div>
               <span className={`px-1.5 py-0.5 rounded-md text-[8px] font-black uppercase tracking-wider ${
-                mainHub === 'specs' ? 'bg-emerald-500/30 text-emerald-200' : 'bg-emerald-50 text-emerald-700'
+                mainHub === 'alerts' ? 'bg-[#5865F2]/40 text-indigo-200' : 'bg-indigo-50 text-indigo-700'
               }`}>
-                -78%
+                Push
               </span>
             </div>
 
             <div>
-              <span className="text-xs font-black tracking-tight block">Research & Tokens</span>
-              <p className={`text-[10px] mt-0.5 truncate ${mainHub === 'specs' ? 'text-emerald-200' : 'text-slate-500'}`}>
-                PDD & Benchmarks
+              <span className="text-xs font-black tracking-tight block">Caregiver Alerts</span>
+              <p className={`text-[10px] mt-0.5 truncate ${mainHub === 'alerts' ? 'text-indigo-200' : 'text-slate-500'}`}>
+                #caregiver-alerts & Phone
               </p>
             </div>
           </button>
@@ -593,6 +595,7 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
                 selectedPersona={selectedPersona}
                 onRefreshBriefing={onRefreshCalendarBriefing}
                 isRefreshing={isRefreshingBriefing}
+                onOpenDiscordModal={onOpenDiscordModal}
               />
             )}
 
@@ -776,62 +779,10 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
         )}
 
         {/* -----------------------------------------------------------------------
-            HUB 6: CLINICAL RESEARCH & TOKEN BENCHMARKS
+            HUB 6: CAREGIVER ALERTS & DISCORD PHONE NOTIFICATIONS
         ------------------------------------------------------------------------ */}
-        {mainHub === 'specs' && (
-          <div className="space-y-4">
-            {/* Sub-tab Navigation */}
-            <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-2">
-              <div className="flex items-center gap-2 px-2">
-                <span className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg">
-                  <Brain className="w-4 h-4" />
-                </span>
-                <div>
-                  <span className="text-xs font-black text-slate-900 block">Clinical Guidelines & Compute Benchmarks</span>
-                  <span className="text-[10px] text-slate-500">PDD Scientific Framework & 78% Cost Reduction</span>
-                </div>
-              </div>
-
-              <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
-                <button
-                  type="button"
-                  id="subtab-research"
-                  onClick={() => setSpecsSubTab('research')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    specsSubTab === 'research'
-                      ? 'bg-indigo-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Brain className="w-3 h-3" />
-                  <span>🧠 PDD Clinical Research Framework</span>
-                </button>
-
-                <button
-                  type="button"
-                  id="subtab-efficiency"
-                  onClick={() => setSpecsSubTab('efficiency')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 ${
-                    specsSubTab === 'efficiency'
-                      ? 'bg-emerald-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Zap className="w-3 h-3 fill-current" />
-                  <span>⚡ Token & Compute Benchmarks</span>
-                </button>
-              </div>
-            </div>
-
-            {/* Sub-view Rendering */}
-            {specsSubTab === 'research' && (
-              <CognitiveResearchSection />
-            )}
-
-            {specsSubTab === 'efficiency' && (
-              <TokenEfficiencySection />
-            )}
-          </div>
+        {mainHub === 'alerts' && (
+          <CaregiverAlertsOpsSection onOpenDiscordModal={onOpenDiscordModal} />
         )}
 
       </div>

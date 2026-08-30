@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { 
   Heart, Mic, Package, Stethoscope, Car, Users, Sparkles, 
   Activity, Radio, PhoneForwarded, Settings, UserCheck, ShieldCheck, 
-  Clock, Volume2, RefreshCw
+  Clock, Volume2, RefreshCw, Database
 } from 'lucide-react';
 import { 
   AgentPersonaId, PantryItem, ShoppingItem, NeedsAuditLog, 
@@ -25,8 +25,12 @@ import { HackathonArchitectureModal } from './components/HackathonArchitectureMo
 import { CognitiveResearchModal } from './components/CognitiveResearchModal';
 import { TokenEfficiencyModal } from './components/TokenEfficiencyModal';
 import { AcousticVoiceInspector } from './components/AcousticVoiceInspector';
+import { ResearchAndEducationView } from './components/ResearchAndEducationView';
+import { ResearchAndEducationModal } from './components/ResearchAndEducationModal';
+import { MemoryLaneOriginModal } from './components/MemoryLaneOriginModal';
+import { DiscordCaregiverModal } from './components/DiscordCaregiverModal';
 import { acousticVoice } from './utils/acousticVoiceEngine';
-import { Brain, Zap, Syringe } from 'lucide-react';
+import { Brain, Zap, Syringe, Flame, BookOpen, MessageSquare } from 'lucide-react';
 
 export default function App() {
   const [selectedPersona, setSelectedPersona] = useState<AgentPersonaId>('dr-evil');
@@ -54,11 +58,13 @@ export default function App() {
   const [isRefreshingBriefing, setIsRefreshingBriefing] = useState(false);
   
   const [isArchitectureModalOpen, setIsArchitectureModalOpen] = useState(false);
-  const [hackathonInitialTab, setHackathonInitialTab] = useState<'overview' | 'submission' | 'research' | 'efficiency' | 'protocols'>('overview');
+  const [hackathonInitialTab, setHackathonInitialTab] = useState<'overview' | 'efficiency' | 'memory' | 'protocols'>('overview');
   const [isResearchModalOpen, setIsResearchModalOpen] = useState(false);
   const [isTokenEfficiencyModalOpen, setIsTokenEfficiencyModalOpen] = useState(false);
+  const [isOriginModalOpen, setIsOriginModalOpen] = useState(false);
+  const [isDiscordModalOpen, setIsDiscordModalOpen] = useState(false);
 
-  const openHackathonModalWithTab = (tab: 'overview' | 'submission' | 'research' | 'efficiency' | 'protocols') => {
+  const openHackathonModalWithTab = (tab: 'overview' | 'efficiency' | 'memory' | 'protocols') => {
     setHackathonInitialTab(tab);
     setIsArchitectureModalOpen(true);
   };
@@ -360,54 +366,44 @@ export default function App() {
               </div>
             </div>
 
-            {/* Top Bar for Judges: Hackathon Specs, Submission Alignment, PDD Research, and Token Efficiency */}
-            <div className="flex items-center gap-1.5 sm:gap-2 shrink-0">
-              {/* 1. Official Submission Alignment (Devpost & Rules) */}
+            {/* Top Bar for Judges & Reviewers: Founding Story, Technical Specs & Clinical Research (All Popups) */}
+            <div className="flex items-center gap-1.5 sm:gap-2.5 shrink-0">
+              {/* 1. The Founding Heart & Story Modal Button */}
               <button
                 type="button"
-                id="open-hackathon-submission-btn"
-                onClick={() => openHackathonModalWithTab('submission')}
-                className="px-3 sm:px-3.5 py-2 rounded-xl bg-blue-600 hover:bg-blue-700 text-white text-xs font-bold items-center gap-1.5 transition-colors flex shadow-xs"
-                title="Open Official Hackathon Alignment & Devpost Submission Guide"
+                id="header-origin-story-btn"
+                onClick={() => setIsOriginModalOpen(true)}
+                className="px-3 sm:px-3.5 py-2 rounded-xl bg-gradient-to-r from-amber-500 via-rose-500 to-indigo-600 text-white text-xs font-black items-center gap-1.5 transition-all flex shadow-xs hover:opacity-95 cursor-pointer ring-2 ring-amber-300/40"
+                title="The Founding Story: Written by Elsbeth for Captain Wade — Legacy Honored"
               >
-                <ShieldCheck className="w-3.5 h-3.5 text-amber-300" />
-                <span className="font-extrabold">🏆 Official Alignment</span>
+                <span>🌅</span>
+                <span className="font-extrabold hidden sm:inline">The Founding Story</span>
+                <span className="font-extrabold sm:hidden">Story</span>
               </button>
 
-              {/* 2. Full Hackathon Specs (Architecture & 10 Agents) */}
+              {/* 2. Technical Specifications Modal (Tokens, 4-Tier Memory, 10 Agents Specs) */}
               <button
                 type="button"
                 id="open-hackathon-specs-btn"
                 onClick={() => openHackathonModalWithTab('overview')}
-                className="px-2.5 sm:px-3 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold items-center gap-1.5 transition-colors hidden md:flex shadow-xs"
-                title="Open Hackathon Architecture & 10 Autonomous Agent Systems"
+                className="px-3 sm:px-4 py-2 rounded-xl bg-slate-900 hover:bg-slate-800 text-white text-xs font-bold items-center gap-1.5 transition-colors flex shadow-xs cursor-pointer ring-1 ring-slate-700"
+                title="Open Technical Specifications: 10 Autonomous Agents, Token Efficiency, 4-Tier Memory & Infusion Protocols"
               >
                 <Sparkles className="w-3.5 h-3.5 text-amber-300" />
-                <span>10 Agents Architecture</span>
+                <span className="font-extrabold">⚙️ Technical Specs</span>
               </button>
 
-              {/* 3. PDD Research Direct Tab Link */}
+              {/* 3. Clinical Research & Occupational Education Modal */}
               <button
                 type="button"
-                id="open-cognitive-research-btn"
-                onClick={() => openHackathonModalWithTab('research')}
-                className="px-2.5 sm:px-3 py-2 rounded-xl bg-purple-50 hover:bg-purple-100 text-purple-700 text-xs font-bold items-center gap-1.5 border border-purple-200 transition-colors flex shadow-2xs"
-                title="Open PDD Clinical Research Framework (4 Pillars)"
+                id="header-research-education-btn"
+                onClick={() => setIsResearchModalOpen(true)}
+                className="px-3 sm:px-3.5 py-2 rounded-xl text-xs font-bold items-center gap-1.5 transition-all flex shadow-xs cursor-pointer bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200"
+                title="Open Research, Clinical Problem Matrix & Occupational Parkinson's Education Modal"
               >
-                <Brain className="w-3.5 h-3.5 text-purple-600" />
-                <span className="hidden sm:inline">PDD Research</span>
-              </button>
-
-              {/* 4. Token Efficiency Direct Tab Link */}
-              <button
-                type="button"
-                id="open-token-efficiency-btn"
-                onClick={() => openHackathonModalWithTab('efficiency')}
-                className="px-2.5 sm:px-3 py-2 rounded-xl bg-emerald-50 hover:bg-emerald-100 text-emerald-800 text-xs font-bold items-center gap-1.5 border border-emerald-300 transition-colors flex shadow-2xs"
-                title="Open Token & Compute Efficiency Report"
-              >
-                <Zap className="w-3.5 h-3.5 text-emerald-600 fill-emerald-500" />
-                <span className="hidden sm:inline">⚡ Token Efficiency</span>
+                <BookOpen className="w-3.5 h-3.5 text-rose-600" />
+                <span className="font-extrabold hidden sm:inline">📚 Research & Education</span>
+                <span className="font-extrabold sm:hidden">📚 Research</span>
               </button>
             </div>
           </div>
@@ -426,12 +422,12 @@ export default function App() {
             </span>
           </div>
 
-          <div className="bg-slate-100 p-1 rounded-xl border border-slate-200/80 flex items-center w-full sm:w-auto shadow-2xs">
+          <div className="bg-slate-100 p-1 rounded-xl border border-slate-200/80 flex items-center w-full sm:w-auto shadow-2xs gap-1">
             <button
               type="button"
               id="view-toggle-captain-wade"
               onClick={() => setCurrentViewMode('captain-wade')}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
                 currentViewMode === 'captain-wade'
                   ? 'bg-indigo-600 text-white shadow-xs ring-2 ring-indigo-400/30'
                   : 'text-slate-600 hover:text-slate-900'
@@ -445,22 +441,23 @@ export default function App() {
               type="button"
               id="view-toggle-caregiver-admin"
               onClick={() => setCurrentViewMode('caregiver-admin')}
-              className={`flex-1 sm:flex-initial px-4 py-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-2 ${
+              className={`flex-1 sm:flex-initial px-3.5 py-2 rounded-lg text-xs font-black transition-all flex items-center justify-center gap-1.5 ${
                 currentViewMode === 'caregiver-admin'
                   ? 'bg-slate-900 text-white shadow-xs ring-2 ring-slate-400/30'
                   : 'text-slate-600 hover:text-slate-900'
               }`}
             >
               <Settings className="w-4 h-4 text-amber-400" />
-              <span>Secret Volcano Base Ops Console</span>
+              <span>Volcano Ops Console</span>
               {urgentRefillCount > 0 && (
-                <span className="w-2.5 h-2.5 rounded-full bg-amber-400 animate-pulse"></span>
+                <span className="w-2 h-2 rounded-full bg-amber-400 animate-pulse"></span>
               )}
             </button>
           </div>
         </div>
-        {/* 1. Primary User Window: Captain Wade Mode (Uncluttered, High Contrast, Voice Accessible) */}
-        {currentViewMode === 'captain-wade' ? (
+
+        {/* 1. Primary User Window: Captain Wade Mode */}
+        {currentViewMode === 'captain-wade' && (
           <CaptainWadeMainView
             selectedPersona={selectedPersona}
             dailyBriefing={dailyBriefing}
@@ -478,9 +475,13 @@ export default function App() {
             recentAcousticEvent={speechAcoustics[0]}
             adaptiveOrders={adaptiveVoiceOrders}
             onTriggerVoiceOrder={handleTriggerAdaptiveVoiceOrder}
+            onOpenOriginModal={() => setIsOriginModalOpen(true)}
+            onOpenDiscordModal={() => setIsDiscordModalOpen(true)}
           />
-        ) : (
-          /* 2. Admin Panel: Caregiver Operations Console (Pantry Hub, Pharmacy Telephony, Speech Analytics, Persona Config, Calendar, Clinical, Favorites Engine, Infusion Sites) */
+        )}
+
+        {/* 2. Admin Panel: Caregiver Operations Console */}
+        {currentViewMode === 'caregiver-admin' && (
           <CaregiverAdminConsole
             selectedPersona={selectedPersona}
             onSelectPersona={setSelectedPersona}
@@ -514,6 +515,7 @@ export default function App() {
             onAddAuditLog={handleAddAuditLog}
             onAddShoppingItem={handleAddShoppingItem}
             onSimulateAcousticEvent={handleSimulateAcousticEvent}
+            onOpenDiscordModal={() => setIsDiscordModalOpen(true)}
           />
         )}
       </main>
@@ -531,6 +533,12 @@ export default function App() {
           </p>
         </div>
       </footer>
+
+      {/* Discord #caregiver-alerts Live Feed & Webhook Modal */}
+      <DiscordCaregiverModal
+        isOpen={isDiscordModalOpen}
+        onClose={() => setIsDiscordModalOpen(false)}
+      />
 
       {/* Quick Syringe Refill & Cannula Site Logger Modal */}
       <QuickSyringeRefillModal
@@ -550,8 +558,8 @@ export default function App() {
         initialTab={hackathonInitialTab}
       />
 
-      {/* Clinical Research & PDD Modal */}
-      <CognitiveResearchModal
+      {/* Clinical Research & Occupational Education Modal */}
+      <ResearchAndEducationModal
         isOpen={isResearchModalOpen}
         onClose={() => setIsResearchModalOpen(false)}
       />
@@ -560,6 +568,16 @@ export default function App() {
       <TokenEfficiencyModal
         isOpen={isTokenEfficiencyModalOpen}
         onClose={() => setIsTokenEfficiencyModalOpen(false)}
+      />
+
+      {/* The Founding Story Modal */}
+      <MemoryLaneOriginModal
+        isOpen={isOriginModalOpen}
+        onClose={() => setIsOriginModalOpen(false)}
+        onExploreResearch={() => {
+          setIsOriginModalOpen(false);
+          setIsResearchModalOpen(true);
+        }}
       />
     </div>
   );

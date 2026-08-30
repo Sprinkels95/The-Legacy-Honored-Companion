@@ -3,15 +3,16 @@ import {
   X, ShieldCheck, Server, Cpu, Cloud, CheckCircle2, Code2, 
   Sparkles, Award, Layers, Globe, FileCode2, Brain, Zap,
   Activity, BookOpen, Clock, HeartPulse, DollarSign, TrendingDown,
-  Video, Copy, Check, ExternalLink, HelpCircle, Terminal
+  Video, Copy, Check, ExternalLink, HelpCircle, Terminal, Database
 } from 'lucide-react';
-import { CognitiveResearchSection } from './CognitiveResearchSection';
 import { TokenEfficiencySection } from './TokenEfficiencySection';
+import { AgentMemoryHierarchySection } from './AgentMemoryHierarchySection';
+import { ResearchAndEducationView } from './ResearchAndEducationView';
 
 interface Props {
   isOpen: boolean;
   onClose: () => void;
-  initialTab?: 'overview' | 'submission' | 'research' | 'efficiency' | 'protocols';
+  initialTab?: 'overview' | 'efficiency' | 'memory' | 'protocols' | 'research';
 }
 
 export const HackathonArchitectureModal: React.FC<Props> = ({ 
@@ -19,20 +20,15 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
   onClose,
   initialTab = 'overview'
 }) => {
-  const [activeTab, setActiveTab] = useState<'overview' | 'submission' | 'research' | 'efficiency' | 'protocols'>(initialTab);
-  const [copiedField, setCopiedField] = useState<string | null>(null);
+  const [activeTab, setActiveTab] = useState<'overview' | 'efficiency' | 'memory' | 'research'>(
+    initialTab === 'protocols' ? 'overview' : (initialTab as any)
+  );
 
   useEffect(() => {
     if (isOpen && initialTab) {
-      setActiveTab(initialTab);
+      setActiveTab(initialTab === 'protocols' ? 'overview' : (initialTab as any));
     }
   }, [isOpen, initialTab]);
-
-  const copyToClipboard = (text: string, fieldKey: string) => {
-    navigator.clipboard.writeText(text);
-    setCopiedField(fieldKey);
-    setTimeout(() => setCopiedField(null), 2500);
-  };
 
   if (!isOpen) return null;
 
@@ -49,10 +45,10 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
               </div>
               <div>
                 <h2 className="text-lg sm:text-xl font-black text-slate-900 font-serif">
-                  Hackathon Architecture & Alignment Specifications
+                  Technical Specifications & System Architecture
                 </h2>
                 <p className="text-[11px] text-slate-500">
-                  "The Legacy Honored Companion" — Official Hackathon Submission Alignment & Clinical Framework
+                  "The Legacy Honored Companion" — Multimodal Multi-Agent Architecture & Compute Infrastructure
                 </p>
               </div>
             </div>
@@ -73,7 +69,7 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
           <button
             type="button"
             onClick={() => setActiveTab('overview')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
               activeTab === 'overview'
                 ? 'bg-slate-900 text-white shadow-xs'
                 : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
@@ -85,34 +81,8 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
 
           <button
             type="button"
-            onClick={() => setActiveTab('submission')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-              activeTab === 'submission'
-                ? 'bg-blue-600 text-white shadow-xs'
-                : 'text-blue-700 bg-blue-50/70 hover:bg-blue-100'
-            }`}
-          >
-            <ShieldCheck className="w-3.5 h-3.5" />
-            <span>🏆 Official Hackathon Alignment</span>
-          </button>
-
-          <button
-            type="button"
-            onClick={() => setActiveTab('research')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-              activeTab === 'research'
-                ? 'bg-indigo-600 text-white shadow-xs'
-                : 'text-indigo-700 bg-indigo-50/70 hover:bg-indigo-100'
-            }`}
-          >
-            <Brain className="w-3.5 h-3.5" />
-            <span>🧠 PDD Clinical Research (4 Pillars)</span>
-          </button>
-
-          <button
-            type="button"
             onClick={() => setActiveTab('efficiency')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
               activeTab === 'efficiency'
                 ? 'bg-emerald-600 text-white shadow-xs'
                 : 'text-emerald-800 bg-emerald-50/70 hover:bg-emerald-100'
@@ -124,15 +94,28 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
 
           <button
             type="button"
-            onClick={() => setActiveTab('protocols')}
-            className={`px-3 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
-              activeTab === 'protocols'
-                ? 'bg-slate-900 text-white shadow-xs'
-                : 'text-slate-600 hover:bg-slate-100 hover:text-slate-900'
+            onClick={() => setActiveTab('memory')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+              activeTab === 'memory'
+                ? 'bg-purple-600 text-white shadow-xs'
+                : 'text-purple-700 bg-purple-50/70 hover:bg-purple-100'
             }`}
           >
-            <ShieldCheck className="w-3.5 h-3.5 text-emerald-500" />
-            <span>Clinical Protocols</span>
+            <Database className="w-3.5 h-3.5" />
+            <span>🧠 4-Tier Memory Bank</span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => setActiveTab('research')}
+            className={`px-3.5 py-1.5 rounded-xl text-xs font-bold transition-all flex items-center gap-1.5 whitespace-nowrap shrink-0 ${
+              activeTab === 'research'
+                ? 'bg-rose-600 text-white shadow-xs'
+                : 'text-rose-700 bg-rose-50/70 hover:bg-rose-100'
+            }`}
+          >
+            <BookOpen className="w-3.5 h-3.5 text-rose-500" />
+            <span>📚 Clinical Research & Matrix</span>
           </button>
         </div>
 
@@ -425,393 +408,24 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
             </div>
           )}
 
-          {/* TAB 2: OFFICIAL HACKATHON ALIGNMENT & SUBMISSION GUIDE */}
-          {activeTab === 'submission' && (
-            <div className="space-y-6">
-              
-              {/* Executive Summary Card */}
-              <div className="p-4 rounded-2xl bg-gradient-to-r from-blue-50 via-indigo-50 to-slate-50 border border-blue-200 space-y-3">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <Award className="w-5 h-5 text-blue-600" />
-                    <h3 className="font-extrabold text-slate-900 text-sm">
-                      Official Hackathon Alignment & Submission Readiness
-                    </h3>
-                  </div>
-                  <span className="text-[10px] font-black uppercase px-2.5 py-0.5 bg-blue-600 text-white rounded-full">
-                    100% Rule-Compliant
-                  </span>
-                </div>
-                <p className="text-slate-700 leading-relaxed text-[11.5px]">
-                  <strong>"The Legacy Honored Companion"</strong> was engineered strictly against the rules of the <em>All Things Agentic Global Hackathon</em>, leveraging <strong>Gemini 3.7 Flash</strong>, the <strong>@google/genai SDK</strong>, and <strong>Google Cloud Run</strong> container infrastructure to redefine how autonomous agents remove deep human friction.
-                </p>
-              </div>
-
-              {/* 1. Mandatory 3-Pillar Tech Stack Compliance Checklist */}
-              <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide flex items-center gap-2">
-                    <CheckCircle2 className="w-4 h-4 text-emerald-600" />
-                    <span>1. Mandatory Technology Rules (All 3 Verified)</span>
-                  </h4>
-                  <span className="text-[10px] font-bold text-emerald-700 bg-emerald-50 px-2 py-0.5 rounded-md border border-emerald-200">
-                    Verified Active
-                  </span>
-                </div>
-
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="font-bold text-slate-900 text-xs block">
-                      ✅ Gemini 3.5+ Model
-                    </span>
-                    <p className="text-[11px] text-slate-600">
-                      <strong>Gemini 3.7 Flash</strong> running server-side for zero client token leakage, high-speed reasoning, and structured JSON schemas.
-                    </p>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="font-bold text-slate-900 text-xs block">
-                      ✅ Google Agent Framework
-                    </span>
-                    <p className="text-[11px] text-slate-600">
-                      <strong>Google GenAI SDK (@google/genai v2.4.0)</strong> orchestrating 10 specialized multi-agent subroutines with system instruction routing.
-                    </p>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-slate-50 border border-slate-200 space-y-1">
-                    <span className="font-bold text-slate-900 text-xs block">
-                      ✅ Google Cloud Service
-                    </span>
-                    <p className="text-[11px] text-slate-600">
-                      Containerized <strong>Google Cloud Run</strong> full-stack deployment hosting Express + Vite on port 3000 with real-time server APIs.
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 2. Track Alignment Comparison & Selection */}
-              <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide flex items-center gap-2">
-                  <Layers className="w-4 h-4 text-indigo-600" />
-                  <span>2. Track Alignment (Primary Track: Collaborative Partner)</span>
-                </h4>
-
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-3.5">
-                  <div className="p-3.5 rounded-xl bg-blue-50/70 border-2 border-blue-500/80 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-black text-blue-950 text-xs">
-                        🌟 Selected Category: Collaborative Partner
-                      </span>
-                      <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-blue-600 text-white rounded-md">
-                        Primary Fit
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-700 leading-relaxed">
-                      <strong>Official Track Definition:</strong> <em>"Leads the way, takes notes, asks clarifying questions, guides step-by-step, captures feedback, mutates messy unstructured data streams, and adapts to the user's unique way of thinking."</em>
-                    </p>
-                    <ul className="text-[10.5px] text-slate-600 space-y-1 list-disc pl-4">
-                      <li><strong>Ingests messy unstructured voice:</strong> Analyzes raw Parkinson's audio streams, vocal fatigue, and cadence.</li>
-                      <li><strong>Mutates data pipelines:</strong> Translates caregiver Google Calendars into calm single-anchor briefings and transforms repetitive requests into silent pantry deductions.</li>
-                      <li><strong>Adapts to the human:</strong> Automatic brevity throttling (Standard Sentence → Concise → Ultra-Concise Single Word) based on user fatigue.</li>
-                    </ul>
-                  </div>
-
-                  <div className="p-3.5 rounded-xl bg-slate-50 border border-slate-200 space-y-2">
-                    <div className="flex items-center justify-between">
-                      <span className="font-bold text-slate-900 text-xs">
-                        ⚙️ Secondary Capabilities: Taskmaster Workflow
-                      </span>
-                      <span className="text-[9px] font-bold uppercase px-2 py-0.5 bg-slate-200 text-slate-700 rounded-md">
-                        Full Execution
-                      </span>
-                    </div>
-                    <p className="text-[11px] text-slate-700 leading-relaxed">
-                      <strong>Official Track Definition:</strong> <em>"Build a complete workflow, not just a chatbot. Intercept and complete a multi-step background workflow with BYOF."</em>
-                    </p>
-                    <ul className="text-[10.5px] text-slate-600 space-y-1 list-disc pl-4">
-                      <li><strong>Autonomous IVR Telephony:</strong> Negotiates multi-turn pharmacy refill calls, touch-tone DTMF, and courier cold-chain dispatch.</li>
-                      <li><strong>1" Radial Site Rotation:</strong> Mathematically manages 8-position navel perimeters and 3-day cannula cycles for subcutaneous Vyalev.</li>
-                      <li><strong>Drive Excel & Walmart Sync:</strong> One-tap Walmart cart search and aisle-by-aisle Google Docs formatting.</li>
-                    </ul>
-                  </div>
-                </div>
-              </div>
-
-              {/* 3. Judging Criteria Breakdown (40% - 30% - 30%) */}
-              <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-3">
-                <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide flex items-center gap-2">
-                  <Award className="w-4 h-4 text-amber-600" />
-                  <span>3. Alignment with Hackathon Judging Criteria</span>
-                </h4>
-
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-                  <div className="p-3 rounded-xl bg-amber-50/70 border border-amber-200 space-y-1.5">
-                    <span className="font-bold text-amber-950 text-xs block">
-                      Innovation & Utility (40%)
-                    </span>
-                    <p className="text-[11px] text-slate-700 leading-relaxed">
-                      <strong>The Twist & BYOF:</strong> Solves genuine, high-stakes Parkinson's Dementia friction. Eliminates the soul-crushing cycle of memory correction and repetitive pantry purchasing through proactive dignity guardrails.
-                    </p>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-indigo-50/70 border border-indigo-200 space-y-1.5">
-                    <span className="font-bold text-indigo-950 text-xs block">
-                      Architectural Discipline (30%)
-                    </span>
-                    <p className="text-[11px] text-slate-700 leading-relaxed">
-                      <strong>Modular 10-Agent Nexus:</strong> Strict separation of concerns, Web Audio DSP chain (+3.8dB warmth, 8kHz low-pass filter), structured schema responses, and sub-$0.0002 per-call token efficiency.
-                    </p>
-                  </div>
-
-                  <div className="p-3 rounded-xl bg-emerald-50/70 border border-emerald-200 space-y-1.5">
-                    <span className="font-bold text-emerald-950 text-xs block">
-                      Demo & Production (30%)
-                    </span>
-                    <p className="text-[11px] text-slate-700 leading-relaxed">
-                      <strong>Live Execution & Cloud Proof:</strong> Unedited live agent actions, interactive patient vs. caregiver viewports, clean documentation, and direct proof of running on Google Cloud Run (.run.app).
-                    </p>
-                  </div>
-                </div>
-              </div>
-
-              {/* 4. ~4-Minute Video Blueprint */}
-              <div className="p-4 bg-slate-900 text-white rounded-2xl shadow-md space-y-3 font-mono text-[11px]">
-                <div className="flex items-center justify-between border-b border-slate-800 pb-2">
-                  <div className="flex items-center gap-2 font-sans font-bold text-amber-400 text-xs">
-                    <Video className="w-4 h-4" />
-                    <span>~4-Minute Demo Video Pitch Structure</span>
-                  </div>
-                  <span className="text-[10px] text-slate-400 font-sans">
-                    Max 4 Minutes Evaluated
-                  </span>
-                </div>
-
-                <div className="space-y-2 text-slate-300">
-                  <p><span className="text-amber-300 font-bold">[0:00 - 0:45] The Problem & BYOF Hook:</span> Introduce Captain Wade (Fire Captain heritage, Parkinson's Dementia). Show how repetitive memory triggers create severe caregiver exhaustion and patient agitation.</p>
-                  <p><span className="text-emerald-300 font-bold">[0:45 - 1:45] Live Patient Experience:</span> Speak a voice command as Captain Wade ("I want chocolate pudding"). Show the gentle earcon chime, zero memory-correction reassurance, and automatic speech fatigue detection with brevity throttling.</p>
-                  <p><span className="text-sky-300 font-bold">[1:45 - 2:45] Secret Volcano Base Ops Console:</span> Flip viewport to Caregiver Ops. Demonstrate silent Google Drive pantry reconciliation, 1-click Walmart cart generation, and autonomous IVR telephony pharmacy refill simulations.</p>
-                  <p><span className="text-purple-300 font-bold">[2:45 - 3:30] Clinical Protocol & Vyalev 1" Rotation:</span> Showcase the 8-position navel cannula rotation matrix, 3-day replacement countdown, and MDS-UPDRS neurologist clinical export.</p>
-                  <p><span className="text-indigo-300 font-bold">[3:30 - 4:00] Cloud Architecture & Verification:</span> Show the Google Cloud Run console, live .run.app URL, server.ts proxy architecture, and Gemini 3.7 Flash API speed.</p>
-                </div>
-              </div>
-
-              {/* 5. Devpost Submission Ready-to-Copy Pack */}
-              <div className="p-4 bg-white rounded-2xl border border-slate-200 shadow-2xs space-y-3.5">
-                <div className="flex items-center justify-between">
-                  <h4 className="font-bold text-slate-900 text-xs uppercase tracking-wide flex items-center gap-2">
-                    <Copy className="w-4 h-4 text-blue-600" />
-                    <span>5. Devpost Submission Copy-Paste Kit</span>
-                  </h4>
-                  <span className="text-[10px] text-slate-500 font-sans">
-                    Click to copy any field directly into Devpost
-                  </span>
-                </div>
-
-                <div className="space-y-3">
-                  {/* Field: Project Name & Tagline */}
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">Project Title & Tagline</span>
-                      <p className="font-bold text-slate-900 text-xs">
-                        The Legacy Honored Companion: An Adaptive Cognitive Co-Pilot Built on Gemini & Google Cloud
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(
-                        "The Legacy Honored Companion: An Adaptive Cognitive Co-Pilot Built on Gemini & Google Cloud",
-                        "title"
-                      )}
-                      className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-bold text-xs flex items-center gap-1.5 shrink-0 transition-colors"
-                    >
-                      {copiedField === 'title' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedField === 'title' ? 'Copied!' : 'Copy'}</span>
-                    </button>
-                  </div>
-
-                  {/* Field: Features & Functionality */}
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                    <div className="space-y-1 text-slate-700 flex-1">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">Features & Functionality (Devpost Text)</span>
-                      <p className="text-[11px] leading-relaxed">
-                        • <strong>10 Specialized Multi-Agents:</strong> Persona engine, 1" Vyalev radial infusion tracker, IVR telephony refill agent, Drive Excel/Walmart pantry engine, dual-output calendar summarizer, speech acoustic fatigue tracker, neurologist MDS-UPDRS synthesizer, mobility staging agent, and Web Audio DSP filter.<br/>
-                        • <strong>Dignity & Cognitive Offloading:</strong> Eliminates memory corrections by silently reconciling repeat requests with a live Google Drive pantry spreadsheet.<br/>
-                        • <strong>Multimodal Web Audio DSP:</strong> +3.8dB 220Hz vocal warmth, 8kHz low-pass filter, and 528Hz pure-tone earcons to eliminate acoustic startle.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(
-                        `• 10 Specialized Multi-Agents: Persona engine, 1" Vyalev radial infusion tracker, IVR telephony refill agent, Drive Excel/Walmart pantry engine, dual-output calendar summarizer, speech acoustic fatigue tracker, neurologist MDS-UPDRS synthesizer, mobility staging agent, and Web Audio DSP filter.\n• Dignity & Cognitive Offloading: Eliminates memory corrections by silently reconciling repeat requests with a live Google Drive pantry spreadsheet.\n• Multimodal Web Audio DSP: +3.8dB 220Hz vocal warmth, 8kHz low-pass filter, and 528Hz pure-tone earcons to eliminate acoustic startle.`,
-                        "features"
-                      )}
-                      className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-bold text-xs flex items-center gap-1.5 shrink-0 transition-colors self-start"
-                    >
-                      {copiedField === 'features' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedField === 'features' ? 'Copied!' : 'Copy'}</span>
-                    </button>
-                  </div>
-
-                  {/* Field: Technologies Used */}
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
-                    <div className="space-y-0.5">
-                      <span className="text-[10px] font-bold text-slate-500 uppercase">Technologies Used</span>
-                      <p className="font-semibold text-slate-800 text-[11.5px]">
-                        Gemini 3.7 Flash, Google GenAI SDK (@google/genai), Google Cloud Run, Express, React 19, TypeScript, Web Audio API, Web Speech API, Tailwind CSS.
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(
-                        "Gemini 3.7 Flash, Google GenAI SDK (@google/genai), Google Cloud Run, Express, React 19, TypeScript, Web Audio API, Web Speech API, Tailwind CSS.",
-                        "tech"
-                      )}
-                      className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-bold text-xs flex items-center gap-1.5 shrink-0 transition-colors"
-                    >
-                      {copiedField === 'tech' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedField === 'tech' ? 'Copied!' : 'Copy'}</span>
-                    </button>
-                  </div>
-
-                  {/* Field: Spin-Up Instructions */}
-                  <div className="p-3 bg-slate-50 rounded-xl border border-slate-200 flex flex-col sm:flex-row sm:items-start justify-between gap-2">
-                    <div className="space-y-1 text-slate-700 flex-1 font-mono text-[10.5px]">
-                      <span className="text-[10px] font-bold text-slate-500 font-sans uppercase">Spin-Up Instructions (README.md)</span>
-                      <p className="text-slate-800">
-                        1. git clone &lt;repo-url&gt; && cd project<br/>
-                        2. npm install<br/>
-                        3. Set GEMINI_API_KEY in .env<br/>
-                        4. npm run dev (Boots Express + Vite on port 3000)<br/>
-                        5. Deploy to Google Cloud Run: gcloud run deploy --source .
-                      </p>
-                    </div>
-                    <button
-                      type="button"
-                      onClick={() => copyToClipboard(
-                        `# Spin-Up Instructions\n1. git clone <repo-url> && cd project\n2. npm install\n3. export GEMINI_API_KEY="your-gemini-key"\n4. npm run dev\n5. Open http://localhost:3000\n6. Deploy: gcloud run deploy --source .`,
-                        "spinup"
-                      )}
-                      className="px-3 py-1.5 rounded-lg bg-white border border-slate-300 hover:bg-slate-100 text-slate-800 font-bold text-xs flex items-center gap-1.5 shrink-0 transition-colors self-start"
-                    >
-                      {copiedField === 'spinup' ? <Check className="w-3.5 h-3.5 text-emerald-600" /> : <Copy className="w-3.5 h-3.5" />}
-                      <span>{copiedField === 'spinup' ? 'Copied!' : 'Copy'}</span>
-                    </button>
-                  </div>
-                </div>
-              </div>
-
-              {/* 6. Bonus Points Checklist (#AllThingsAgenticHackathon, Blog Post, Multimodal) */}
-              <div className="p-4 bg-emerald-50/80 rounded-2xl border border-emerald-200 space-y-2">
-                <div className="flex items-center gap-2">
-                  <Sparkles className="w-4 h-4 text-emerald-700" />
-                  <span className="font-extrabold text-emerald-950 text-xs uppercase tracking-wide">
-                    Bonus Opportunities Checklist (+0.6 max)
-                  </span>
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-2.5 text-[11px] text-emerald-900">
-                  <div className="p-2.5 bg-white/80 rounded-xl border border-emerald-200">
-                    <span className="font-bold block">1. Public Article / Video (+0.2)</span>
-                    <span className="text-slate-600 text-[10.5px]">Include text: <em>"Created for the purposes of entering the All Things Agentic Hackathon"</em> on Medium/dev.to.</span>
-                  </div>
-                  <div className="p-2.5 bg-white/80 rounded-xl border border-emerald-200">
-                    <span className="font-bold block">2. Social Media Post (+0.2)</span>
-                    <span className="text-slate-600 text-[10.5px]">Post on X / LinkedIn with hashtag <strong>#AllThingsAgenticHackathon</strong>.</span>
-                  </div>
-                  <div className="p-2.5 bg-white/80 rounded-xl border border-emerald-200">
-                    <span className="font-bold block">3. Multimodal Voice DSP (+0.2)</span>
-                    <span className="text-slate-600 text-[10.5px]">Integrated Web Audio DSP low-pass filter, compression, and harmonic earcons.</span>
-                  </div>
-                </div>
-              </div>
-
-            </div>
-          )}
-
-          {/* TAB 3: PDD CLINICAL RESEARCH */}
-          {activeTab === 'research' && (
-            <div className="space-y-4">
-              <CognitiveResearchSection isModal={true} />
-            </div>
-          )}
-
-          {/* TAB 4: TOKEN & COMPUTE EFFICIENCY */}
+          {/* TAB 2: TOKEN & COMPUTE EFFICIENCY */}
           {activeTab === 'efficiency' && (
             <div className="space-y-4">
               <TokenEfficiencySection />
             </div>
           )}
 
-          {/* TAB 5: CLINICAL PROTOCOLS & INFUSION MATRIX */}
-          {activeTab === 'protocols' && (
-            <div className="space-y-6">
-              {/* Clinical Protocol & Temporal Rhythm Matrix */}
-              <div className="p-5 rounded-2xl bg-gradient-to-br from-indigo-900 to-slate-900 text-white space-y-4 shadow-md border border-indigo-800/80">
-                <div className="flex items-center justify-between border-b border-indigo-700/60 pb-3">
-                  <div className="flex items-center gap-2">
-                    <ShieldCheck className="w-5 h-5 text-emerald-400" />
-                    <span className="font-extrabold text-white text-sm uppercase tracking-wide">
-                      Clinical Protocol Specifications & Temporal Anchors
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-black uppercase px-2.5 py-0.5 bg-emerald-500/20 text-emerald-300 rounded-full border border-emerald-500/30">
-                    Neurology Grounded
-                  </span>
-                </div>
+          {/* TAB 3: AGENT MEMORY HIERARCHY (4 TIERS) */}
+          {activeTab === 'memory' && (
+            <div className="space-y-4">
+              <AgentMemoryHierarchySection />
+            </div>
+          )}
 
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3 text-xs">
-                  <div className="p-3.5 bg-white/10 rounded-xl border border-white/10 space-y-1.5">
-                    <span className="font-bold text-amber-300 block text-xs">
-                      🥗 Levodopa / Protein Synergy
-                    </span>
-                    <p className="text-slate-300 leading-relaxed text-[11px]">
-                      Breakfast is kept light and low in competing large neutral amino acids. Heavy dietary protein is shifted safely to the 6:00 PM dinner window to prevent intestinal absorption competition with levodopa.
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 bg-white/10 rounded-xl border border-white/10 space-y-1.5">
-                    <span className="font-bold text-emerald-300 block text-xs">
-                      💉 Vyalev 24h Infusion Flow
-                    </span>
-                    <p className="text-slate-300 leading-relaxed text-[11px]">
-                      Subcutaneous levodopa/carbidopa continuous pump telemetry maintains steady plasma levels with 14h reserve, eliminating sharp peak-dose dyskinesia and wearing-off motor freezing.
-                    </p>
-                  </div>
-
-                  <div className="p-3.5 bg-white/10 rounded-xl border border-white/10 space-y-1.5">
-                    <span className="font-bold text-sky-300 block text-xs">
-                      🚗 +20m Mobility Prep Buffers
-                    </span>
-                    <p className="text-slate-300 leading-relaxed text-[11px]">
-                      All clinic departures (e.g. 10:30 AM PT) automatically stage vehicle readiness for 9:55 AM, embedding calm Parkinson's gait and wheelchair transfer buffers to eliminate rush-induced anxiety.
-                    </p>
-                  </div>
-                </div>
-
-                {/* 4 Gentle Day Parts */}
-                <div className="p-3.5 bg-white/5 rounded-xl border border-white/10 space-y-2.5">
-                  <span className="font-bold text-indigo-200 block text-xs uppercase tracking-wider">
-                    Temporal Rhythm & Conversational Anchors (4 Gentle Day Parts)
-                  </span>
-                  <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-2.5 text-[11px]">
-                    <div className="p-2.5 rounded-xl bg-black/25 border border-white/5 space-y-1">
-                      <span className="font-bold text-amber-300 block">🌅 Morning Anchor</span>
-                      <span className="text-slate-300 text-[10.5px]">Relaxed breakfast & quiet start until 9:55 AM PT departure.</span>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-black/25 border border-white/5 space-y-1">
-                      <span className="font-bold text-amber-200 block">☀️ Mid-Day Anchor</span>
-                      <span className="text-slate-300 text-[10.5px]">Post-therapy lunch & quiet armchair downtime (1:30–3:00 PM).</span>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-black/25 border border-white/5 space-y-1">
-                      <span className="font-bold text-indigo-300 block">🛋️ Afternoon Rest</span>
-                      <span className="text-slate-300 text-[10.5px]">Scheduled rest to sustain neurological motor fluidity.</span>
-                    </div>
-                    <div className="p-2.5 rounded-xl bg-black/25 border border-white/5 space-y-1">
-                      <span className="font-bold text-purple-300 block">🌙 Evening Routine</span>
-                      <span className="text-slate-300 text-[10.5px]">Telehealth review at 3:30 PM, then family dinner at 6:00 PM.</span>
-                    </div>
-                  </div>
-                </div>
-              </div>
+          {/* TAB 4: CLINICAL RESEARCH & MATRIX */}
+          {activeTab === 'research' && (
+            <div className="space-y-4">
+              <ResearchAndEducationView />
             </div>
           )}
 
