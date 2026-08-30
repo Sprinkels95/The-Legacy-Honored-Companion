@@ -778,34 +778,57 @@ app.post("/api/agent/call-pharmacy", async (req, res) => {
 
     const ai = getGenAI();
     const personaPrompt = PERSONA_PROMPTS[personaId] || PERSONA_PROMPTS['ward-cleaver'];
+    const isSpecialty = medication.refillCallType === 'SPECIALTY_LIVE_VERIFICATION' || 
+                        medication.deliveryMethod?.includes('Subcutaneous') || 
+                        medication.isRefrigerated || 
+                        medication.name?.toLowerCase().includes('vyalev');
 
     if (process.env.GEMINI_API_KEY) {
       const prompt = `
-You are the Autonomous Pharmacy Refill & Voice Agent for "The Care Navigator", acting on behalf of Parkinson's patient Captain Wade (DOB: March 14, 1952) and his family caregiver.
+You are the Autonomous Pharmacy Refill Voice Agent for Parkinson's patient Captain Wade (Wade Seymour, DOB: March 14, 1952).
+Patient Profile:
+- Full Name: Wade Seymour (Captain Wade)
+- DOB: March 14, 1952 (03/14/1952)
+- Delivery Address: 1635 Divisadero Street, Suite 520, San Francisco, CA 94115
+- Caregiver: Elsbeth Seymour (Phone: 949-441-0137)
+- Prescribing Neurologist: Dr. Eleanor Vance, MD (UCSF Movement Disorders)
+- Primary Care Physician: Dr. David Miller, MD
+
 Medication to Refill:
 - Name: ${medication.name} (${medication.genericName || ''})
-- Dosage & Method: ${medication.dosage} (${medication.deliveryMethod})
+- Dosage & Delivery Method: ${medication.dosage} (${medication.deliveryMethod})
 - Prescription Rx#: ${medication.rxNumber}
 - Prescribing Physician: ${medication.prescribingDoctor}
 - Target Pharmacy: ${medication.pharmacyName} (Phone: ${medication.pharmacyPhone})
-- Is Refrigerated: ${medication.isRefrigerated ? 'YES (Strict cold chain required 2°C-8°C)' : 'No'}
+- Call Type: ${isSpecialty ? 'SPECIALTY_LIVE_VERIFICATION (Multi-turn Pharmacist Q&A)' : 'RETAIL_TOUCH_TONE_PROMPT (Automated DTMF Keypad Refill)'}
+- Remaining Supply: ${medication.daysRemaining} days (${medication.currentPillCountOrVials} ${isSpecialty ? 'vials' : 'pills'} left)
+- Is Refrigerated: ${medication.isRefrigerated ? 'YES (Strict 2°C-8°C cold chain)' : 'No'}
 - Delivery Preference: ${deliveryPreference}
 - Urgency: ${urgency}
-- Custom Notes / Instructions: ${customNotes || 'Standard 30-day refill cycle with automated caregiver confirmation push.'}
 
-Persona Selected: ${personaId}
-Persona Instruction: ${personaPrompt}
+Persona Selected for Caregiver Reassurance: ${personaId}
+Persona Guidance: ${personaPrompt}
 
 Task:
-Simulate the autonomous outbound AI voice phone call placed by the Care Navigator agent to the pharmacy's Interactive Voice Response (IVR) or staff pharmacist.
-Generate a realistic, step-by-step interactive dialogue script, confirmation details, delivery ETA, prior-auth verification, and a reassuring spoken summary in the voice of the selected persona (${personaId}).
+${isSpecialty ? `
+Generate a realistic multi-turn clinical verification dialogue between 'PHARMACIST' and 'AGENT'.
+The pharmacist MUST specifically ask for:
+1. Patient full legal name and Date of Birth (Wade Seymour, 03/14/1952).
+2. Primary verified delivery address (1635 Divisadero Street, Suite 520, San Francisco, CA 94115).
+3. How many vials or cassettes of Vyalev are currently left in the refrigerator (Answer: ${medication.currentPillCountOrVials} vials left, representing a ${medication.daysRemaining}-day supply).
+4. Cold-chain shipping and thermal packaging requirements.
+5. Confirmation code and estimated delivery time.
+` : `
+Generate a realistic automated touch-tone IVR phone call between 'PHARMACY_IVR' and 'AGENT'.
+The steps MUST include:
+1. IVR greeting: Press 1 for refills. Agent sends DTMF tone: '1'.
+2. IVR asks for Rx#: Agent sends DTMF tones for prescription number (${medication.rxNumber.replace(/[^0-9]/g, '')}#).
+3. IVR asks for patient 8-digit DOB: Agent sends DTMF tones '03141952#'.
+4. IVR confirms refill acceptance and asks for confirmation: Agent sends DTMF tone '1'.
+5. IVR provides confirmation reference code and pickup time.
+`}
 
-Requirements:
-1. Generate an array of 5-8 chronological dialogue turns between 'AGENT' and 'PHARMACY_IVR' / 'PHARMACIST'. Include time offsets ('00:02', '00:10', etc.).
-2. Include realistic Rx validation, patient DOB verification, prior authorization check, and fulfillment scheduling.
-3. Return a unique confirmation number (e.g., CONF-XXXXXX).
-4. Provide a full transcript narrative.
-5. Provide a spoken reassurance text in the exact persona of ${personaId} to reassure Captain Wade.
+Generate 6-8 dialogue turns. For each turn, assign the correct speaker, dialogue text, time offset, and questionCategory ('NAME_DOB' | 'ADDRESS' | 'VIALS_REMAINING' | 'COLD_CHAIN' | 'PRESCRIBER' | 'TOUCH_TONE' | 'CONFIRMATION' | 'GENERAL').
 `;
 
       const response = await ai.models.generateContent({
@@ -840,7 +863,12 @@ Requirements:
                   properties: {
                     speaker: { type: Type.STRING, enum: ['AGENT', 'PHARMACY_IVR', 'PHARMACIST'] },
                     text: { type: Type.STRING },
-                    timeOffset: { type: Type.STRING }
+                    timeOffset: { type: Type.STRING },
+                    dtmfTone: { type: Type.STRING },
+                    questionCategory: { 
+                      type: Type.STRING, 
+                      enum: ['NAME_DOB', 'ADDRESS', 'VIALS_REMAINING', 'COLD_CHAIN', 'PRESCRIBER', 'TOUCH_TONE', 'CONFIRMATION', 'GENERAL'] 
+                    }
                   },
                   required: ["speaker", "text", "timeOffset"]
                 }
@@ -868,15 +896,15 @@ Requirements:
         pharmacyName: medication.pharmacyName,
         pharmacyPhone: medication.pharmacyPhone,
         timestamp: 'Just now',
-        callDurationSeconds: parsed.callDurationSeconds || 74,
+        callDurationSeconds: parsed.callDurationSeconds || (isSpecialty ? 92 : 48),
         status: 'COMPLETED',
-        confirmationNumber: parsed.confirmationNumber || `CONF-${Math.floor(100000 + Math.random() * 900000)}-RX`,
-        estimatedReadyDate: parsed.estimatedReadyDate || 'Sept 01, 2026',
-        estimatedReadyTime: parsed.estimatedReadyTime || '10:30 AM',
-        fulfillmentType: parsed.fulfillmentType || (medication.isRefrigerated ? 'Express Courier (Refrigerated Cold-Chain)' : 'Pharmacy Counter Pickup'),
+        confirmationNumber: parsed.confirmationNumber || `CONF-${Math.floor(100000 + Math.random() * 900000)}-${isSpecialty ? 'VY' : 'RX'}`,
+        estimatedReadyDate: parsed.estimatedReadyDate || (isSpecialty ? 'Tuesday, Sept 01, 2026' : 'Tomorrow'),
+        estimatedReadyTime: parsed.estimatedReadyTime || (isSpecialty ? '10:30 AM (Cold-Chain Courier)' : '09:00 AM (Counter Pickup)'),
+        fulfillmentType: parsed.fulfillmentType || (isSpecialty ? 'Express Courier (Refrigerated Cold-Chain)' : 'Pharmacy Counter Pickup'),
         priorAuthStatus: parsed.priorAuthStatus || 'ACTIVE_VALID',
         caregiverAlertDispatched: parsed.caregiverAlertDispatched ?? true,
-        alertChannel: parsed.alertChannel || 'Discord Webhook',
+        alertChannel: parsed.alertChannel || (isSpecialty ? 'Discord Webhook' : 'Twilio SMS'),
         dialogueScript: parsed.dialogueScript || [],
         fullTranscript: parsed.fullTranscript || ''
       };
@@ -890,50 +918,136 @@ Requirements:
       });
     }
 
-    // Fallback simulation if no API key
-    const isColdChain = medication.deliveryMethod.includes('Subcutaneous') || medication.isRefrigerated;
+    // Fallback Simulation when offline
     const randomConf = `CONF-${Math.floor(100000 + Math.random() * 900000)}-${medication.name.substring(0, 2).toUpperCase()}`;
     
-    const fallbackScript = [
-      {
-        speaker: 'PHARMACY_IVR' as const,
-        timeOffset: '00:02',
-        text: `Thank you for calling ${medication.pharmacyName}. To refill a prescription, press 1 or state your prescription number.`
-      },
-      {
-        speaker: 'AGENT' as const,
-        timeOffset: '00:06',
-        text: `Refill request. This is the Care Navigator Autonomous Voice Agent verifying prescription ${medication.rxNumber} for patient Wade Seymour, DOB: 03/14/1952.`
-      },
-      {
-        speaker: 'PHARMACY_IVR' as const,
-        timeOffset: '00:18',
-        text: `Prescription found for ${medication.name}. Prescribed by ${medication.prescribingDoctor}. Insurance coverage verified with active prior-authorization.`
-      },
-      {
-        speaker: 'AGENT' as const,
-        timeOffset: '00:30',
-        text: isColdChain 
-          ? `Confirming 30-day supply with temperature-controlled expedited cold-chain courier to patient home residence.`
-          : `Confirming 30-day supply ready for caregiver pickup.`
-      },
-      {
-        speaker: 'PHARMACY_IVR' as const,
-        timeOffset: '00:44',
-        text: `Refill confirmed. Confirmation code is ${randomConf}. Scheduled for delivery/ready by tomorrow at 11:00 AM.`
-      },
-      {
-        speaker: 'AGENT' as const,
-        timeOffset: '00:58',
-        text: `Confirmation ${randomConf} logged to clinical chart. Caregiver dispatch alert sent via webhook. Disconnecting.`
-      }
-    ];
+    let fallbackScript = [];
+    if (isSpecialty) {
+      fallbackScript = [
+        {
+          speaker: 'PHARMACIST' as const,
+          timeOffset: '00:03',
+          text: `Accredo Specialty Pharmacy, this is Sarah. I see the refill request for ${medication.name}. Can you confirm the patient legal name and date of birth?`,
+          questionCategory: 'NAME_DOB' as const
+        },
+        {
+          speaker: 'AGENT' as const,
+          timeOffset: '00:12',
+          text: `Hello Sarah. This is the Care Navigator AI assistant calling on behalf of Captain Wade Seymour. Date of Birth is March 14, 1952.`,
+          questionCategory: 'NAME_DOB' as const
+        },
+        {
+          speaker: 'PHARMACIST' as const,
+          timeOffset: '00:24',
+          text: `Thank you. Can you verify the primary residential shipping address for this delivery?`,
+          questionCategory: 'ADDRESS' as const
+        },
+        {
+          speaker: 'AGENT' as const,
+          timeOffset: '00:32',
+          text: `Delivery address is 1635 Divisadero Street, Suite 520, San Francisco, California, 94115.`,
+          questionCategory: 'ADDRESS' as const
+        },
+        {
+          speaker: 'PHARMACIST' as const,
+          timeOffset: '00:44',
+          text: `Got it. For our compliance checklist, how many vials or cassettes does Captain Wade have left in the refrigerator?`,
+          questionCategory: 'VIALS_REMAINING' as const
+        },
+        {
+          speaker: 'AGENT' as const,
+          timeOffset: '00:54',
+          text: `He currently has ${medication.currentPillCountOrVials || 4} vials remaining in the refrigerator, representing a ${medication.daysRemaining || 4}-day supply.`,
+          questionCategory: 'VIALS_REMAINING' as const
+        },
+        {
+          speaker: 'PHARMACIST' as const,
+          timeOffset: '01:06',
+          text: `Prior authorization from Dr. Eleanor Vance is active and valid. We will schedule overnight cold-chain delivery.`,
+          questionCategory: 'COLD_CHAIN' as const
+        },
+        {
+          speaker: 'AGENT' as const,
+          timeOffset: '01:18',
+          text: `Confirmed. Thank you for ensuring 2°C to 8°C temperature control.`,
+          questionCategory: 'COLD_CHAIN' as const
+        },
+        {
+          speaker: 'PHARMACIST' as const,
+          timeOffset: '01:28',
+          text: `Refill confirmed. Reference number is ${randomConf}. Delivery scheduled for Tuesday by 10:30 AM.`,
+          questionCategory: 'CONFIRMATION' as const
+        }
+      ];
+    } else {
+      const rxDigits = medication.rxNumber.replace(/[^0-9]/g, '') || '884210';
+      fallbackScript = [
+        {
+          speaker: 'PHARMACY_IVR' as const,
+          timeOffset: '00:02',
+          text: `Welcome to ${medication.pharmacyName} automated refill system. Press 1 for prescription refills.`,
+          questionCategory: 'TOUCH_TONE' as const
+        },
+        {
+          speaker: 'AGENT' as const,
+          timeOffset: '00:06',
+          text: `[Touch-Tone DTMF: 1]`,
+          dtmfTone: '1',
+          questionCategory: 'TOUCH_TONE' as const
+        },
+        {
+          speaker: 'PHARMACY_IVR' as const,
+          timeOffset: '00:12',
+          text: `Please enter the numeric digits of your prescription number followed by pound.`,
+          questionCategory: 'TOUCH_TONE' as const
+        },
+        {
+          speaker: 'AGENT' as const,
+          timeOffset: '00:18',
+          text: `[Touch-Tone DTMF: ${rxDigits.split('').join(' ')} #] (${medication.name})`,
+          dtmfTone: `${rxDigits}#`,
+          questionCategory: 'TOUCH_TONE' as const
+        },
+        {
+          speaker: 'PHARMACY_IVR' as const,
+          timeOffset: '00:26',
+          text: `Please enter the patient 8-digit date of birth followed by pound.`,
+          questionCategory: 'TOUCH_TONE' as const
+        },
+        {
+          speaker: 'AGENT' as const,
+          timeOffset: '00:32',
+          text: `[Touch-Tone DTMF: 0 3 1 4 1 9 5 2 #] (March 14, 1952)`,
+          dtmfTone: '03141952#',
+          questionCategory: 'TOUCH_TONE' as const
+        },
+        {
+          speaker: 'PHARMACY_IVR' as const,
+          timeOffset: '00:40',
+          text: `Refill accepted for ${medication.name}. Press 1 to confirm pickup tomorrow at 9:00 AM.`,
+          questionCategory: 'TOUCH_TONE' as const
+        },
+        {
+          speaker: 'AGENT' as const,
+          timeOffset: '00:44',
+          text: `[Touch-Tone DTMF: 1]`,
+          dtmfTone: '1',
+          questionCategory: 'TOUCH_TONE' as const
+        },
+        {
+          speaker: 'PHARMACY_IVR' as const,
+          timeOffset: '00:48',
+          text: `Refill confirmed. Reference number is ${randomConf}. Thank you for using automated refill.`,
+          questionCategory: 'CONFIRMATION' as const
+        }
+      ];
+    }
 
     const fallbackReassurance = personaId === 'dr-evil'
-      ? `Behold, Captain Wade! I have commanded our autonomous telephony satellite to infiltrate ${medication.pharmacyName}! Your ${medication.name} refill is locked in with confirmation ${randomConf}. Our secret subterranean courier will deliver your life-giving elixir without you lifting a single pinky! Riiiight!`
+      ? `Behold, Captain Wade! I have commanded our autonomous telephony satellite to coordinate with ${medication.pharmacyName}! Your ${medication.name} refill is locked in with confirmation ${randomConf}. Our secret courier will deliver without you lifting a finger! Riiiight!`
       : personaId === 'first-mate'
-      ? `Captain! The autonomous voice dispatch has secured clearance with ${medication.pharmacyName}. Refill order ${randomConf} for ${medication.name} is on course and scheduled for arrival. The ship remains fully stocked and seaworthy!`
-      : `Rest easy, Captain Wade. The automated pharmacy service called in your ${medication.name} refill to ${medication.pharmacyName}. Everything is confirmed with reference number ${randomConf}, and it will arrive right on schedule.`;
+      ? `Captain! Autonomous voice dispatch has secured clearance with ${medication.pharmacyName}. Refill ${randomConf} for ${medication.name} is on course. The vessel remains fully supplied!`
+      : `Rest easy, Captain Wade. The automated pharmacy service called in your ${medication.name} refill to ${medication.pharmacyName}. Everything is confirmed under reference ${randomConf}, arriving right on schedule.`;
 
     const fallbackCallLog = {
       id: `call-${Date.now()}`,
@@ -943,19 +1057,19 @@ Requirements:
       pharmacyName: medication.pharmacyName,
       pharmacyPhone: medication.pharmacyPhone,
       timestamp: 'Just now',
-      callDurationSeconds: 62,
+      callDurationSeconds: isSpecialty ? 92 : 48,
       status: 'COMPLETED' as const,
       confirmationNumber: randomConf,
-      estimatedReadyDate: 'Tomorrow',
-      estimatedReadyTime: '11:00 AM',
-      fulfillmentType: isColdChain 
+      estimatedReadyDate: isSpecialty ? 'Tuesday, Sept 01, 2026' : 'Tomorrow',
+      estimatedReadyTime: isSpecialty ? '10:30 AM' : '09:00 AM',
+      fulfillmentType: isSpecialty 
         ? 'Express Courier (Refrigerated Cold-Chain)' as const
         : 'Pharmacy Counter Pickup' as const,
       priorAuthStatus: 'ACTIVE_VALID' as const,
       caregiverAlertDispatched: true,
-      alertChannel: 'Discord Webhook' as const,
+      alertChannel: isSpecialty ? 'Discord Webhook' as const : 'Twilio SMS' as const,
       dialogueScript: fallbackScript,
-      fullTranscript: `Autonomous voice agent connected to ${medication.pharmacyName}. Provided Rx# ${medication.rxNumber} and patient DOB. Confirmed active insurance authorization and scheduled ${isColdChain ? 'cold-chain courier delivery' : 'pickup'}. Refill confirmation: ${randomConf}.`
+      fullTranscript: `Autonomous voice agent completed call to ${medication.pharmacyName}. Verified patient identity, ${isSpecialty ? 'address, and 4 remaining vials count' : 'touch-tone refill prompts'}. Confirmation: ${randomConf}.`
     };
 
     return res.json({
@@ -968,6 +1082,108 @@ Requirements:
   } catch (error: any) {
     console.error("Error in /api/agent/call-pharmacy:", error);
     res.status(500).json({ error: error.message || "Failed to execute autonomous pharmacy call" });
+  }
+});
+
+// 7b. POST /api/agent/pharmacy-ask (Interactive Pharmacy AI Question-Answer Engine)
+app.post("/api/agent/pharmacy-ask", async (req, res) => {
+  try {
+    const { 
+      question, 
+      medicationName = "Vyalev 24-hour continuous subcutaneous infusion",
+      currentVialCount = 4,
+      personaId = "ward-cleaver"
+    } = req.body;
+
+    if (!question) {
+      return res.status(400).json({ error: "Question prompt is required" });
+    }
+
+    const ai = getGenAI();
+
+    if (process.env.GEMINI_API_KEY) {
+      const prompt = `
+You are the voice of the Care Navigator AI assistant calling a pharmacy on behalf of Parkinson's patient Captain Wade.
+Patient Chart & Verified Details:
+- Legal Name: Wade Seymour (Captain Wade, Retired Fire Captain)
+- Date of Birth: March 14, 1952 (03/14/1952)
+- Primary Delivery Address: 1635 Divisadero Street, Suite 520, San Francisco, CA 94115
+- Emergency / Family Caregiver: Elsbeth Seymour (Phone: 949-441-0137)
+- Prescribing Neurologist: Dr. Eleanor Vance, MD (UCSF Movement Disorders Clinic)
+- Primary Care Physician: Dr. David Miller, MD
+- Medication In Question: ${medicationName}
+- Current Remaining Supply at Home: ${currentVialCount} vials left in the refrigerator (approx. ${currentVialCount}-day supply)
+- Storage: Refrigerated at 2°C–8°C. Cold-chain courier delivery required.
+- Allergies: No known drug allergies (NKDA). Mild adhesive sensitivity on skin.
+- Insurance: Medicare Part B/D with active supplemental prior-authorization on file.
+
+Pharmacy's Question: "${question}"
+
+Task:
+Provide a clear, polite, direct, and professional spoken answer that the AI agent would speak out loud to the pharmacist or IVR phone system.
+Keep it natural, concise (1-2 sentences), and 100% factually accurate based on Captain Wade's chart above.
+`;
+
+      const response = await ai.models.generateContent({
+        model: "gemini-3.7-flash",
+        contents: prompt,
+        config: {
+          responseMimeType: "application/json",
+          responseSchema: {
+            type: Type.OBJECT,
+            properties: {
+              spokenAnswer: { type: Type.STRING },
+              category: { 
+                type: Type.STRING, 
+                enum: ['NAME_DOB', 'ADDRESS', 'VIALS_REMAINING', 'COLD_CHAIN', 'PRESCRIBER', 'ALLERGIES_INSURANCE', 'GENERAL'] 
+              },
+              verificationStatus: { type: Type.STRING, enum: ['VERIFIED_CHART_MATCH', 'REQUIRES_CAREGIVER_INPUT'] }
+            },
+            required: ["spokenAnswer", "category", "verificationStatus"]
+          }
+        }
+      });
+
+      const parsed = JSON.parse(response.text || "{}");
+      return res.json({
+        success: true,
+        answer: parsed.spokenAnswer,
+        category: parsed.category,
+        verificationStatus: parsed.verificationStatus
+      });
+    }
+
+    // Heuristic Fallback
+    const qLower = question.toLowerCase();
+    let fallbackAnswer = "Patient is Wade Seymour, DOB March 14, 1952, delivery address 1635 Divisadero St, San Francisco.";
+    let cat = 'GENERAL';
+
+    if (qLower.includes('name') || qLower.includes('dob') || qLower.includes('birth')) {
+      fallbackAnswer = "Patient legal name is Wade Seymour. Date of birth is March 14, 1952.";
+      cat = 'NAME_DOB';
+    } else if (qLower.includes('address') || qLower.includes('ship') || qLower.includes('deliver') || qLower.includes('location')) {
+      fallbackAnswer = "Delivery address is 1635 Divisadero Street, Suite 520, San Francisco, California, 94115.";
+      cat = 'ADDRESS';
+    } else if (qLower.includes('vial') || qLower.includes('left') || qLower.includes('cassette') || qLower.includes('supply') || qLower.includes('remaining') || qLower.includes('how many')) {
+      fallbackAnswer = `Captain Wade currently has ${currentVialCount} vials remaining in the refrigerator, which is exactly a ${currentVialCount}-day supply.`;
+      cat = 'VIALS_REMAINING';
+    } else if (qLower.includes('doctor') || qLower.includes('prescriber') || qLower.includes('physician') || qLower.includes('vance')) {
+      fallbackAnswer = "Prescribing physician is Dr. Eleanor Vance, MD at the UCSF Movement Disorders Clinic.";
+      cat = 'PRESCRIBER';
+    } else if (qLower.includes('refrigerat') || qLower.includes('cold') || qLower.includes('temperature') || qLower.includes('courier')) {
+      fallbackAnswer = "Yes, please ship via expedited temperature-controlled cold-chain courier maintained between 2 and 8 degrees Celsius.";
+      cat = 'COLD_CHAIN';
+    }
+
+    return res.json({
+      success: true,
+      answer: fallbackAnswer,
+      category: cat,
+      verificationStatus: 'VERIFIED_CHART_MATCH'
+    });
+  } catch (error: any) {
+    console.error("Error in /api/agent/pharmacy-ask:", error);
+    res.status(500).json({ error: error.message || "Failed to process pharmacy question" });
   }
 });
 

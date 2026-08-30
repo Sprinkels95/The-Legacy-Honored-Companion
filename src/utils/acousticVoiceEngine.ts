@@ -447,7 +447,7 @@ class AcousticVoiceEngine {
   /**
    * Pure-Tone Sine Wave Harmonic Earcons (Soft Attack/Decay Envelopes)
    */
-  public playEarcon(type: 'speech-start' | 'speech-end' | 'refill-confirmed' | 'mic-active' | 'chime'): void {
+  public playEarcon(type: 'speech-start' | 'speech-end' | 'refill-confirmed' | 'mic-active' | 'chime' | 'dial-tone'): void {
     const ctx = this.initAudioContext();
     if (!ctx) return;
 
@@ -493,7 +493,155 @@ class AcousticVoiceEngine {
       createTone(880.0, now, 0.15, 0.12);
     } else if (type === 'chime') {
       createTone(587.33, now, 0.25, 0.08); // D5
+    } else if (type === 'dial-tone') {
+      // US Standard Dial Tone (350Hz + 440Hz continuous dual-sine)
+      createTone(350.0, now, 0.6, 0.08);
+      createTone(440.0, now, 0.6, 0.08);
     }
+  }
+
+  /**
+   * Generates standard DTMF (Dual-Tone Multi-Frequency) touch-tones via Web Audio API
+   * Rows: 697Hz, 770Hz, 852Hz, 941Hz
+   * Cols: 1209Hz, 1336Hz, 1477Hz, 1633Hz
+   */
+  public playDtmfTone(char: string, durationMs: number = 180, peakGain: number = 0.15): void {
+    const ctx = this.initAudioContext();
+    if (!ctx) return;
+
+    const dtmfFrequencies: Record<string, [number, number]> = {
+      '1': [697, 1209],
+      '2': [697, 1336],
+      '3': [697, 1477],
+      'A': [697, 1633],
+      '4': [770, 1209],
+      '5': [770, 1336],
+      '6': [770, 1477],
+      'B': [770, 1633],
+      '7': [852, 1209],
+      '8': [852, 1336],
+      '9': [852, 1477],
+      'C': [852, 1633],
+      '*': [941, 1209],
+      '0': [941, 1336],
+      '#': [941, 1477],
+      'D': [941, 1633],
+    };
+
+    const key = char.toUpperCase();
+    const freqs = dtmfFrequencies[key];
+    if (!freqs) return;
+
+    const now = ctx.currentTime;
+    const durSec = durationMs / 1000;
+
+    freqs.forEach((freq) => {
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+
+      osc.type = 'sine';
+      osc.frequency.setValueAtTime(freq, now);
+
+      gain.gain.setValueAtTime(0.0001, now);
+      gain.gain.linearRampToValueAtTime(peakGain, now + 0.008);
+      gain.gain.setValueAtTime(peakGain, now + durSec - 0.008);
+      gain.gain.linearRampToValueAtTime(0.0001, now + durSec);
+
+      osc.connect(gain);
+      if (this.compressor) {
+        gain.connect(this.compressor);
+      } else {
+        gain.connect(ctx.destination);
+      }
+
+      osc.start(now);
+      osc.stop(now + durSec);
+    });
+  }
+
+  /**
+   * Plays a sequence of DTMF tones with realistic touch-tone dialing cadence
+   */
+  public async playDtmfSequence(
+    sequence: string,
+    onDigitPlayed?: (char: string, index: number) => void
+  ): Promise<void> {
+    const chars = sequence.replace(/[\s,-]/g, '').split('');
+    for (let i = 0; i < chars.length; i++) {
+      const char = chars[i];
+      if (char === ',') {
+        // Pause token
+        await new Promise((r) => setTimeout(r, 400));
+        continue;
+      }
+      this.playDtmfTone(char, 160, 0.16);
+      onDigitPlayed?.(char, i);
+      await new Promise((r) => setTimeout(r, 240));
+    }
+  }
+
+  /**
+   * Speaks a specific call role (AGENT with warm persona, or PHARMACY_REPRESENTATIVE / IVR with clear neutral tone)
+   */
+  public speakRole(
+    text: string,
+    role: 'AGENT' | 'PHARMACY_IVR' | 'PHARMACIST',
+    persona: AgentPersonaId = 'ward-cleaver',
+    options?: {
+      onStart?: () => void;
+      onEnd?: () => void;
+      onError?: (err: any) => void;
+    }
+  ): SpeechSynthesisUtterance | null {
+    if (!('speechSynthesis' in window)) {
+      options?.onError?.(new Error('Speech synthesis not supported in this browser.'));
+      return null;
+    }
+
+    window.speechSynthesis.cancel();
+    this.initAudioContext();
+
+    if (!this.voicesLoaded || this.availableVoices.length === 0) {
+      this.availableVoices = window.speechSynthesis.getVoices();
+    }
+    const englishVoices = this.availableVoices.filter((v) => v.lang.startsWith('en'));
+
+    const formattedText = this.formatTextForSpeech(text, persona);
+    const utterance = new SpeechSynthesisUtterance(formattedText);
+
+    if (role === 'PHARMACY_IVR' || role === 'PHARMACIST') {
+      // Find crisp professional female or clear neutral voice for pharmacy rep/IVR
+      const femaleVoice = englishVoices.find((v) => this.isFemaleVoice(v));
+      if (femaleVoice) {
+        utterance.voice = femaleVoice;
+      }
+      utterance.pitch = 1.05;
+      utterance.rate = 1.02;
+      utterance.volume = 1.0;
+    } else {
+      // AGENT: Use selected persona's warm voice
+      const agentVoice = this.selectBestVoice(persona);
+      if (agentVoice) {
+        utterance.voice = agentVoice;
+      }
+      utterance.pitch = persona === 'ward-cleaver' ? 0.95 : 1.0;
+      utterance.rate = persona === 'ward-cleaver' ? 0.96 : 1.0;
+      utterance.volume = 1.0;
+    }
+
+    utterance.onstart = () => options?.onStart?.();
+    utterance.onend = () => options?.onEnd?.();
+    utterance.onerror = (e) => {
+      console.warn('Speech synthesis playback note:', e);
+      options?.onError?.(e);
+      options?.onEnd?.();
+    };
+
+    setTimeout(() => {
+      window.speechSynthesis.speak(utterance);
+    }, 80);
+
+    return utterance;
   }
 
   /**

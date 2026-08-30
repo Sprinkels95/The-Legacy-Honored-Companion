@@ -74,12 +74,16 @@ export interface MedicationRefillItem {
   isRefrigerated?: boolean;
   specialHandling?: string;
   notes?: string;
+  refillCallType?: 'SPECIALTY_LIVE_VERIFICATION' | 'RETAIL_TOUCH_TONE_PROMPT';
+  touchToneSequence?: string;
 }
 
 export interface PharmacyCallDialogueStep {
   speaker: 'AGENT' | 'PHARMACY_IVR' | 'PHARMACIST';
   text: string;
   timeOffset: string;
+  dtmfTone?: string;
+  questionCategory?: 'NAME_DOB' | 'ADDRESS' | 'VIALS_REMAINING' | 'COLD_CHAIN' | 'PRESCRIBER' | 'TOUCH_TONE' | 'CONFIRMATION' | 'GENERAL';
 }
 
 export interface PharmacyCallLog {

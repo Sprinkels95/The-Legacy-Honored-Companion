@@ -254,15 +254,15 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-900 text-[11px] flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-                        4. Drive Excel & Walmart Deduplication Engine
+                        4. Shared Spreadsheet & Shopping Deduplication Engine
                       </span>
                       <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-sky-50 text-sky-800 rounded-md border border-sky-200">
-                        Drive & Walmart
+                        Spreadsheet & Queue
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-600 leading-relaxed">
                       <strong>Trigger:</strong> Wade requests pantry treats or family reviews household needs.<br/>
-                      <strong>Mechanism:</strong> Houses a live <strong>Static Shared Drive Excel Spreadsheet</strong>, generates 1-click <strong>Walmart cart search links</strong>, formats aisle-by-aisle <strong>Google Docs</strong>, and silences duplicate purchases with warm reassurance.
+                      <strong>Mechanism:</strong> Houses a live <strong>Interactive Shared Spreadsheet & Inventory Ledger</strong>, reconciles stock levels against shopping queues, deduplicates purchases, powers Wade's favorites quick-ordering, and exports verified CSV records.
                     </p>
                   </div>
 

@@ -72,7 +72,34 @@ export const INITIAL_MEDICATIONS: MedicationRefillItem[] = [
     lastRefillDate: 'Aug 02, 2026',
     nextEstimatedRefillDate: 'Sept 02, 2026',
     instructions: 'Refrigerate vials at 2°C–8°C. Do not freeze. Load into infusion pump reservoir sterilely every morning.',
-    notes: 'Cold chain delivery takes 48-72h. Critical to submit refill order immediately.'
+    notes: 'Specialty cold chain delivery. Pharmacist verifies Name, DOB, Address, remaining vial count (4 left), and courier packaging.',
+    refillCallType: 'SPECIALTY_LIVE_VERIFICATION',
+    isRefrigerated: true,
+    specialHandling: 'Refrigerated Cold-Chain Courier (2°C-8°C)'
+  },
+  {
+    id: 'med-bp',
+    name: 'Lisinopril 20mg / Amlodipine 5mg',
+    genericName: 'Lisinopril 20mg / Amlodipine Besylate 5mg',
+    dosage: '20mg / 5mg Daily Oral Tablet',
+    frequency: '1 tablet once daily every morning with water',
+    deliveryMethod: 'Oral Tablet',
+    currentPillCountOrVials: 6,
+    totalPrescriptionQuantity: 30,
+    dailyUsageRate: 1,
+    daysRemaining: 6,
+    refillThresholdDays: 7,
+    refillStatus: 'REFILL_NEEDED',
+    prescribingDoctor: 'Dr. David Miller, MD (Primary Care Physician)',
+    pharmacyName: 'Walgreens Pharmacy #1402',
+    pharmacyPhone: '(415) 555-0192',
+    rxNumber: 'RX-884210-BP',
+    lastRefillDate: 'Aug 04, 2026',
+    nextEstimatedRefillDate: 'Sept 03, 2026',
+    instructions: 'Take 1 tablet in the morning. Maintains cardiovascular stability and prevents orthostatic spikes.',
+    notes: 'Refill via automated touch-tone prompt line. Dials 1 -> Rx 884210# -> DOB 03141952# -> 1 (Confirm pickup).',
+    refillCallType: 'RETAIL_TOUCH_TONE_PROMPT',
+    touchToneSequence: '1,884210#,03141952#,1'
   },
   {
     id: 'med-2',
@@ -94,7 +121,9 @@ export const INITIAL_MEDICATIONS: MedicationRefillItem[] = [
     lastRefillDate: 'Aug 10, 2026',
     nextEstimatedRefillDate: 'Sept 10, 2026',
     instructions: 'Take with water on empty stomach or with a low-protein snack. Avoid taking with high-protein meals.',
-    notes: 'Emergency PRN rescue bottle kept in bedside caddy.'
+    notes: 'Emergency PRN rescue bottle kept in bedside caddy. Refill via automated touch-tone prompt line.',
+    refillCallType: 'RETAIL_TOUCH_TONE_PROMPT',
+    touchToneSequence: '1,441092#,03141952#,1'
   },
   {
     id: 'med-3',
@@ -116,7 +145,9 @@ export const INITIAL_MEDICATIONS: MedicationRefillItem[] = [
     lastRefillDate: 'Aug 07, 2026',
     nextEstimatedRefillDate: 'Sept 06, 2026',
     instructions: 'Swallow whole with a full glass of water. Do not chew or crush.',
-    notes: 'Provides nocturnal coverage so Captain Wade wakes up without morning dystonia.'
+    notes: 'Provides nocturnal coverage so Captain Wade wakes up without morning dystonia. Refill via touch-tone prompt.',
+    refillCallType: 'RETAIL_TOUCH_TONE_PROMPT',
+    touchToneSequence: '1,772183#,03141952#,1'
   },
   {
     id: 'med-4',
@@ -138,7 +169,9 @@ export const INITIAL_MEDICATIONS: MedicationRefillItem[] = [
     lastRefillDate: 'Aug 24, 2026',
     nextEstimatedRefillDate: 'Sept 24, 2026',
     instructions: 'Take in the morning with breakfast.',
-    notes: 'Dopamine agonist adjunctive therapy.'
+    notes: 'Dopamine agonist adjunctive therapy. Refill via touch-tone prompt.',
+    refillCallType: 'RETAIL_TOUCH_TONE_PROMPT',
+    touchToneSequence: '1,319984#,03141952#,1'
   },
   {
     id: 'med-5',
@@ -160,7 +193,9 @@ export const INITIAL_MEDICATIONS: MedicationRefillItem[] = [
     lastRefillDate: 'Aug 15, 2026',
     nextEstimatedRefillDate: 'Sept 14, 2026',
     instructions: 'Dissolve 1 capful into orange juice or water in the morning.',
-    notes: 'Helps prevent GI slowdown which can delay Levodopa absorption.'
+    notes: 'Helps prevent GI slowdown which can delay Levodopa absorption.',
+    refillCallType: 'RETAIL_TOUCH_TONE_PROMPT',
+    touchToneSequence: '1,551029#,03141952#,1'
   }
 ];
 
@@ -612,7 +647,7 @@ export const INITIAL_PHARMACY_CALLS: PharmacyCallLog[] = [
     pharmacyName: 'Accredo Specialty Pharmacy (Cold-Chain Hub)',
     pharmacyPhone: '(800) 803-2523',
     timestamp: 'Today at 11:22 AM',
-    callDurationSeconds: 84,
+    callDurationSeconds: 96,
     status: 'COMPLETED',
     confirmationNumber: 'CONF-992014-VY',
     estimatedReadyDate: 'Sept 01, 2026',
@@ -621,88 +656,140 @@ export const INITIAL_PHARMACY_CALLS: PharmacyCallLog[] = [
     priorAuthStatus: 'ACTIVE_VALID',
     caregiverAlertDispatched: true,
     alertChannel: 'Discord Webhook',
-    fullTranscript: 'Autonomous agent connected with Accredo IVR. Navigated specialty refill menu via automated speech. Identified as Care Navigator Agent on behalf of patient Wade Seymour. Submitted Rx# RX-982314-VY. Cold-chain expedited delivery confirmed for Sept 01 with thermal packaging guarantee.',
+    fullTranscript: 'Autonomous agent connected with Accredo Specialty Clinical Intake. Answered identity verification (Wade Seymour, DOB: 03/14/1952), confirmed delivery address (1635 Divisadero St, SF), verified current remaining stock (4 vials left in refrigerator), and secured cold-chain courier delivery with Dr. Eleanor Vance authorization.',
     dialogueScript: [
       {
-        speaker: 'PHARMACY_IVR',
-        timeOffset: '00:02',
-        text: 'Thank you for calling Accredo Specialty Pharmacy. For prescription refills, press 1 or say "Refill".'
+        speaker: 'PHARMACIST',
+        timeOffset: '00:03',
+        text: 'Accredo Specialty Pharmacy, this is Sarah. I see an incoming refill request for Vyalev. Can you please confirm the patient full legal name and date of birth?',
+        questionCategory: 'NAME_DOB'
       },
       {
         speaker: 'AGENT',
-        timeOffset: '00:05',
-        text: 'Refill. This is the autonomous Care Navigator Agent calling on behalf of patient Wade Seymour, Date of Birth: March 14, 1952.'
+        timeOffset: '00:12',
+        text: 'Hello Sarah. This is the Care Navigator AI agent calling on behalf of patient Wade Seymour. Date of birth is March 14, 1952.',
+        questionCategory: 'NAME_DOB'
       },
       {
-        speaker: 'PHARMACY_IVR',
-        timeOffset: '00:15',
-        text: 'Please speak or enter the 7-digit prescription number followed by the pound key.'
-      },
-      {
-        speaker: 'AGENT',
-        timeOffset: '00:20',
-        text: 'Prescription number: 9 8 2 3 1 4, Vyalev 24-hour continuous subcutaneous infusion cassettes.'
-      },
-      {
-        speaker: 'PHARMACY_IVR',
-        timeOffset: '00:32',
-        text: 'Prescription verified for Wade Seymour. 30-day supply of Vyalev. Insurance Prior Authorization is active and approved. Do you require temperature-controlled cold-chain shipping?'
+        speaker: 'PHARMACIST',
+        timeOffset: '00:24',
+        text: 'Thank you. I have Wade Seymour on file. Can you verify the primary delivery and residential address for this refrigerated shipment?',
+        questionCategory: 'ADDRESS'
       },
       {
         speaker: 'AGENT',
+        timeOffset: '00:34',
+        text: 'Yes. Delivery address is 1635 Divisadero Street, Suite 520, San Francisco, California, 94115.',
+        questionCategory: 'ADDRESS'
+      },
+      {
+        speaker: 'PHARMACIST',
         timeOffset: '00:46',
-        text: 'Yes. Confirming expedited refrigerated courier delivery to patient residence in San Francisco.'
-      },
-      {
-        speaker: 'PHARMACY_IVR',
-        timeOffset: '00:58',
-        text: 'Order placed successfully. Your confirmation reference number is 9 9 2 0 1 4 - VY. Estimated delivery date: Tuesday, September 1st before 10:30 AM.'
+        text: 'Got it. For our specialty compliance check, how many vials or infusion cassettes does Captain Wade currently have left in the refrigerator?',
+        questionCategory: 'VIALS_REMAINING'
       },
       {
         speaker: 'AGENT',
-        timeOffset: '01:14',
-        text: 'Confirmation 992014-VY logged. Caregiver push notification dispatched. Thank you.'
+        timeOffset: '00:56',
+        text: 'He currently has 4 vials remaining in the refrigerator, which represents a 4-day supply at his current 24-hour basal infusion rate.',
+        questionCategory: 'VIALS_REMAINING'
+      },
+      {
+        speaker: 'PHARMACIST',
+        timeOffset: '01:08',
+        text: 'Perfect, that qualifies for our 7-day reorder window. Prior authorization from Dr. Eleanor Vance is active. We will ship a 30-day box via cold-chain courier.',
+        questionCategory: 'COLD_CHAIN'
+      },
+      {
+        speaker: 'AGENT',
+        timeOffset: '01:20',
+        text: 'Understood. Please confirm strict 2°C to 8°C thermal packaging and overnight courier delivery to the Divisadero residence.',
+        questionCategory: 'COLD_CHAIN'
+      },
+      {
+        speaker: 'PHARMACIST',
+        timeOffset: '01:30',
+        text: 'Refill scheduled for priority arrival Tuesday by 10:30 AM. Confirmation code is CONF-992014-VY. Have a wonderful day!',
+        questionCategory: 'CONFIRMATION'
       }
     ]
   },
   {
-    id: 'call-100',
-    medicationId: 'med-3',
-    medicationName: 'Rytary (Carbidopa / Levodopa ER)',
-    rxNumber: 'RX-772183-RY',
+    id: 'call-bp',
+    medicationId: 'med-bp',
+    medicationName: 'Lisinopril 20mg / Amlodipine 5mg (Blood Pressure)',
+    rxNumber: 'RX-884210-BP',
     pharmacyName: 'Walgreens Pharmacy #1402',
     pharmacyPhone: '(415) 555-0192',
-    timestamp: 'Aug 26, 2026 at 02:15 PM',
-    callDurationSeconds: 68,
+    timestamp: 'Today at 09:15 AM',
+    callDurationSeconds: 48,
     status: 'COMPLETED',
-    confirmationNumber: 'CONF-441829-WG',
-    estimatedReadyDate: 'Aug 27, 2026',
-    estimatedReadyTime: '03:00 PM',
+    confirmationNumber: 'CONF-884210-WG',
+    estimatedReadyDate: 'Tomorrow',
+    estimatedReadyTime: '09:00 AM',
     fulfillmentType: 'Pharmacy Counter Pickup',
     priorAuthStatus: 'ACTIVE_VALID',
     caregiverAlertDispatched: true,
     alertChannel: 'Twilio SMS',
-    fullTranscript: 'Automated refill request processed through Walgreens Interactive Voice Line. Prescribing physician Dr. Eleanor Vance. Ready for counter pickup at Walgreens #1402.',
+    fullTranscript: 'Automated touch-tone refill completed with Walgreens Refill Prompt Line. Keyed DTMF prompt 1 (Refills), Rx# 884210#, DOB 03141952#, and confirmed pickup tomorrow at 9:00 AM.',
     dialogueScript: [
       {
         speaker: 'PHARMACY_IVR',
-        timeOffset: '00:03',
-        text: 'Welcome to Walgreens Pharmacy on Divisadero. To refill a prescription, press 1.'
+        timeOffset: '00:02',
+        text: 'Welcome to Walgreens Pharmacy automated telephone refill line. To refill a prescription, press 1.',
+        questionCategory: 'TOUCH_TONE'
       },
       {
         speaker: 'AGENT',
         timeOffset: '00:06',
-        text: 'Refill prescription RX-772183-RY for Wade Seymour.'
+        text: '[Touch-Tone DTMF: 1]',
+        dtmfTone: '1',
+        questionCategory: 'TOUCH_TONE'
       },
       {
         speaker: 'PHARMACY_IVR',
-        timeOffset: '00:22',
-        text: 'Your refill for Rytary ER capsules has been accepted. It will be ready tomorrow after 3:00 PM.'
+        timeOffset: '00:12',
+        text: 'Please enter the 6-digit prescription number followed by the pound sign.',
+        questionCategory: 'TOUCH_TONE'
       },
       {
         speaker: 'AGENT',
-        timeOffset: '00:35',
-        text: 'Refill scheduled. Confirmation recorded in caregiver queue.'
+        timeOffset: '00:18',
+        text: '[Touch-Tone DTMF: 8 8 4 2 1 0 #] (Lisinopril 20mg)',
+        dtmfTone: '884210#',
+        questionCategory: 'TOUCH_TONE'
+      },
+      {
+        speaker: 'PHARMACY_IVR',
+        timeOffset: '00:26',
+        text: 'Please enter the patient 8-digit date of birth as two-digit month, day, and four-digit year, followed by pound.',
+        questionCategory: 'TOUCH_TONE'
+      },
+      {
+        speaker: 'AGENT',
+        timeOffset: '00:32',
+        text: '[Touch-Tone DTMF: 0 3 1 4 1 9 5 2 #] (March 14, 1952)',
+        dtmfTone: '03141952#',
+        questionCategory: 'TOUCH_TONE'
+      },
+      {
+        speaker: 'PHARMACY_IVR',
+        timeOffset: '00:40',
+        text: 'Prescription 884210 for Lisinopril 20mg accepted. Press 1 to confirm pickup tomorrow after 9:00 AM.',
+        questionCategory: 'TOUCH_TONE'
+      },
+      {
+        speaker: 'AGENT',
+        timeOffset: '00:44',
+        text: '[Touch-Tone DTMF: 1]',
+        dtmfTone: '1',
+        questionCategory: 'TOUCH_TONE'
+      },
+      {
+        speaker: 'PHARMACY_IVR',
+        timeOffset: '00:46',
+        text: 'Thank you. Your refill is confirmed with reference CONF-884210-WG. Goodbye.',
+        questionCategory: 'CONFIRMATION'
       }
     ]
   }
