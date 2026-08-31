@@ -321,13 +321,13 @@ Zero-Token Client Operations:    Mathematical DSP audio, +25m buffer math, 1-cli
 
 1. **Build container via Google Cloud Build:**
    ```bash
-   gcloud builds submit --tag gcr.io/memory-lane-app-469523/the-legacy-honored-companion
+   gcloud builds submit --tag gcr.io/<YOUR_GCP_PROJECT_ID>/the-legacy-honored-companion
    ```
 
 2. **Deploy to Google Cloud Run:**
    ```bash
    gcloud run deploy the-legacy-honored-companion \
-     --image gcr.io/memory-lane-app-469523/the-legacy-honored-companion \
+     --image gcr.io/<YOUR_GCP_PROJECT_ID>/the-legacy-honored-companion \
      --platform managed \
      --region us-east1 \
      --allow-unauthenticated
@@ -335,7 +335,7 @@ Zero-Token Client Operations:    Mathematical DSP audio, +25m buffer math, 1-cli
 
 3. **Verify Live Service:**
    Access your live endpoint:
-   `https://the-legacy-honored-companion-53700756169.us-east1.run.app`
+   `https://the-legacy-honored-companion-<PROJECT_NUMBER>.<REGION>.run.app`
 
 ---
 
