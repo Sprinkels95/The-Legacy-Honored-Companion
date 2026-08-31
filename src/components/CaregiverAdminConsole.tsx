@@ -257,7 +257,7 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
             <div>
               <span className="text-sm font-black tracking-tight block">Household & Nutrition</span>
               <p className={`text-xs mt-1 leading-snug ${mainHub === 'household' ? 'text-sky-200' : 'text-slate-500'}`}>
-                Pantry Deduplication & Wade's Voice Favorites
+                Multi-Retailer Cart Router (W+, Instacart+, Prime, Costco)
               </p>
             </div>
           </button>

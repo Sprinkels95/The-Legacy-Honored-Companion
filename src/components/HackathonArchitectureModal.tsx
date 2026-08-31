@@ -259,15 +259,15 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
                     <div className="flex items-center justify-between">
                       <span className="font-bold text-slate-900 text-[11px] flex items-center gap-1.5">
                         <span className="w-2 h-2 rounded-full bg-sky-500"></span>
-                        4. Shared Spreadsheet & Shopping Deduplication Engine
+                        4. Multi-Retailer Smart Cart Router & Deduplication Engine
                       </span>
                       <span className="text-[9px] font-black uppercase px-2 py-0.5 bg-sky-50 text-sky-800 rounded-md border border-sky-200">
-                        Spreadsheet & Queue
+                        Multi-Cart AI
                       </span>
                     </div>
                     <p className="text-[11px] text-slate-600 leading-relaxed">
                       <strong>Trigger:</strong> Wade requests pantry treats or family reviews household needs.<br/>
-                      <strong>Mechanism:</strong> Houses a live <strong>Interactive Shared Spreadsheet & Inventory Ledger</strong>, reconciles stock levels against shopping queues, deduplicates purchases, powers Wade's favorites quick-ordering, and exports verified CSV records.
+                      <strong>Mechanism:</strong> Dynamically optimizes across <strong>Walmart+, Instacart+, Amazon Prime, and Costco</strong> memberships. Auto-selects fastest delivery slots for urgent needs and lowest bulk cost for routines, staging items into family carts with a 0-auto-charge guarantee.
                     </p>
                   </div>
 
@@ -387,6 +387,7 @@ export const HackathonArchitectureModal: React.FC<Props> = ({
                 <p className="text-emerald-400">      ├── Web Audio DSP Equalizer (+3.8dB Warmth, 8kHz High-Cut, 4:1 Compressor)</p>
                 <p className="text-emerald-400">      ├── Harmonic Earcon Chime Synthesizer (528Hz pure-tone triads)</p>
                 <p className="text-emerald-400">      ├── Cognitive Empathy & Dignity Engine (Zero memory correction)</p>
+                <p className="text-emerald-400">      ├── Multi-Retailer Smart Cart Router (Walmart+, Instacart+, Prime, Costco)</p>
                 <p className="text-emerald-400">      ├── Pantry Deduplication Agent (Silent Google Drive reconciliation)</p>
                 <p className="text-emerald-400">      ├── Autonomous Pharmacy Telephony Agent (DTMF / IVR negotiation)</p>
                 <p className="text-emerald-400">      ├── Adaptive Favorites Generator (Temporal frequency ranking)</p>

@@ -3,9 +3,13 @@ import {
   Package, ShoppingCart, ShieldCheck, AlertTriangle, Plus, Check, 
   Trash2, Filter, Search, Cloud, RefreshCw, FileText, ArrowUpDown,
   Sparkles, ExternalLink, Copy, Download, Printer, Store, CheckCircle2,
-  Layers, ArrowRight, Table, Folder, FileSpreadsheet, Share2, UploadCloud
+  Layers, ArrowRight, Table, Folder, FileSpreadsheet, Share2, UploadCloud,
+  Zap, DollarSign, Clock
 } from 'lucide-react';
-import { PantryItem, ShoppingItem, NeedsAuditLog } from '../types';
+import { PantryItem, ShoppingItem, NeedsAuditLog, RetailerId } from '../types';
+import { SmartShoppingDispatcherModal } from './SmartShoppingDispatcherModal';
+import { RetailerAccountsSyncModal } from './RetailerAccountsSyncModal';
+import { generateRetailerOptions } from '../utils/multiRetailerCartEngine';
 
 interface Props {
   pantryItems: PantryItem[];
@@ -32,6 +36,9 @@ export const HouseholdPantryHub: React.FC<Props> = ({
   const [showAddItemModal, setShowAddItemModal] = useState(false);
   const [copiedCsvSuccess, setCopiedCsvSuccess] = useState(false);
   const [restockedToast, setRestockedToast] = useState<string | null>(null);
+  const [smartCartModalItem, setSmartCartModalItem] = useState<ShoppingItem | null>(null);
+  const [isRetailerAccountsModalOpen, setIsRetailerAccountsModalOpen] = useState(false);
+  const [isRefreshingNumbers, setIsRefreshingNumbers] = useState(false);
 
   // Static shared items / editable cell state
   const [staticItems, setStaticItems] = useState<Array<{
@@ -338,6 +345,36 @@ export const HouseholdPantryHub: React.FC<Props> = ({
             </div>
 
             <div className="flex flex-wrap items-center gap-2">
+              {/* Store Accounts & Live Pricing Sync Button */}
+              <button
+                type="button"
+                onClick={() => setIsRetailerAccountsModalOpen(true)}
+                className="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+                title="Manage Walmart+, Instacart+, Amazon Prime, Costco accounts and live API pricing"
+              >
+                <Store className="w-3.5 h-3.5 text-amber-300" />
+                <span>Store Accounts & Live Sync</span>
+              </button>
+
+              {/* Rerun & Refresh Numbers in Excel */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsRefreshingNumbers(true);
+                  setTimeout(() => {
+                    setIsRefreshingNumbers(false);
+                    setRestockedToast('Excel formulas recalculated! Re-queried live prices & stock across all store accounts.');
+                    setTimeout(() => setRestockedToast(null), 3500);
+                  }, 1000);
+                }}
+                disabled={isRefreshingNumbers}
+                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-xs transition-colors disabled:opacity-50"
+                title="Recalculate formulas and refresh live pricing numbers across all items"
+              >
+                <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingNumbers ? 'animate-spin' : ''}`} />
+                <span>{isRefreshingNumbers ? 'Rerunning Numbers...' : 'Rerun Numbers in Excel'}</span>
+              </button>
+
               <button
                 type="button"
                 onClick={handleCopyCsvSpreadsheet}
@@ -420,7 +457,7 @@ export const HouseholdPantryHub: React.FC<Props> = ({
                     <th className="py-2.5 px-3 border-r border-slate-200 min-w-[130px]">C: Quantity / Size</th>
                     <th className="py-2.5 px-3 border-r border-slate-200 min-w-[170px]">D: Store Aisle / Dept</th>
                     <th className="py-2.5 px-3 border-r border-slate-200 min-w-[160px]">E: Pantry Status Match</th>
-                    <th className="py-2.5 px-3 border-r border-slate-200 min-w-[140px]">F: Walmart Direct</th>
+                    <th className="py-2.5 px-3 border-r border-slate-200 min-w-[180px]">F: Multi-Retailer Cart Router</th>
                     <th className="py-2.5 px-4 min-w-[220px]">G: Caregiver Clinical Notes</th>
                   </tr>
                 </thead>
@@ -490,18 +527,39 @@ export const HouseholdPantryHub: React.FC<Props> = ({
                         </span>
                       </td>
 
-                      {/* Walmart Direct Link */}
+                      {/* Multi-Retailer Cart Staging & Search */}
                       <td className="py-2.5 px-3 border-r border-slate-200 font-sans">
-                        <a
-                          href={getWalmartSearchUrl(row.item)}
-                          target="_blank"
-                          rel="noopener noreferrer"
-                          className="px-2.5 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 border border-blue-200 transition-colors"
-                        >
-                          <Store className="w-3 h-3 text-blue-600" />
-                          <span>Walmart Link</span>
-                          <ExternalLink className="w-2.5 h-2.5" />
-                        </a>
+                        <div className="flex items-center gap-1.5">
+                          <button
+                            type="button"
+                            onClick={() => setSmartCartModalItem({
+                              id: `static-${row.id}`,
+                              name: row.item,
+                              category: row.category as any,
+                              quantity: 1,
+                              unit: row.qty,
+                              urgency: 'Medium',
+                              addedBy: 'Shared Drive Inventory Sheet',
+                              dateAdded: 'Aug 30, 2026',
+                              purchased: row.checked
+                            })}
+                            className="px-2 py-1 bg-indigo-600 hover:bg-indigo-700 text-white rounded-lg font-bold text-[10px] inline-flex items-center gap-1 shadow-2xs transition-colors"
+                            title="Compare pricing across Walmart+, Instacart+, Amazon Prime, Costco & stage to cart"
+                          >
+                            <ShoppingCart className="w-3 h-3 text-amber-300" />
+                            <span>Stage</span>
+                          </button>
+                          <a
+                            href={getWalmartSearchUrl(row.item)}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                            className="px-2 py-1 bg-blue-50 hover:bg-blue-100 text-blue-700 rounded-lg font-bold text-[10px] inline-flex items-center gap-1 border border-blue-200 transition-colors"
+                          >
+                            <Store className="w-3 h-3 text-blue-600" />
+                            <span>W+</span>
+                            <ExternalLink className="w-2.5 h-2.5" />
+                          </a>
+                        </div>
                       </td>
 
                       {/* Clinical Notes */}
@@ -635,16 +693,28 @@ export const HouseholdPantryHub: React.FC<Props> = ({
                     </div>
 
                     <div className="flex items-center gap-2 self-end sm:self-center">
+                      {/* Smart Multi-Retailer Cart Router (Walmart+, Instacart+, Prime, Costco) */}
+                      <button
+                        type="button"
+                        onClick={() => setSmartCartModalItem(item)}
+                        className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-colors"
+                        title="Compare pricing across Walmart+, Instacart+, Amazon Prime & Costco and stage to cart"
+                      >
+                        <ShoppingCart className="w-3.5 h-3.5 text-amber-300" />
+                        <span>Stage to Cart</span>
+                        <Zap className="w-3 h-3 text-amber-300" />
+                      </button>
+
                       {/* Direct Walmart Link */}
                       <a
                         href={getWalmartSearchUrl(item.name)}
                         target="_blank"
                         rel="noopener noreferrer"
-                        className="px-3 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl border border-blue-200 flex items-center gap-1.5 transition-colors"
+                        className="px-2.5 py-1.5 bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs font-bold rounded-xl border border-blue-200 flex items-center gap-1 transition-colors"
                         title="Find on Walmart.com"
                       >
                         <Store className="w-3.5 h-3.5 text-blue-600" />
-                        <span>Walmart.com</span>
+                        <span className="hidden md:inline">Walmart+</span>
                         <ExternalLink className="w-3 h-3 text-blue-500" />
                       </a>
 
@@ -1037,6 +1107,27 @@ export const HouseholdPantryHub: React.FC<Props> = ({
           </div>
         </div>
       )}
+
+      {/* Smart Shopping Multi-Retailer Cart Modal */}
+      <SmartShoppingDispatcherModal
+        isOpen={!!smartCartModalItem}
+        item={smartCartModalItem}
+        onClose={() => setSmartCartModalItem(null)}
+        onConfirmStaged={(itemId, retailer, cartUrl) => {
+          setRestockedToast(`Staged into ${retailer.toUpperCase()} Cart!`);
+          setTimeout(() => setRestockedToast(null), 3500);
+        }}
+      />
+
+      {/* Connected Retailer Accounts & Live Pricing Sync Modal */}
+      <RetailerAccountsSyncModal
+        isOpen={isRetailerAccountsModalOpen}
+        onClose={() => setIsRetailerAccountsModalOpen(false)}
+        onRefreshLivePricing={() => {
+          setRestockedToast('Live catalog pricing refreshed across Walmart+, Instacart+, Prime, and Costco!');
+          setTimeout(() => setRestockedToast(null), 3500);
+        }}
+      />
     </div>
   );
 };

@@ -2,9 +2,10 @@ import React, { useState } from 'react';
 import { 
   Sparkles, Flame, Plus, RefreshCw, Trash2, Edit3, Heart, 
   Droplets, Utensils, CheckCircle2, TrendingUp, Award, Clock, 
-  ArrowUpDown, Zap, Store, ExternalLink
+  ArrowUpDown, Zap, Store, ExternalLink, ShoppingCart
 } from 'lucide-react';
-import { AdaptiveVoiceOrderItem, AgentPersonaId } from '../types';
+import { AdaptiveVoiceOrderItem, AgentPersonaId, ShoppingItem } from '../types';
+import { SmartShoppingDispatcherModal } from './SmartShoppingDispatcherModal';
 
 interface WadeFavoritesManagerProps {
   orders: AdaptiveVoiceOrderItem[];
@@ -25,6 +26,7 @@ export const WadeFavoritesManager: React.FC<WadeFavoritesManagerProps> = ({
   const [newItemColor, setNewItemColor] = useState<'amber' | 'orange' | 'emerald' | 'sky' | 'rose' | 'purple' | 'indigo'>('amber');
   const [showAddForm, setShowAddForm] = useState(false);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [smartCartModalItem, setSmartCartModalItem] = useState<ShoppingItem | null>(null);
 
   const sortedOrders = [...orders].sort((a, b) => b.orderCount - a.orderCount);
 
@@ -358,6 +360,26 @@ export const WadeFavoritesManager: React.FC<WadeFavoritesManagerProps> = ({
                     </button>
                   </div>
 
+                  <button
+                    type="button"
+                    onClick={() => setSmartCartModalItem({
+                      id: `fav-${order.id}`,
+                      name: order.name,
+                      category: 'Groceries',
+                      quantity: 1,
+                      unit: 'pack',
+                      urgency: 'Medium',
+                      addedBy: 'Wade Favorites Tap',
+                      dateAdded: 'Today',
+                      purchased: false
+                    })}
+                    className="px-2.5 py-1.5 bg-indigo-600 hover:bg-indigo-700 text-white text-xs font-bold rounded-xl shadow-xs flex items-center gap-1.5 transition-colors"
+                    title="Compare pricing across Walmart+, Instacart+, Amazon Prime & Costco and stage to cart"
+                  >
+                    <ShoppingCart className="w-3.5 h-3.5 text-amber-300" />
+                    <span>Stage Cart</span>
+                  </button>
+
                   <a
                     href={`https://www.walmart.com/search?q=${encodeURIComponent(order.name)}`}
                     target="_blank"
@@ -366,15 +388,15 @@ export const WadeFavoritesManager: React.FC<WadeFavoritesManagerProps> = ({
                     title={`Find ${order.name} on Walmart.com`}
                   >
                     <Store className="w-3.5 h-3.5 text-blue-600" />
-                    <span className="hidden md:inline">Walmart</span>
+                    <span className="hidden md:inline">Walmart+</span>
                   </a>
 
                   <button
                     type="button"
                     onClick={() => onSimulateOrder(order)}
-                    className="px-3 py-1.5 rounded-xl bg-indigo-50 hover:bg-indigo-100 text-indigo-700 text-xs font-bold border border-indigo-200 transition-colors"
+                    className="px-3 py-1.5 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold border border-slate-200 transition-colors"
                   >
-                    Simulate Order
+                    Simulate Voice
                   </button>
 
                   {order.isCustom && (
@@ -393,6 +415,17 @@ export const WadeFavoritesManager: React.FC<WadeFavoritesManagerProps> = ({
           })}
         </div>
       </div>
+
+      {/* Smart Shopping Multi-Retailer Cart Modal */}
+      <SmartShoppingDispatcherModal
+        isOpen={!!smartCartModalItem}
+        item={smartCartModalItem}
+        onClose={() => setSmartCartModalItem(null)}
+        onConfirmStaged={(itemId, retailer, cartUrl) => {
+          setSuccessMessage(`Staged into ${retailer.toUpperCase()} Cart!`);
+          setTimeout(() => setSuccessMessage(null), 3500);
+        }}
+      />
     </div>
   );
 };

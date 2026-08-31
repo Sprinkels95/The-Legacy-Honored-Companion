@@ -33,7 +33,7 @@
 
 * **Selected Track:** **The Collaborative Partner**
 * **Core Problem:** Cognitive decline and neurodegenerative conditions (such as Parkinson's Disease Dementia [PDD]) disrupt executive function, routine adherence, and daily confidence. Standard clinical voice assistants feel sterile, generic, and transactional.
-* **Our Solution:** An adaptive, memory-persistent voice co-pilot that offloads daily executive burden through personalized dynamic personas—anchoring tasks and schedules in familiar cultural, professional, and personal heritage (demonstrated via **Captain Wade** and his caregiver **Elsbeth**).
+* **Our Solution:** An adaptive, memory-persistent voice co-pilot that offloads daily executive burden through personalized dynamic personas—anchoring tasks and schedules in familiar cultural, professional, and personal heritage (demonstrated in tribute to **Captain Wade**, a **32-year Fire Captain retiree**, and his family caregiver).
 
 ---
 
@@ -42,8 +42,9 @@
 Individuals living with Parkinson's and their family caregivers face relentless daily friction:
 - **Pharmacokinetic Synchronization:** Levodopa absorption competes directly with dietary amino acids, requiring precise meal timing and continuous pump infusion balancing.
 - **Subcutaneous Infusion Complexity:** 24-hour continuous subcutaneous pumps (Vyalev) require strict 1-inch radial periumbilical rotations and immediate quarantine of inflamed tissue.
+- **Autonomous Multi-Retailer Household Restock:** Juggling multiple retail memberships (**Walmart+**, **Instacart+**, **Amazon Prime**, **Costco**) for medical supplies and favorite comfort snacks without cognitive overload or accidental unauthorized credit card billing.
 - **Cognitive & Neuromuscular Barriers:** Tremors, voice micro-changes (hypophonia), and motor OFF episodes render conventional mobile UIs unnavigable.
-- **Caregiver Asymmetry & Coordination:** Family members balance enterprise careers, out-of-town client travel (LA business trips), children's routines, and high-stakes medical oversight.
+- **Caregiver Asymmetry & Coordination:** Family members balance enterprise careers, out-of-town client travel, children's routines, and high-stakes medical oversight.
 
 ---
 
@@ -58,25 +59,43 @@ The system operates not as a single chat loop, but as a coordinated multi-agent 
 |        VOICE & PERSONA             |        CLINICAL & LOGISTICS        |        INVENTORY & TELEPHONY        |
 +------------------------------------+------------------------------------+-------------------------------------+
 | Agent 1: Legacy Persona Engine     | Agent 2: Google Calendar Engine    | Agent 4: Pharmacy Telephony Agent   |
-| Agent 3: Speech Acoustic Tracker   | Agent 5: Clinical MDS-UPDRS Synth  | Agent 7: Needs Intake & Deduplication|
-| Agent 6: Quick-Tap Generator       | Agent 8: Proactive Mobility Buffer |                                     |
-| Agent 9: Audio Briefing Agent      | Agent 10: Grounded Search Discovery|                                     |
+| Agent 3: Speech Acoustic Tracker   | Agent 5: Clinical MDS-UPDRS Synth  | Agent 7: Multi-Retailer Cart Router |
+| Agent 6: Quick-Tap Generator       | Agent 8: Proactive Mobility Buffer |   (Walmart+, Instacart+, Prime,    |
+| Agent 9: Audio Briefing Agent      | Agent 10: Grounded Search Discovery|    Costco with 0-Auto-Charge Safe)  |
 | Agent 10b: Web Audio DSP Equalizer | (Vyalev Radial Safety Guardrail)   |                                     |
 +------------------------------------+------------------------------------+-------------------------------------+
 ```
 
-| # | Agent Name | Category | Model / Engine | Core Autonomous Capability |
-|---|---|---|---|---|
-| **1** | **Legacy Persona & Cultural Anchoring Engine** | Voice & Persona | Gemini 3.5 / 3.7 | Adapts conversational cadence, dignity, and memory references to Captain Wade's maritime and firefighting life history (*Station Captain*, *Ward Cleaver*, *Dr. Evil*, *First Mate*). |
-| **2** | **Shared Google Calendar Reasoning Engine** | Clinical & Logistics | Gemini 3.5 / 3.7 + GCal API | Live temporal reasoning across 5-day care horizons; isolates caregiver LA trips from patient appointments with zero prompt leakage. |
-| **3** | **Speech Acoustic Biomarker & Fatigue Tracker** | Voice & Persona | Gemini 3.5 / 3.7 + Web Audio | Tracks hypophonia and cadence fatigue; automatically throttles verbose responses down to single-word confirmations (e.g. *"Handled."*) when motor fatigue is detected. |
-| **4** | **Autonomous Outbound Pharmacy Telephony Agent** | Inventory & Telephony | Gemini 3.5 / 3.7 + Twilio PSTN | Executes 6-turn automated IVR calls to specialty pharmacies (Acaria Health) with synthetic voice to authorize Vyalev 24h pump cassette refills. |
-| **5** | **Clinical & Behavioral Weekly Synthesis (MDS-UPDRS)** | Clinical & Logistics | Gemini 3.5 / 3.7 | Compiles motor ON/OFF diary entries, pump flow rates, and site reactions into a 1-click clinical dossier for Dr. Arthur Henderson, MD. |
-| **6** | **Predictive Quick-Tap Generator Subsystem** | Voice & Persona | Gemini 3.5 / 3.7 | Dynamically ranks Wade's top daily requests (hydration, snacks, comfort items) into high-contrast 120px+ tremor-friendly buttons. |
-| **7** | **Autonomous Needs Intake & Deduplication Agent** | Inventory & Telephony | Gemini 3.5 / 3.7 | Cross-references verbal pantry requests against Google Drive master sheets and Walmart APIs to eliminate duplicate orders. |
-| **8** | **Proactive Mobility & Ride Proposal Agent** | Clinical & Logistics | Gemini 3.5 / 3.7 | Calculates **+25-minute unhurried mobility buffers** and automatically stages Uber Assist departures to prevent gait freezing under time pressure. |
-| **9** | **Community Events & Chapter Grounding Agent** | Clinical & Logistics | Gemini 3.5 / 3.7 + Google Search | Real-time grounded search for local Bay Area Parkinson's support circles, Rock Steady Boxing classes, and movement clinics. |
-| **10** | **Web Audio DSP Equalizer & Harmonic Earcon Engine** | Voice & Persona | Native Web Audio DSP | Zero-token mathematical audio synthesis generating 528Hz pure harmonic sine triads and +3.8dB bi-quad warmth filters for immediate acoustic feedback. |
+| # | Agent Name | Category | Primary API Route | Core Autonomous Responsibility & Logic | Downstream Coordination |
+|---|---|---|---|---|---|
+| **1** | **Needs Intake & Persona Engine** | Voice & Persona | `POST /api/agent/needs-intake` | Transcribes patient requests, maps to active persona (*Station Captain*, *Ward Cleaver*, *Dr. Evil*, *First Mate*), and protects dignity with zero-correction affirmative phrasing. | Hands structured item extraction to Deduplication and Smart Cart agents. |
+| **2** | **Cognitive Deduplication Agent** | Inventory & Memory | `POST /api/agent/needs-intake` (internal pipeline) | Intercepts repetitive patient requests quietly without correcting the user; cross-checks against current pantry stock and pending orders. | Logs duplicate requests in the private Caregiver Audit trail while letting the patient feel heard. |
+| **3** | **Multi-Retailer Smart Cart Router** | Inventory & Logistics | `POST /api/agent/grocery-optimizer` | Evaluates real-time inventory deficits across **Walmart+**, **Instacart+**, **Amazon Prime**, and **Costco**; compares 1-hr rapid delivery vs. bulk cost savings. | Stages pending carts with a strict 0-auto-charge manual approval guarantee (`requireCaregiverApproval: true`). |
+| **4** | **Specialty Pharmacy Telephony Agent** | Logistics & Telephony | `POST /api/agent/pharmacy-call` | Conducts autonomous 6-turn IVR and human-agent telephone negotiations via synthetic voice for continuous pump cassette refills (e.g. AbbVie Vyalev). | Generates order confirmation IDs and updates the medication supply countdown ledger. |
+| **5** | **Subcutaneous Infusion Safety Agent** | Clinical & Safety | `POST /api/agent/subcutaneous-safety` | Audits 24h pump flow rates, enforces 1-inch radial periumbilical site rotation across 4 abdominal quadrants, and enforces 72h site change lockouts. | Dispatches urgent Caregiver Discord and SMS alerts on flow rate anomalies or missed rotations. |
+| **6** | **MDS-UPDRS Clinical Dossier Agent** | Clinical & Diagnostics | `POST /api/agent/clinical-summary` | Aggregates daily motor ON/OFF fluctuations, acoustic vocal strain metrics, and dyskinesia diaries into a structured clinical dossier for Dr. Arthur Henderson, MD. | Generates exportable 1-click clinical reports for neurology consults. |
+| **7** | **Shared Calendar & Boundary Isolation Agent** | Logistics & Boundaries | `POST /api/agent/calendar-sync` | Synchronizes family appointments while isolating caregiver personal and business travel to prevent cognitive clutter. | Integrates directly with Google Calendar API for conflict-free reconciliation. |
+| **8** | **Proactive Mobility & Dispatch Agent** | Logistics & Mobility | `POST /api/agent/mobility-proposal` | Calculates **+25-minute unhurried mobility buffers** and stages wheelchair-accessible transport (Uber WAV / Medical Van) to prevent gait freezing. | Submits ride plans to caregiver approval queue with live trip status tracking. |
+| **9** | **Acoustic Fatigue & Sentinel Agent** | Voice & Diagnostics | Web Audio DSP / `/api/agent/acoustic-event` | Continuously calculates vocal cadence (WPM) and hypophonia; automatically switches voice output to ultra-concise single-word brevity during motor "OFF" periods. | Signals client UI into high-contrast low-effort mode and alerts caregiver of emerging motor fatigue. |
+| **10** | **Caregiver Escalation & Dispatch Agent** | Safety & Telemetry | `POST /api/agent/caregiver-alert` | Evaluates multi-channel notifications (Twilio Voice, SMS, Discord Webhooks) based on severity urgency levels (Low, Moderate, Urgent). | Broadcasts push telemetry and executes emergency call trees when safety thresholds trigger. |
+
+---
+
+### 🎙️ Acoustic Fatigue Detection & Single-Word Brevity Engine
+
+Located in `src/utils/acousticVoiceEngine.ts` and integrated across the voice pipeline, the acoustic fatigue tracker monitors Parkinson's vocal biomarkers:
+
+- **Cadence & Hypophonia Calculation**: Evaluates instantaneous Speech Cadence in Words Per Minute ($WPM = \frac{\text{Word Count}}{\text{Duration in Seconds}} \times 60$).
+- **Acoustic Thresholds**:
+  - **`LOW_ENERGY_OFF_STATE` ($< 90 \text{ WPM}$ or $\text{Duration} > 4.5\text{s}$ with $\le 4 \text{ words}$)**: Detects vocal strain, hypophonia, or medication "OFF" window.
+  - **`MODERATE_FATIGUE` ($90 - 125 \text{ WPM}$)**: Detects emerging fatigue or vocal pitch drop.
+  - **`NORMAL_RESONANT` ($> 125 \text{ WPM}$)**: Normal fluent speech pattern.
+- **Adaptive Single-Word Brevity Switch**:
+  - When `LOW_ENERGY_OFF_STATE` is detected, the co-pilot automatically suppresses long explanations and adopts **ultra-concise single-word affirmations**:
+    - *Station Captain*: *"Copy."*, *"Secured."*, *"Logged."*
+    - *Dr. Evil*: *"Done!"*, *"Handled!"*, *"Secured!"*
+    - *Ward Cleaver*: *"Right away, son."*
+  - This eliminates cognitive auditory overload and minimizes conversational demand when the patient is experiencing motor exhaustion.
 
 ---
 

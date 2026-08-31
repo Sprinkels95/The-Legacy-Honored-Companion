@@ -45,10 +45,10 @@ const MEMORY_BANK_SEEDS: SemanticMemoryItem[] = [
   },
   {
     id: 'mem-5',
-    category: 'Pantry Inventory',
-    content: 'Pantry sync: Automatic deduction on repeat requests. Reorder trigger when Chocolate Pudding drops below 6 units or Cream of Mushroom below 4 cans.',
+    category: 'Pantry & Multi-Cart Router',
+    content: 'Multi-Retailer Cart Routing: Evaluates Walmart+, Instacart+, Amazon Prime, and Costco. Prioritizes fastest courier slot for high-urgency and lowest bulk rate for routine restocks with zero auto-charge.',
     embeddingDim: 768,
-    tags: ['pantry', 'google-drive', 'walmart', 'inventory', 'restock']
+    tags: ['pantry', 'walmart', 'instacart', 'amazon', 'costco', 'cart-router', 'restock']
   },
   {
     id: 'mem-6',

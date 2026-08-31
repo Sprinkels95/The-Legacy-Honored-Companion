@@ -122,6 +122,21 @@ export interface PantryItem {
   notes?: string;
 }
 
+export type RetailerId = 'walmart' | 'instacart' | 'amazon' | 'costco';
+
+export interface RetailerCartOption {
+  retailer: RetailerId;
+  retailerName: string;
+  badge: 'WALMART+' | 'INSTACART+' | 'PRIME' | 'COSTCO';
+  price: number;
+  deliveryEstimate: string; // e.g. "Today by 2:00 PM", "Tomorrow 8 AM", "2-Day Delivery"
+  speedRating: 'ULTRA_FAST' | 'SAME_DAY' | 'NEXT_DAY' | 'STANDARD';
+  unitPriceComparison?: string; // e.g. "$0.12/oz vs $0.18/oz"
+  cartAddUrl: string;
+  inStock: boolean;
+  notes?: string;
+}
+
 export interface ShoppingItem {
   id: string;
   name: string;
@@ -133,6 +148,13 @@ export interface ShoppingItem {
   dateAdded: string;
   purchased: boolean;
   originPrompt?: string;
+  preferredRetailer?: RetailerId;
+  retailerOptions?: RetailerCartOption[];
+  recommendedOption?: {
+    retailer: RetailerId;
+    reason: 'CHEAPEST_PRICE' | 'FASTEST_DELIVERY' | 'BEST_BULK_VALUE' | 'SPECIALTY_AVAILABILITY';
+    explanation: string;
+  };
 }
 
 export interface NeedsAuditLog {
