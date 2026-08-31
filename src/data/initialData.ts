@@ -17,17 +17,6 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     promptGuidance: "Dramatic villainous affection, iconic catchphrases, absolute loyalty to Captain Wade, treating his supplies as top-secret protected assets without ever calling out memory."
   },
   {
-    id: 'ward-cleaver',
-    name: 'Ward Cleaver',
-    subtitle: "Dad's Warm Reassuring Anchor",
-    tag: 'Warm Paternal Calm',
-    avatarIcon: 'Heart',
-    voiceStyle: 'Gentle, dependable, 1950s reassuring radio warmth',
-    description: "Captain Wade's primary warm anchor persona. Grounds anxiety with unhurried paternal reassurance, completely offloading memory tracking to the background grocery agent.",
-    sampleReassurance: "Thanks, Captain Wade. I'll make sure that's taken care of right away. Everything is in hand, so you can sit back and relax.",
-    promptGuidance: "Gentle paternal reassurance, dignified calm, never correcting memory lapses, absolute respect for Captain Wade."
-  },
-  {
     id: 'clinical-copilot',
     name: 'Clinical Co-Pilot',
     subtitle: 'Caregiver & Neurologist View',
@@ -37,17 +26,6 @@ export const AGENT_PERSONAS: AgentPersona[] = [
     description: 'Tailored for family caregivers and neurologist consultations to review motor fluctuations, pump telemetry, and clinical patterns.',
     sampleReassurance: 'Thanks, Captain Wade. Logged and coordinated with the care plan. Everything is in hand.',
     promptGuidance: 'Objective, precise, clinical terminology, focused on adherence and motor stability while maintaining patient dignity.'
-  },
-  {
-    id: 'first-mate',
-    name: "Captain's First Mate",
-    subtitle: 'Operational Partner',
-    tag: 'Structured Nautical Respect',
-    avatarIcon: 'Compass',
-    voiceStyle: 'Crisp, respectful nautical discipline',
-    description: 'Supports daily routine navigation with respectful, structured sea-worthy camaraderie.',
-    sampleReassurance: 'Thanks, Captain Wade! Aye aye, Sir, standing by and seeing to it immediately. All clear on deck!',
-    promptGuidance: 'Nautical respect, structured operational updates, honoring Captain Wade\'s dignity without correcting memory.'
   }
 ];
 
@@ -354,11 +332,11 @@ export const INITIAL_AUDIT_LOGS: NeedsAuditLog[] = [
     id: 'aud-1',
     timestamp: '10:15 AM',
     rawInput: 'We need some low-acid orange juice and batteries for the pump',
-    personaUsed: 'ward-cleaver',
+    personaUsed: 'dr-evil',
     extractedItemName: 'Low-Acid Orange Juice',
     status: 'SUPPRESSED_DUPLICATE',
     confidenceScore: 0.98,
-    reassuranceText: "Don't you worry one bit, Captain Wade. We've already got 3 cartons of low-acid orange juice right in the refrigerator and plenty of batteries in the closet.",
+    reassuranceText: "Don't you worry one bit, Captain Wade! We've already got 3 cartons of low-acid orange juice secured in the command refrigerator and plenty of batteries in the supply lair.",
     reasoning: 'Item already stocked (3 cartons in Refrigerator; 8 AA batteries in Supply Closet). Suppressed duplicate purchase.',
     source: 'voice'
   },
@@ -366,11 +344,11 @@ export const INITIAL_AUDIT_LOGS: NeedsAuditLog[] = [
     id: 'aud-2',
     timestamp: '08:45 AM',
     rawInput: 'Quick-tap: Rolled Oatmeal',
-    personaUsed: 'ward-cleaver',
+    personaUsed: 'dr-evil',
     extractedItemName: 'Organic Rolled Oatmeal',
     status: 'SUPPRESSED_DUPLICATE',
     confidenceScore: 0.96,
-    reassuranceText: "You can rest easy, Captain Wade! We have two full canisters of oatmeal right in the pantry, safe and sound.",
+    reassuranceText: "You can rest easy, Captain Wade! We have two full canisters of rolled oatmeal right in the pantry vault, safe and sound.",
     reasoning: 'Oatmeal stocked in Kitchen Pantry. Reassured Captain Wade and prevented redundant grocery run.',
     source: 'quick-tap'
   },
@@ -378,11 +356,11 @@ export const INITIAL_AUDIT_LOGS: NeedsAuditLog[] = [
     id: 'aud-3',
     timestamp: 'Yesterday 04:30 PM',
     rawInput: 'Can we get more Boost nutritional shakes?',
-    personaUsed: 'ward-cleaver',
+    personaUsed: 'dr-evil',
     extractedItemName: 'Boost Calorie Shakes',
     status: 'ADDED_TO_SHOPPING_LIST',
     confidenceScore: 0.94,
-    reassuranceText: "Got that written right down on our shopping list, Wade. Sarah will pick up a couple 6-packs for you today.",
+    reassuranceText: "Got that written right down on our shopping list, Captain Wade! Sarah will procure a couple 6-packs for you today.",
     reasoning: 'Not currently in pantry. Added to master shopping queue under Groceries with Medium urgency.',
     source: 'text-input'
   }
@@ -627,7 +605,7 @@ export const INITIAL_MOBILITY_PROPOSALS: MobilityProposal[] = [
       'Quiet ride preferred (low auditory stimulus to prevent sensory overload)',
       'Drop-off at accessible ground ramp entrance (Divisadero medical plaza)'
     ],
-    uberDeepLink: 'https://m.uber.com/ul/?action=setPickup&client_id=vVS_4V7z_Hm39eMHy91_ETX4ADnyXoBx&pickup[formatted_address]=1200%204th%20St%2C%20San%20Francisco%2C%20CA&dropoff[formatted_address]=1635%20Divisadero%20St%2C%20San%20Francisco%2C%20CA&product_id=uber_assist',
+    uberDeepLink: 'https://m.uber.com/ul/?action=setPickup&client_id=your_uber_client_id&pickup[formatted_address]=1200%204th%20St%2C%20San%20Francisco%2C%20CA&dropoff[formatted_address]=1635%20Divisadero%20St%2C%20San%20Francisco%2C%20CA&product_id=uber_assist',
     caregiverPhoneNotified: true,
     insuranceClaim: {
       id: 'claim-mob-1',
@@ -694,7 +672,7 @@ export const INITIAL_MOBILITY_PROPOSALS: MobilityProposal[] = [
       'Boxing glove gear bag and portable seat pad in back seat',
       'Assisted step-in handle deployed'
     ],
-    uberDeepLink: 'https://m.uber.com/ul/?action=setPickup&client_id=vVS_4V7z_Hm39eMHy91_ETX4ADnyXoBx&pickup[formatted_address]=1200%204th%20St%2C%20San%20Francisco%2C%20CA&dropoff[formatted_address]=450%20Mission%20Bay%20Blvd%2C%20San%20Francisco%2C%20CA&product_id=uber_assist',
+    uberDeepLink: 'https://m.uber.com/ul/?action=setPickup&client_id=your_uber_client_id&pickup[formatted_address]=1200%204th%20St%2C%20San%20Francisco%2C%20CA&dropoff[formatted_address]=450%20Mission%20Bay%20Blvd%2C%20San%20Francisco%2C%20CA&product_id=uber_assist',
     caregiverPhoneNotified: true,
     insuranceClaim: {
       id: 'claim-mob-2',
@@ -756,7 +734,7 @@ export const INITIAL_MOBILITY_PROPOSALS: MobilityProposal[] = [
       phone: '+1 (415) 555-0842',
       etaMinutes: 0
     },
-    uberDeepLink: 'https://m.uber.com/ul/?action=setPickup&client_id=vVS_4V7z_Hm39eMHy91_ETX4ADnyXoBx',
+    uberDeepLink: 'https://m.uber.com/ul/?action=setPickup&client_id=your_uber_client_id',
     caregiverPhoneNotified: true,
     insuranceClaim: {
       id: 'claim-mob-3',
@@ -1139,8 +1117,8 @@ export const INITIAL_DAILY_BRIEFING: import('../types').DailyGeminiBriefing = {
   date: 'Saturday, Aug 29, 2026',
   dayTimeFormatted: 'Saturday, Aug 29, 2026 • 12:30 PM',
   headline: 'Good Afternoon, Captain Wade',
-  audioScript: "Good afternoon, Captain Wade. It's Saturday, August twenty-ninth. Your continuous infusion pump has fourteen hours remaining and is flowing smoothly. The weather is sunny and pleasant at seventy degrees. Everything is well in hand, so sit back and have a wonderful day.",
-  personaId: 'ward-cleaver',
+  audioScript: "Good afternoon, Captain Wade. It's Saturday, August twenty-ninth. Your continuous infusion pump has fourteen hours remaining and is flowing smoothly. Everything is well in hand in the command lair, so sit back and have a wonderful day.",
+  personaId: 'dr-evil',
   pumpHoursLeft: 14,
   weatherMood: 'Sunny & Gentle, 70°F',
   keyReminders: [

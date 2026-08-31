@@ -40,7 +40,7 @@ export const MobilityLogisticsView: React.FC<Props> = ({ onOpenDiscordModal }) =
     loadStoredState('UBER_DEVELOPER_TOKEN', '')
   );
   const [uberClientId, setUberClientId] = useState<string>(() =>
-    loadStoredState('UBER_CLIENT_ID', 'vVS_4V7z_Hm39eMHy91_ETX4ADnyXoBx')
+    loadStoredState('UBER_CLIENT_ID', '')
   );
   const [uberEnvironment, setUberEnvironment] = useState<'sandbox' | 'production'>(() =>
     loadStoredState('UBER_ENVIRONMENT', 'sandbox')
@@ -1167,7 +1167,7 @@ export const MobilityLogisticsView: React.FC<Props> = ({ onOpenDiscordModal }) =
                         type="text"
                         value={uberClientId}
                         onChange={e => setUberClientId(e.target.value.trim())}
-                        placeholder="vVS_4V7z_Hm39eMHy91_ETX4ADnyXoBx"
+                        placeholder="your_uber_client_id"
                         className="w-full px-3 py-2 bg-white border border-slate-300 rounded-xl text-xs font-mono text-slate-900 focus:ring-2 focus:ring-black"
                       />
                       <span className="text-[10px] text-slate-500 mt-1 block">

@@ -1328,7 +1328,7 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
                   {isPlayingAudio ? 'Playing Spoken Briefing...' : 'Spoken Audio Guidance'}
                 </span>
                 <span className="text-[10px] text-slate-500 font-medium">
-                  Voice: {selectedPersona === 'ward-cleaver' ? 'Ward Cleaver (Reassuring Dad)' : selectedPersona === 'dr-evil' ? 'Dr. Evil' : selectedPersona === 'first-mate' ? 'First Mate' : 'Clinical Co-Pilot'}
+                  Voice: {selectedPersona === 'dr-evil' ? 'Dr. Evil' : 'Clinical Co-Pilot'}
                 </span>
               </div>
               <p className="text-xs text-slate-600 italic line-clamp-2">
@@ -1470,7 +1470,7 @@ export const DailyBriefingCard: React.FC<DailyBriefingCardProps> = ({
                               <span className="text-amber-800 text-[11px]">(Includes +{evt.mobilityPrepBufferMinutes || 25}m unhurried buffer)</span>
                             </div>
                             <a
-                              href={`https://m.uber.com/ul/?action=setPickup&client_id=vVS_4V7z_Hm39eMHy91_ETX4ADnyXoBx&pickup[formatted_address]=1200%204th%20St%2C%20San%20Francisco%2C%20CA&dropoff[formatted_address]=${encodeURIComponent(evt.location || '1635 Divisadero St, San Francisco, CA')}&product_id=uber_assist`}
+                              href={`https://m.uber.com/ul/?action=setPickup&client_id=your_uber_client_id&pickup[formatted_address]=1200%204th%20St%2C%20San%20Francisco%2C%20CA&dropoff[formatted_address]=${encodeURIComponent(evt.location || '1635 Divisadero St, San Francisco, CA')}&product_id=uber_assist`}
                               target="_blank"
                               rel="noopener noreferrer"
                               className="px-2.5 py-1 bg-amber-600 hover:bg-amber-700 text-white font-bold text-[11px] rounded-lg transition-colors flex items-center gap-1 shrink-0"

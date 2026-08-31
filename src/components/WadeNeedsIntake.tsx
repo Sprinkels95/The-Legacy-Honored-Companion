@@ -326,7 +326,7 @@ export const WadeNeedsIntake: React.FC<Props> = ({
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <span className="text-xs font-bold uppercase tracking-wider text-slate-600 flex items-center gap-1.5">
                     <Sparkles className="w-3.5 h-3.5 text-indigo-600" />
-                    Agent Vocal Reassurance ({selectedPersona === 'ward-cleaver' ? 'Ward Cleaver' : selectedPersona === 'first-mate' ? "Captain's First Mate" : selectedPersona === 'dr-evil' ? 'Dr. Evil' : 'Clinical Co-Pilot'})
+                    Agent Vocal Reassurance ({selectedPersona === 'dr-evil' ? 'Dr. Evil' : 'Clinical Co-Pilot'})
                   </span>
 
                   <span className="text-[11px] font-bold px-2.5 py-0.5 rounded-full bg-emerald-200/80 text-emerald-900 border border-emerald-300">

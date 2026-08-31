@@ -45,15 +45,11 @@ export const AgentPersonaSelector: React.FC<Props> = ({
 
   const getPersonaIcon = (id: string, isSelected: boolean) => {
     switch (id) {
-      case 'ward-cleaver':
-        return <Heart className={`w-4 h-4 ${isSelected ? 'text-rose-500' : 'text-rose-400'}`} />;
       case 'dr-evil':
         return <span className="text-base select-none">😈</span>;
       case 'clinical-copilot':
-        return <Stethoscope className={`w-4 h-4 ${isSelected ? 'text-cyan-500' : 'text-cyan-400'}`} />;
-      case 'first-mate':
       default:
-        return <Compass className={`w-4 h-4 ${isSelected ? 'text-amber-500' : 'text-amber-400'}`} />;
+        return <Stethoscope className={`w-4 h-4 ${isSelected ? 'text-cyan-500' : 'text-cyan-400'}`} />;
     }
   };
 

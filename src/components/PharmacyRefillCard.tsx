@@ -151,7 +151,6 @@ export function PharmacyRefillCard({
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: '+19494410137',
           callType: isTouchTone ? 'pharmacy-touch-tone' : 'pharmacy-refill-specialty',
           medicationName: `${med.name} (${med.deliveryMethod})`,
           rxNumber: med.rxNumber,

@@ -183,7 +183,6 @@ export const CaregiverAlertsOpsSection: React.FC<Props> = ({ onOpenDiscordModal 
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: '+19494410137',
           callType,
           customMessage: customText.trim() || undefined,
           medicationName: 'Vyalev 24h Subcutaneous Infusion'

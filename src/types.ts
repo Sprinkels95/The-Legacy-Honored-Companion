@@ -1,4 +1,4 @@
-export type AgentPersonaId = 'ward-cleaver' | 'dr-evil' | 'clinical-copilot' | 'first-mate';
+export type AgentPersonaId = 'dr-evil' | 'clinical-copilot';
 
 export type EnergyState = 'GOOD_ENERGY' | 'MODERATE_FATIGUE' | 'LOW_ENERGY_OFF_STATE';
 export type BrevityMode = 'STANDARD_SENTENCE' | 'ULTRA_CONCISE_SINGLE_WORD';

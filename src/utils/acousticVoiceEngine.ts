@@ -58,17 +58,11 @@ class AcousticVoiceEngine {
 
     if (mode === 'ULTRA_CONCISE_SINGLE_WORD') {
       // Return single word or ultra-short 1-2 word affirmation
-      if (persona === 'ward-cleaver') {
-        const words = ['Handled.', 'Done.', 'Understood.', 'Taken care of.', 'Rest easy.'];
-        return words[Math.floor(Math.random() * words.length)];
-      } else if (persona === 'dr-evil') {
+      if (persona === 'dr-evil') {
         const words = ['Done!', 'Handled!', 'Secured!', 'Locked!'];
         return words[Math.floor(Math.random() * words.length)];
-      } else if (persona === 'first-mate') {
-        const words = ['Aye.', 'Secured, Sir.', 'Done.', 'On course.'];
-        return words[Math.floor(Math.random() * words.length)];
       } else {
-        const words = ['Logged.', 'Confirmed.', 'Recorded.'];
+        const words = ['Logged.', 'Confirmed.', 'Recorded.', 'Noted.'];
         return words[Math.floor(Math.random() * words.length)];
       }
     }
@@ -83,12 +77,8 @@ class AcousticVoiceEngine {
     // If still too long (>16 words), shorten directly
     const words = singleSentence.split(/\s+/);
     if (words.length > 15) {
-      if (persona === 'ward-cleaver') {
-        return "Thanks, Captain Wade. I'll take care of it right away.";
-      } else if (persona === 'dr-evil') {
+      if (persona === 'dr-evil') {
         return "Thanks, Captain Wade! Handled immediately by my top team!";
-      } else if (persona === 'first-mate') {
-        return "Thanks, Captain Wade! Aye aye, Sir, seeing to it right away!";
       } else {
         return "Thanks, Captain Wade. Everything is taken care of.";
       }
@@ -134,7 +124,7 @@ class AcousticVoiceEngine {
       ? 'ULTRA_CONCISE_SINGLE_WORD'
       : 'STANDARD_SENTENCE';
 
-    const agentSpokenResponse = this.adaptResponseForBrevity('', 'ward-cleaver', brevityModeApplied);
+    const agentSpokenResponse = this.adaptResponseForBrevity('', 'dr-evil', brevityModeApplied);
 
     const isLowState = energyClassification === 'LOW_ENERGY_OFF_STATE';
 
@@ -248,6 +238,39 @@ class AcousticVoiceEngine {
   }
 
   /**
+   * Helper to identify legacy, metallic, or robotic desktop voices across operating systems
+   */
+  private isLegacyRoboticVoice(v: SpeechSynthesisVoice): boolean {
+    const name = v.name.toLowerCase();
+    const uri = (v.voiceURI || '').toLowerCase();
+    return (
+      name.includes('desktop') ||
+      name.includes('espeak') ||
+      name.includes('mbrola') ||
+      name.includes('klatt') ||
+      name.includes('sam') ||
+      name.includes('whisper') ||
+      name.includes('zarvox') ||
+      name.includes('trinoids') ||
+      name.includes('deranged') ||
+      name.includes('pipe organ') ||
+      name.includes('good news') ||
+      name.includes('bad news') ||
+      name.includes('bells') ||
+      name.includes('cellos') ||
+      name.includes('bahh') ||
+      name.includes('albert') ||
+      name.includes('junior') ||
+      name.includes('ralph') ||
+      name.includes('fred') ||
+      name.includes('bruce') ||
+      name.includes('boing') ||
+      name.includes('hysterical') ||
+      uri.includes('espeak')
+    );
+  }
+
+  /**
    * Helper to identify female voices across Chrome, Edge, macOS, iOS, Android
    * NOTE: In Google Chrome, "Google US English" is a FEMALE voice.
    */
@@ -310,93 +333,65 @@ class AcousticVoiceEngine {
     const englishVoices = voices.filter(v => v.lang.startsWith('en'));
 
     if (persona === 'dr-evil') {
-      // Mike Myers' Dr. Evil is an iconic villain with theatrical, Mid-Atlantic/British masculine delivery.
-      // Must STRICTLY be a male voice.
+      // Mike Myers' Dr. Evil: Theatrical, Mid-Atlantic/British masculine delivery.
       
       // Tier 1: UK English Male (Google UK English Male in Chrome / George or Oliver in Edge / Daniel in Apple)
       const tier1BritishMale = englishVoices.find(v => {
-        if (this.isFemaleVoice(v)) return false;
+        if (this.isFemaleVoice(v) || this.isLegacyRoboticVoice(v)) return false;
         const n = v.name.toLowerCase();
         return (
           n.includes('google uk english male') ||
           (n.includes('uk english') && n.includes('male')) ||
-          ((n.includes('george') || n.includes('oliver') || n.includes('daniel')) && !this.isFemaleVoice(v))
+          ((n.includes('george') || n.includes('oliver') || n.includes('daniel')) && (n.includes('natural') || n.includes('enhanced') || n.includes('neural')))
         );
       });
       if (tier1BritishMale) return tier1BritishMale;
 
       // Tier 2: Natural / Neural Masculine voices (Guy, David, Ryan, Alex, etc.)
       const tier2NaturalMale = englishVoices.find(v => {
-        if (this.isFemaleVoice(v)) return false;
+        if (this.isFemaleVoice(v) || this.isLegacyRoboticVoice(v)) return false;
         return this.isMaleVoice(v) && (v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('enhanced') || v.name.toLowerCase().includes('neural'));
       });
       if (tier2NaturalMale) return tier2NaturalMale;
 
-      // Tier 3: Any verified male English voice
-      const tier3Male = englishVoices.find(v => this.isMaleVoice(v));
+      // Tier 3: Any verified non-robotic male English voice
+      const tier3Male = englishVoices.find(v => this.isMaleVoice(v) && !this.isLegacyRoboticVoice(v));
       if (tier3Male) return tier3Male;
 
       // Tier 4: Any English voice that is NOT in the female blacklist
-      const nonFemaleEnglish = englishVoices.find(v => !this.isFemaleVoice(v));
+      const nonFemaleEnglish = englishVoices.find(v => !this.isFemaleVoice(v) && !this.isLegacyRoboticVoice(v));
       if (nonFemaleEnglish) return nonFemaleEnglish;
 
       return englishVoices[0] || voices[0] || null;
-    } else if (persona === 'ward-cleaver') {
-      // Prioritize warm, deep, masculine natural voices
-      const wardPicks = englishVoices.filter(v => {
-        if (this.isFemaleVoice(v)) return false;
-        const name = v.name.toLowerCase();
-        return (
-          (name.includes('guy') && name.includes('natural')) ||
-          (name.includes('david') && name.includes('natural')) ||
-          (name.includes('daniel') && name.includes('enhanced')) ||
-          (name.includes('google uk english male')) ||
-          name.includes('alex') ||
-          name.includes('tom') ||
-          this.isMaleVoice(v)
-        );
-      });
-      if (wardPicks.length > 0) return wardPicks[0];
+
     } else if (persona === 'clinical-copilot') {
-      // Crisp, precise professional voice
-      const clinicalPicks = englishVoices.filter(v => {
-        const name = v.name.toLowerCase();
+      // Crisp, precise professional medical voice (Jenny Natural, Samantha Enhanced, Google US English)
+      
+      // Tier 1: Natural Neural Professional voices
+      const tier1Clinical = englishVoices.find(v => {
+        if (this.isLegacyRoboticVoice(v)) return false;
+        const n = v.name.toLowerCase();
         return (
-          (name.includes('jenny') && name.includes('natural')) ||
-          (name.includes('samantha') && name.includes('enhanced')) ||
-          name.includes('google us english') ||
-          name.includes('natural') ||
-          name.includes('karen') ||
-          name.includes('victoria')
+          (n.includes('jenny') && n.includes('natural')) ||
+          (n.includes('aria') && n.includes('natural')) ||
+          (n.includes('samantha') && (n.includes('enhanced') || n.includes('premium'))) ||
+          (n.includes('ava') && n.includes('enhanced')) ||
+          n.includes('google us english') ||
+          (n.includes('natural') && this.isFemaleVoice(v))
         );
       });
-      if (clinicalPicks.length > 0) return clinicalPicks[0];
-    } else if (persona === 'first-mate') {
-      // Resonant, nautical, structured voice
-      const matePicks = englishVoices.filter(v => {
-        if (this.isFemaleVoice(v)) return false;
-        const name = v.name.toLowerCase();
-        return (
-          (name.includes('george') && name.includes('natural')) ||
-          name.includes('oliver') ||
-          name.includes('uk english male') ||
-          name.includes('australian') ||
-          name.includes('daniel') ||
-          this.isMaleVoice(v)
-        );
-      });
-      if (matePicks.length > 0) return matePicks[0];
+      if (tier1Clinical) return tier1Clinical;
+
+      // Tier 2: Clean English voice
+      const tier2Clean = englishVoices.find(v => !this.isLegacyRoboticVoice(v));
+      if (tier2Clean) return tier2Clean;
+
+      return englishVoices[0] || voices[0] || null;
     }
 
-    // Generic fallback: avoid female voices for masculine personas
-    if (persona === 'ward-cleaver' || persona === 'first-mate') {
-      const nonFemale = englishVoices.find(v => !this.isFemaleVoice(v));
-      if (nonFemale) return nonFemale;
-    }
-
-    // US English default fallback
-    const usDefault = englishVoices.find(v => v.lang === 'en-US' || v.lang === 'en_US');
-    if (usDefault) return usDefault;
+    // Generic fallback: non-robotic English voice
+    const genericClean = englishVoices.find(v => !this.isLegacyRoboticVoice(v));
+    if (genericClean) return genericClean;
 
     return englishVoices[0] || voices[0] || null;
   }
@@ -409,7 +404,13 @@ class AcousticVoiceEngine {
 
     let formatted = text;
 
-    // 1. Expand clinical and dosage abbreviations into spoken English
+    // 0. Strip Markdown tokens and emojis for clean, natural speech pronunciation
+    formatted = formatted
+      .replace(/[*_~`#>]+/g, ' ')
+      .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+      .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu, '');
+
+    // 1. Expand clinical and dosage abbreviations into natural spoken English
     formatted = formatted
       .replace(/\b24h\b/gi, 'twenty-four hour')
       .replace(/\b24hr\b/gi, 'twenty-four hour')
@@ -430,22 +431,14 @@ class AcousticVoiceEngine {
       .replace(/&/g, ' and ')
       .replace(/(\d+)-day/g, '$1 day');
 
-    // 2. Add conversational rhythm pauses
-    // Ensure commas follow greetings or names for natural human cadence
+    // 2. Clean up unnatural stutters, multiple dots, and spacing
     formatted = formatted
-      .replace(/\bCaptain Wade\b/g, 'Captain Wade,')
-      .replace(/\bWade\b/g, 'Wade,')
-      .replace(/,{2,}/g, ',')
-      .replace(/\s{2,}/g, ' ');
-
-    // 3. Persona-specific cadence tuning
-    if (persona === 'ward-cleaver') {
-      // Add comforting pauses
-      formatted = formatted.replace(/\. /g, '... ');
-    } else if (persona === 'dr-evil') {
-      // Smooth theatrical cadence with subtle dramatic pacing
-      formatted = formatted.replace(/! /g, ', ').replace(/\. /g, ', ');
-    }
+      .replace(/\.{2,}/g, '.') // Convert ellipsis or repeated dots to a clean single period
+      .replace(/,{2,}/g, ',') // Convert repeated commas to a clean single comma
+      .replace(/!{2,}/g, '!')
+      .replace(/\?{2,}/g, '?')
+      .replace(/\s+/g, ' ')
+      .trim();
 
     return formatted;
   }
@@ -592,7 +585,7 @@ class AcousticVoiceEngine {
   public speakRole(
     text: string,
     role: 'AGENT' | 'PHARMACY_IVR' | 'PHARMACIST',
-    persona: AgentPersonaId = 'ward-cleaver',
+    persona: AgentPersonaId = 'dr-evil',
     options?: {
       onStart?: () => void;
       onEnd?: () => void;
@@ -625,13 +618,13 @@ class AcousticVoiceEngine {
       utterance.rate = 1.02;
       utterance.volume = 1.0;
     } else {
-      // AGENT: Use selected persona's warm voice
+      // AGENT: Use selected persona's voice
       const agentVoice = this.selectBestVoice(persona);
       if (agentVoice) {
         utterance.voice = agentVoice;
       }
-      utterance.pitch = persona === 'ward-cleaver' ? 0.95 : 1.0;
-      utterance.rate = persona === 'ward-cleaver' ? 0.96 : 1.0;
+      utterance.pitch = persona === 'clinical-copilot' ? 1.05 : 1.0;
+      utterance.rate = persona === 'clinical-copilot' ? 1.02 : 0.98;
       utterance.volume = 1.0;
     }
 
@@ -692,23 +685,13 @@ class AcousticVoiceEngine {
     }
 
     // Persona-Calibrated Pitch & Rate Modulation
-    if (persona === 'ward-cleaver') {
-      // Slightly slower cadence with warm baritone pitch
-      utterance.pitch = 0.95;
-      utterance.rate = 0.95;
-      utterance.volume = 1.0;
-    } else if (persona === 'clinical-copilot') {
+    if (persona === 'clinical-copilot') {
       // Crisp, clear tempo for rapid professional summaries
-      utterance.pitch = 1.0;
-      utterance.rate = 1.0;
+      utterance.pitch = 1.02;
+      utterance.rate = 1.02;
       utterance.volume = 1.0;
-    } else if (persona === 'first-mate') {
-      // Resonant, structured nautical delivery
-      utterance.pitch = 1.0;
-      utterance.rate = 0.98;
-      utterance.volume = 1.0;
-    } else if (persona === 'dr-evil') {
-      // Standard natural baseline pitch and rate (1.0) for maximum browser synthesizer clarity without robotic DSP artifacts
+    } else {
+      // Dr. Evil: Standard natural baseline pitch and rate (1.0) for maximum browser synthesizer clarity
       utterance.pitch = 1.0;
       utterance.rate = 0.98;
       utterance.volume = 1.0;
@@ -759,8 +742,8 @@ class AcousticVoiceEngine {
       presenceEq: '+2.0dB @ 1.8kHz (Consonant Intelligibility)',
       highCut: '8.0kHz Lowpass Roll-off (De-Sibilance)',
       compressor: '-24dB Soft Knee 4:1 Dynamics Leveler',
-      cadenceRate: persona === 'ward-cleaver' ? '0.91x' : persona === 'clinical-copilot' ? '1.02x' : '0.98x',
-      pitchScale: persona === 'ward-cleaver' ? '0.90x' : persona === 'clinical-copilot' ? '1.00x' : '1.04x'
+      cadenceRate: persona === 'clinical-copilot' ? '1.02x' : '0.98x',
+      pitchScale: persona === 'clinical-copilot' ? '1.02x' : '1.00x'
     };
   }
 }

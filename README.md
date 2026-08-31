@@ -269,23 +269,26 @@ Zero-Token Client Operations:    Mathematical DSP audio, +25m buffer math, 1-cli
    ```
 
 3. **Configure Environment Variables:**
-   Create a `.env` file in the root directory:
+   Create a `.env` file in the root directory (never commit `.env` files to version control):
    ```env
-   # Google Gemini & AI Studio
-   VITE_GEMINI_API_KEY=your_gemini_api_key_here
+   # Google Gemini & AI Studio (Server-side secret, NEVER use VITE_ prefix)
+   GEMINI_API_KEY=your_gemini_api_key_here
    GEMINI_MODEL=gemini-3.7-flash
 
-   # Google Firebase & Cloud
-   VITE_FIREBASE_API_KEY=your_firebase_api_key
-   VITE_FIREBASE_AUTH_DOMAIN=memory-lane-app-469523.firebaseapp.com
-   VITE_FIREBASE_PROJECT_ID=memory-lane-app-469523
-
-   # Telephony & Alerts (Optional)
+   # Telephony & Caregiver Alerts (Kept strictly on Express backend)
    DISCORD_WEBHOOK_URL=your_discord_webhook_url
+   CAREGIVER_PHONE_NUMBER=+15551234567
    TWILIO_ACCOUNT_SID=your_twilio_sid
    TWILIO_AUTH_TOKEN=your_twilio_token
    TWILIO_PHONE_NUMBER=your_twilio_phone
+
+   # Uber Developer Integration (Client ID & secret)
+   UBER_CLIENT_ID=your_uber_client_id
+   UBER_CLIENT_SECRET=your_uber_client_secret
    ```
+
+   > **🔒 Security Architecture Notice (Zero-Leak)**:
+   > In adherence with strict production security standards, all secret keys (`GEMINI_API_KEY`, `TWILIO_AUTH_TOKEN`, `DISCORD_WEBHOOK_URL`, `UBER_CLIENT_SECRET`) are kept strictly on the Node/Express backend on Google Cloud Run and are never exposed to the client bundle via `VITE_` prefixes. Client interactions are proxied through `/api/*` endpoints.
 
 4. **Run the development server:**
    ```bash

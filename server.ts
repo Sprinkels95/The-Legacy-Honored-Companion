@@ -45,10 +45,6 @@ const getGenAI = () => {
 
 // Persona Prompt Templates
 const PERSONA_PROMPTS: Record<string, string> = {
-  'ward-cleaver': `You are "Ward Cleaver", Captain Wade's warm, wise, paternal anchor persona inspired by classic 1950s reassuring calm.
-Your tone is gentle, dependable, reassuring, and completely free of confusing medical jargon. You treat Captain Wade with deep respect, grounding his anxiety and assuring him that everything is well in hand.
-CRITICAL COGNITIVE EMPATHY DIRECTIVE: Captain Wade must NEVER be called out or corrected about his memory. If he asks for an item we already have in the pantry/refrigerator or recently bought, NEVER say "we already have this", "you already asked for that", or point out that it's in the house. He will forget, and that is okay because remembering is offloaded to the autonomous grocery agent. Simply say: "Thanks, Captain Wade. I'll take care of it." or "Thanks, Captain Wade. Everything is in hand, so you can sit back and relax."`,
-
   'dr-evil': `You are "Dr. Evil" (from Austin Powers), serving as Captain Wade's supreme personal mastermind and reassuring anchor persona!
 You speak in dramatic Dr. Evil cadence, referencing your underground volcano lair, sharks with frickin' laser beams, "One MILLION dollars!", "Why make billions when we can make... millions?", "Throw me a frickin' bone here!", and "Riiiight."
 Crucially: You are 100% loyal and protective of Captain Wade!
@@ -56,23 +52,19 @@ CRITICAL COGNITIVE EMPATHY DIRECTIVE: Never correct Captain Wade or tell him he 
 
   'clinical-copilot': `You are the "Clinical Co-Pilot", an objective, supportive assistant tailored for Parkinson's care.
 Your tone is concise, calm, supportive, and structured.
-CRITICAL COGNITIVE EMPATHY DIRECTIVE: When speaking to Captain Wade, NEVER state that an item was already purchased or that he duplicated a request. Provide a simple, warm, affirming response: "Thanks, Captain Wade. Everything is taken care of." Reserve all deduplication details strictly for the caregiver audit logs.`,
-
-  'first-mate': `You are the "Captain's First Mate", a nautical, respectful, highly disciplined operational assistant for Captain Wade.
-Your tone is crisp, respectful, sea-worthy, and structured.
-CRITICAL COGNITIVE EMPATHY DIRECTIVE: Never correct the Captain or tell him the hold is already stocked. Respond respectfully: "Thanks, Captain Wade! Aye aye, Sir, I will take care of it right away." Maintain his command and dignity at all times.`,
+CRITICAL COGNITIVE EMPATHY DIRECTIVE: When speaking to Captain Wade, NEVER state that an item was already purchased or that he duplicated a request. Provide a simple, warm, affirming response: "Thanks, Captain Wade. Everything is taken care of." Reserve all deduplication details strictly for the caregiver audit logs.`
 };
 
 // 1. POST /api/agent/needs-intake
 app.post("/api/agent/needs-intake", async (req, res) => {
   try {
-    const { rawInput, personaId = 'ward-cleaver', currentPantry = [], currentShoppingList = [], source = 'voice' } = req.body;
+    const { rawInput, personaId = 'dr-evil', currentPantry = [], currentShoppingList = [], source = 'voice' } = req.body;
 
     if (!rawInput || typeof rawInput !== 'string') {
       return res.status(400).json({ error: "rawInput string is required" });
     }
 
-    const personaPrompt = PERSONA_PROMPTS[personaId] || PERSONA_PROMPTS['ward-cleaver'];
+    const personaPrompt = PERSONA_PROMPTS[personaId] || PERSONA_PROMPTS['dr-evil'];
     const ai = getGenAI();
 
     if (process.env.GEMINI_API_KEY) {
@@ -176,12 +168,8 @@ Requirements:
     }
 
     let reassurance = "";
-    if (personaId === 'ward-cleaver') {
-      reassurance = `Thanks, Captain Wade. I'll make sure that's taken care of right away. Everything is in hand, so you can sit back and relax.`;
-    } else if (personaId === 'dr-evil') {
-      reassurance = `Thanks, Captain Wade! Consider it taken care of by my top henchmen immediately!`;
-    } else if (personaId === 'first-mate') {
-      reassurance = `Thanks, Captain Wade! Aye aye, Sir, I will see to it right away!`;
+    if (personaId === 'dr-evil') {
+      reassurance = `Thanks, Captain Wade! Consider it taken care of by my top henchmen immediately! Everything is well in hand in the command lair.`;
     } else {
       reassurance = `Thanks, Captain Wade. Everything is taken care of.`;
     }
@@ -687,7 +675,7 @@ Return JSON matching schema.
       return res.json({ proposal });
     }
 
-      const uberClientId = process.env.UBER_CLIENT_ID || 'vVS_4V7z_Hm39eMHy91_ETX4ADnyXoBx';
+      const uberClientId = process.env.UBER_CLIENT_ID || 'your_uber_client_id';
       const fallbackProposal = {
         id: `mob-${Date.now()}`,
         appointmentTitle: appointmentTitle || "Physical Therapy & Balance Assessment",
@@ -734,7 +722,7 @@ app.post("/api/uber/verify-credentials", async (req, res) => {
   try {
     const { developerToken, clientId, clientSecret, environment = "sandbox" } = req.body;
     const tokenToTest = developerToken || process.env.UBER_SERVER_TOKEN || process.env.UBER_DEVELOPER_TOKEN;
-    const activeClientId = clientId || process.env.UBER_CLIENT_ID || 'vVS_4V7z_Hm39eMHy91_ETX4ADnyXoBx';
+    const activeClientId = clientId || process.env.UBER_CLIENT_ID || 'your_uber_client_id';
 
     if (!tokenToTest && !activeClientId) {
       return res.json({
@@ -791,13 +779,13 @@ app.post("/api/uber/dispatch-ride", async (req, res) => {
       destinationAddress = "1635 Divisadero St, Suite 520, San Francisco, CA 94115",
       tier = "Uber Assist",
       passengerName = "Captain Wade Seymour",
-      caregiverPhone = process.env.CAREGIVER_NOTIFICATION_PHONE || "+19494410137",
+      caregiverPhone = process.env.CAREGIVER_NOTIFICATION_PHONE || "+15551234567",
       developerToken,
       clientId,
       environment = "sandbox"
     } = req.body;
 
-    const activeClientId = clientId || process.env.UBER_CLIENT_ID || 'vVS_4V7z_Hm39eMHy91_ETX4ADnyXoBx';
+    const activeClientId = clientId || process.env.UBER_CLIENT_ID || 'your_uber_client_id';
     const activeToken = developerToken || process.env.UBER_SERVER_TOKEN || process.env.UBER_DEVELOPER_TOKEN;
 
     // Generated official Uber App Universal Deep Link
@@ -1104,8 +1092,6 @@ Provide a JSON response analyzing:
     const urgentMeds = medications.filter((m: any) => m.daysRemaining <= m.refillThresholdDays);
     const fallbackCommentary = personaId === 'dr-evil'
       ? `Listen to me very carefully, Captain Wade: I have audited our top-secret pharmaceutical stockpile! Our Vyalev infusion cartridges are at ${medications[0]?.daysRemaining || 4} days remaining. Why risk an OFF freeze when we can have the pharmacy deliver our elixir for ONE MILLION DOLLARS... or simply tap the refill button? Riiight!`
-      : personaId === 'first-mate'
-      ? `Captain! Deck inventory check reports ${urgentMeds.length} prescriptions approaching safety reserve thresholds. Recommend dispatching pharmacy signal before entering heavy seas!`
       : `Clinical Audit: ${urgentMeds.length} medications require refill authorization within 5 days to prevent dose interruption.`;
 
     return res.json({
@@ -1137,7 +1123,7 @@ app.post("/api/agent/call-pharmacy", async (req, res) => {
   try {
     const { 
       medication, 
-      personaId = 'ward-cleaver', 
+      personaId = 'dr-evil', 
       deliveryPreference = 'Refrigerated Cold-Chain Courier', 
       urgency = 'EXPEDITED_OVERNIGHT',
       customNotes = '' 
@@ -1148,7 +1134,7 @@ app.post("/api/agent/call-pharmacy", async (req, res) => {
     }
 
     const ai = getGenAI();
-    const personaPrompt = PERSONA_PROMPTS[personaId] || PERSONA_PROMPTS['ward-cleaver'];
+    const personaPrompt = PERSONA_PROMPTS[personaId] || PERSONA_PROMPTS['dr-evil'];
     const isSpecialty = medication.refillCallType === 'SPECIALTY_LIVE_VERIFICATION' || 
                         medication.deliveryMethod?.includes('Subcutaneous') || 
                         medication.isRefrigerated || 
@@ -1416,8 +1402,6 @@ Generate 6-8 dialogue turns. For each turn, assign the correct speaker, dialogue
 
     const fallbackReassurance = personaId === 'dr-evil'
       ? `Behold, Captain Wade! I have commanded our autonomous telephony satellite to coordinate with ${medication.pharmacyName}! Your ${medication.name} refill is locked in with confirmation ${randomConf}. Our secret courier will deliver without you lifting a finger! Riiiight!`
-      : personaId === 'first-mate'
-      ? `Captain! Autonomous voice dispatch has secured clearance with ${medication.pharmacyName}. Refill ${randomConf} for ${medication.name} is on course. The vessel remains fully supplied!`
       : `Rest easy, Captain Wade. The automated pharmacy service called in your ${medication.name} refill to ${medication.pharmacyName}. Everything is confirmed under reference ${randomConf}, arriving right on schedule.`;
 
     const fallbackCallLog = {
@@ -1561,7 +1545,7 @@ Keep it natural, concise (1-2 sentences), and 100% factually accurate based on C
 // 8. POST /api/agent/daily-gemini-summary (Personalized Daily Audio Summary for Captain Wade)
 app.post("/api/agent/daily-gemini-summary", async (req, res) => {
   try {
-    const { personaId = 'ward-cleaver', pumpHoursLeft = 14 } = req.body;
+    const { personaId = 'dr-evil', pumpHoursLeft = 14 } = req.body;
     const ai = getGenAI();
 
     const now = new Date();
@@ -1633,8 +1617,6 @@ Return JSON with:
     // High quality fallback
     const fallbackScript = personaId === 'dr-evil'
       ? `Greetings, Captain Wade! Today is ${formattedDate}. I have audited your continuous pump: ${pumpHoursLeft} hours of life-giving liquid gold remain! The weather is marvelous, and our secret base is running at peak efficiency. Relax and enjoy your day! Riiiight.`
-      : personaId === 'first-mate'
-      ? `Good day, Captain Wade! The watch reports ${formattedDate}. Bilges are dry and your continuous infusion pump has ${pumpHoursLeft} hours of steady steaming remaining. Seas are calm, Sir. Standing by for a fine day!`
       : `Good morning, Captain Wade. It's ${formattedDate}. Your continuous infusion pump is running smoothly with ${pumpHoursLeft} hours remaining. The house is quiet, the pantry is stocked, and everything is well in hand. Take it easy and have a wonderful day.`;
 
     return res.json({
@@ -1664,7 +1646,7 @@ Return JSON with:
 // 9. POST /api/agent/analyze-speech-acoustics (Parkinson's Speech & Fatigue Telemetry Tracker)
 app.post("/api/agent/analyze-speech-acoustics", async (req, res) => {
   try {
-    const { rawInput = "", durationMs = 2500, personaId = 'ward-cleaver' } = req.body;
+    const { rawInput = "", durationMs = 2500, personaId = 'dr-evil' } = req.body;
     const ai = getGenAI();
 
     const wordCount = rawInput.trim().split(/\s+/).filter(Boolean).length || 1;
@@ -1858,7 +1840,7 @@ app.post("/api/gemini/daily-calendar-summary", async (req, res) => {
   try {
     const { 
       events = [], 
-      personaId = 'ward-cleaver', 
+      personaId = 'dr-evil', 
       pumpHoursLeft = 14, 
       weather = 'Sunny, 68°F',
       dateFormatted
@@ -1982,8 +1964,6 @@ Clinical & Logistical Reasoning Directives:
 
     const fallbackScript = personaId === 'dr-evil'
       ? `Greetings, Captain Wade! Today is ${formattedDate}. ${transitEvent ? `We have ${transitEvent.title} with departure staged for ${departureStr} sharp!` : 'Your day is set for comfortable rest and therapy.'} Your continuous infusion pump has ${pumpHoursLeft} hours of pure gold remaining. Relax this afternoon while my henchmen guard your rest! Riiiight.`
-      : personaId === 'first-mate'
-      ? `Morning muster, Captain Wade! Today is ${formattedDate}. ${transitEvent ? `We set sail for ${transitEvent.title} with departure at ${departureStr} hours and full Parkinson's buffer.` : 'Course set for smooth sailing and calm rest.'} Infusion pump reservoir holding steady at ${pumpHoursLeft} hours. Standing by!`
       : `Good morning, Captain. Today is ${formattedDate}. ${transitEvent ? `You have ${transitEvent.title}, and we have staged our departure for ${departureStr} to ensure a calm, unhurried walk to the car.` : 'You have a calm, restful routine today with everything well in hand.'} Your continuous infusion pump has ${pumpHoursLeft} hours remaining and is flowing smoothly. Take your time and enjoy the day.`;
 
     const dynamicWadeActions = mainEvents.length > 0 
@@ -2204,8 +2184,8 @@ const lastCallHistory: {
 app.get("/api/telephony/status", (req, res) => {
   const accountSid = process.env.TWILIO_ACCOUNT_SID;
   const authToken = process.env.TWILIO_AUTH_TOKEN;
-  const fromNumber = process.env.TWILIO_PHONE_NUMBER || "+19513388439";
-  const targetNumber = process.env.CAREGIVER_PHONE_NUMBER || "+19494410137";
+  const fromNumber = process.env.TWILIO_PHONE_NUMBER || "+15559876543";
+  const targetNumber = process.env.CAREGIVER_PHONE_NUMBER || "+15551234567";
   const isConfigured = Boolean(accountSid && authToken && accountSid.startsWith("AC"));
   const normalizedTarget = targetNumber.startsWith("+") ? targetNumber : `+1${targetNumber.replace(/\D/g, '')}`;
   const history = lastCallHistory[normalizedTarget];
@@ -2234,7 +2214,7 @@ app.get("/api/telephony/status", (req, res) => {
 app.post("/api/telephony/dispatch-call", async (req, res) => {
   try {
     const {
-      to = process.env.CAREGIVER_PHONE_NUMBER || "+19494410137",
+      to = process.env.CAREGIVER_PHONE_NUMBER || "+15551234567",
       callType = "caregiver-urgent", // 'caregiver-urgent' | 'pharmacy-refill' | 'routine-checkin'
       medicationName = "Vyalev Continuous Subcutaneous Infusion",
       rxNumber = "7839210",
@@ -2243,7 +2223,7 @@ app.post("/api/telephony/dispatch-call", async (req, res) => {
       bypassRateLimit = false // Only true if user explicitly forces call or urgent life safety escalation
     } = req.body;
 
-    const fromNumber = process.env.TWILIO_PHONE_NUMBER || "+19513388439";
+    const fromNumber = process.env.TWILIO_PHONE_NUMBER || "+15559876543";
     const toNumber = to.startsWith("+") ? to : `+1${to.replace(/\D/g, '')}`;
     const twilioClient = getTwilioClient();
 

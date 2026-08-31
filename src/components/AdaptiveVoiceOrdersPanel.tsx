@@ -18,7 +18,7 @@ export const AdaptiveVoiceOrdersPanel: React.FC<AdaptiveVoiceOrdersPanelProps> =
   orders,
   onTriggerOrder,
   isHardDay = false,
-  selectedPersona = 'ward-cleaver',
+  selectedPersona = 'dr-evil',
   brevityMode = 'STANDARD_SENTENCE'
 }) => {
   const [showAll, setShowAll] = useState(false);

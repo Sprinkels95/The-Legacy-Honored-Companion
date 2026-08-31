@@ -255,12 +255,11 @@ export const CaptainWadeMainView: React.FC<CaptainWadeMainViewProps> = ({
         })
       });
 
-      // Also trigger real Twilio outbound phone call to Elsbeth's phone
+      // Also trigger real Twilio outbound phone call to caregiver's phone
       fetch('/api/telephony/dispatch-call', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          to: '+19494410137',
           callType: urgency === 'urgent' ? 'caregiver-urgent' : 'routine-checkin',
           customMessage: note || (urgency === 'urgent' ? 'Captain Wade tapped urgent assistance button from home console.' : 'Captain Wade sent a check-in message.')
         })
@@ -647,7 +646,7 @@ export const CaptainWadeMainView: React.FC<CaptainWadeMainViewProps> = ({
                       </span>
                     )}
                     <span className="text-xs text-slate-400">
-                      Voice: {selectedPersona === 'ward-cleaver' ? 'Ward Cleaver' : selectedPersona === 'first-mate' ? "First Mate" : selectedPersona === 'dr-evil' ? 'Dr. Evil' : 'Clinical Co-Pilot'}
+                      Voice: {selectedPersona === 'dr-evil' ? 'Dr. Evil' : 'Clinical Co-Pilot'}
                     </span>
                     <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400/20 text-amber-200 border border-amber-400/30 flex items-center gap-1">
                       <span>☀️</span>
