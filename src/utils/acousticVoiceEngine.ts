@@ -238,17 +238,16 @@ class AcousticVoiceEngine {
   }
 
   /**
-   * Helper to identify legacy, metallic, or robotic desktop voices across operating systems
+   * Helper to identify truly legacy, synthetic, or robotic toy voices across operating systems
    */
   private isLegacyRoboticVoice(v: SpeechSynthesisVoice): boolean {
     const name = v.name.toLowerCase();
     const uri = (v.voiceURI || '').toLowerCase();
     return (
-      name.includes('desktop') ||
       name.includes('espeak') ||
       name.includes('mbrola') ||
       name.includes('klatt') ||
-      name.includes('sam') ||
+      name.includes('sam ') ||
       name.includes('whisper') ||
       name.includes('zarvox') ||
       name.includes('trinoids') ||
@@ -259,11 +258,6 @@ class AcousticVoiceEngine {
       name.includes('bells') ||
       name.includes('cellos') ||
       name.includes('bahh') ||
-      name.includes('albert') ||
-      name.includes('junior') ||
-      name.includes('ralph') ||
-      name.includes('fred') ||
-      name.includes('bruce') ||
       name.includes('boing') ||
       name.includes('hysterical') ||
       uri.includes('espeak')
@@ -272,7 +266,7 @@ class AcousticVoiceEngine {
 
   /**
    * Helper to identify female voices across Chrome, Edge, macOS, iOS, Android
-   * NOTE: In Google Chrome, "Google US English" is a FEMALE voice.
+   * NOTE: In Google Chrome, "Google US English" is a clear female voice.
    */
   private isFemaleVoice(v: SpeechSynthesisVoice): boolean {
     const name = v.name.toLowerCase();
@@ -283,7 +277,7 @@ class AcousticVoiceEngine {
     }
 
     const femaleNames = [
-      'google us english', // In Chrome this is female!
+      'google us english',
       'google uk english female',
       'samantha', 'victoria', 'karen', 'zira', 'jenny', 'aria', 'sonia', 'mia',
       'libby', 'natasha', 'michelle', 'hazel', 'susan', 'fiona', 'catherine',
@@ -331,69 +325,70 @@ class AcousticVoiceEngine {
     if (!voices || voices.length === 0) return null;
 
     const englishVoices = voices.filter(v => v.lang.startsWith('en'));
+    if (englishVoices.length === 0) return voices[0] || null;
 
     if (persona === 'dr-evil') {
-      // Mike Myers' Dr. Evil: Theatrical, Mid-Atlantic/British masculine delivery.
+      // Dr. Evil: Charismatic, natural delivery.
       
-      // Tier 1: UK English Male (Google UK English Male in Chrome / George or Oliver in Edge / Daniel in Apple)
-      const tier1BritishMale = englishVoices.find(v => {
+      // Tier 1: Natural / Online / Neural Masculine voices
+      const tier1NaturalMale = englishVoices.find(v => {
         if (this.isFemaleVoice(v) || this.isLegacyRoboticVoice(v)) return false;
         const n = v.name.toLowerCase();
         return (
-          n.includes('google uk english male') ||
-          (n.includes('uk english') && n.includes('male')) ||
-          ((n.includes('george') || n.includes('oliver') || n.includes('daniel')) && (n.includes('natural') || n.includes('enhanced') || n.includes('neural')))
+          n.includes('natural') || 
+          n.includes('neural') || 
+          n.includes('enhanced') || 
+          n.includes('online') ||
+          n.includes('google uk english male')
         );
       });
-      if (tier1BritishMale) return tier1BritishMale;
+      if (tier1NaturalMale) return tier1NaturalMale;
 
-      // Tier 2: Natural / Neural Masculine voices (Guy, David, Ryan, Alex, etc.)
-      const tier2NaturalMale = englishVoices.find(v => {
+      // Tier 2: High quality OS masculine voices (Alex, Daniel, David, George, Guy, Oliver)
+      const tier2OSMale = englishVoices.find(v => {
         if (this.isFemaleVoice(v) || this.isLegacyRoboticVoice(v)) return false;
-        return this.isMaleVoice(v) && (v.name.toLowerCase().includes('natural') || v.name.toLowerCase().includes('enhanced') || v.name.toLowerCase().includes('neural'));
+        const n = v.name.toLowerCase();
+        return n.includes('alex') || n.includes('daniel') || n.includes('david') || n.includes('george') || n.includes('guy') || n.includes('oliver');
       });
-      if (tier2NaturalMale) return tier2NaturalMale;
+      if (tier2OSMale) return tier2OSMale;
 
-      // Tier 3: Any verified non-robotic male English voice
+      // Tier 3: Any verified male English voice
       const tier3Male = englishVoices.find(v => this.isMaleVoice(v) && !this.isLegacyRoboticVoice(v));
       if (tier3Male) return tier3Male;
 
-      // Tier 4: Any English voice that is NOT in the female blacklist
-      const nonFemaleEnglish = englishVoices.find(v => !this.isFemaleVoice(v) && !this.isLegacyRoboticVoice(v));
-      if (nonFemaleEnglish) return nonFemaleEnglish;
+      // Tier 4: Any non-robotic English voice
+      const nonRobotic = englishVoices.find(v => !this.isLegacyRoboticVoice(v));
+      if (nonRobotic) return nonRobotic;
 
       return englishVoices[0] || voices[0] || null;
 
     } else if (persona === 'clinical-copilot') {
-      // Crisp, precise professional medical voice (Jenny Natural, Samantha Enhanced, Google US English)
+      // Crisp, clear clinical assistant voice
       
-      // Tier 1: Natural Neural Professional voices
+      // Tier 1: Natural Neural Professional voices (Jenny, Aria, Samantha Enhanced, Google US English)
       const tier1Clinical = englishVoices.find(v => {
         if (this.isLegacyRoboticVoice(v)) return false;
         const n = v.name.toLowerCase();
         return (
-          (n.includes('jenny') && n.includes('natural')) ||
-          (n.includes('aria') && n.includes('natural')) ||
-          (n.includes('samantha') && (n.includes('enhanced') || n.includes('premium'))) ||
-          (n.includes('ava') && n.includes('enhanced')) ||
           n.includes('google us english') ||
-          (n.includes('natural') && this.isFemaleVoice(v))
+          ((n.includes('natural') || n.includes('enhanced') || n.includes('neural')) && this.isFemaleVoice(v)) ||
+          n.includes('samantha') ||
+          n.includes('jenny') ||
+          n.includes('aria')
         );
       });
       if (tier1Clinical) return tier1Clinical;
 
-      // Tier 2: Clean English voice
+      // Tier 2: Any clean English voice
       const tier2Clean = englishVoices.find(v => !this.isLegacyRoboticVoice(v));
       if (tier2Clean) return tier2Clean;
 
       return englishVoices[0] || voices[0] || null;
     }
 
-    // Generic fallback: non-robotic English voice
+    // Generic fallback: clean non-robotic voice
     const genericClean = englishVoices.find(v => !this.isLegacyRoboticVoice(v));
-    if (genericClean) return genericClean;
-
-    return englishVoices[0] || voices[0] || null;
+    return genericClean || englishVoices[0] || voices[0] || null;
   }
 
   /**
@@ -404,24 +399,42 @@ class AcousticVoiceEngine {
 
     let formatted = text;
 
-    // 0. Strip Markdown tokens and emojis for clean, natural speech pronunciation
+    // 0. Strip Markdown tokens, brackets, and emojis for clean, natural speech pronunciation
     formatted = formatted
       .replace(/[*_~`#>]+/g, ' ')
       .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
       .replace(/[\u{1F300}-\u{1F9FF}\u{2600}-\u{26FF}\u{2700}-\u{27BF}\u{1F600}-\u{1F64F}\u{1F680}-\u{1F6FF}]/gu, '');
 
-    // 1. Expand clinical and dosage abbreviations into natural spoken English
+    // 1. Natural date of birth and dates expansion
     formatted = formatted
+      .replace(/\b03\/14\/1952\b/g, 'March fourteenth, nineteen fifty-two')
+      .replace(/\bMarch 14, 1952\b/g, 'March fourteenth, nineteen fifty-two')
+      .replace(/\bMarch 14 1952\b/g, 'March fourteenth, nineteen fifty-two')
+      .replace(/\b03141952\b/g, 'zero three, one four, nineteen fifty-two');
+
+    // 2. Natural address and phone expansion
+    formatted = formatted
+      .replace(/\b1635 Divisadero St(reet)?\b/gi, 'sixteen thirty-five Divisadero Street')
+      .replace(/\bSuite 520\b/gi, 'Suite five twenty')
+      .replace(/\bCA 94115\b/g, 'California, nine four one one five')
+      .replace(/\b94115\b/g, 'nine four one one five')
+      .replace(/\b949-441-0137\b/g, 'nine four nine, four four one, zero one three seven');
+
+    // 3. Expand clinical and dosage abbreviations into natural spoken English
+    formatted = formatted
+      .replace(/\b2°C[–-]8°C\b/gi, 'two to eight degrees Celsius')
+      .replace(/\b2°C to 8°C\b/gi, 'two to eight degrees Celsius')
+      .replace(/\bNKDA\b/g, 'no known drug allergies')
       .replace(/\b24h\b/gi, 'twenty-four hour')
       .replace(/\b24hr\b/gi, 'twenty-four hour')
       .replace(/\b24-hr\b/gi, 'twenty-four hour')
-      .replace(/\bRx#/gi, 'prescription number ')
-      .replace(/\bRx\b/gi, 'prescription ')
+      .replace(/\bRx#\s*(\d+)/gi, 'prescription number $1')
+      .replace(/\bRx\b/gi, 'prescription')
       .replace(/\bmg\b/gi, ' milligrams')
       .replace(/\bml\b/gi, ' milliliters')
       .replace(/\bDOB\b/gi, 'Date of Birth')
       .replace(/\bER\b/g, 'extended release')
-      .replace(/\bIVR\b/g, 'I V R phone system')
+      .replace(/\bIVR\b/g, 'I V R automated line')
       .replace(/\bIV\b/g, 'I V')
       .replace(/\bhr\b/gi, 'hour')
       .replace(/\bmins\b/gi, 'minutes')
@@ -431,10 +444,10 @@ class AcousticVoiceEngine {
       .replace(/&/g, ' and ')
       .replace(/(\d+)-day/g, '$1 day');
 
-    // 2. Clean up unnatural stutters, multiple dots, and spacing
+    // 4. Clean up unnatural stutters, multiple dots, and spacing
     formatted = formatted
-      .replace(/\.{2,}/g, '.') // Convert ellipsis or repeated dots to a clean single period
-      .replace(/,{2,}/g, ',') // Convert repeated commas to a clean single comma
+      .replace(/\.{2,}/g, '.')
+      .replace(/,{2,}/g, ',')
       .replace(/!{2,}/g, '!')
       .replace(/\?{2,}/g, '?')
       .replace(/\s+/g, ' ')

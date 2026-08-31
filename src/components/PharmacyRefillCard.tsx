@@ -383,7 +383,7 @@ export function PharmacyRefillCard({
           </form>
 
           {testedQuestionResult && (
-            <div className="mt-3 p-3 bg-emerald-950/40 rounded-lg border border-emerald-500/30 text-xs space-y-1 animate-fadeIn">
+            <div className="mt-3 p-3 bg-emerald-950/40 rounded-lg border border-emerald-500/30 text-xs space-y-2 animate-fadeIn">
               <div className="flex items-center justify-between text-[11px] text-slate-400 font-mono">
                 <span>Q: "{testedQuestionResult.question}"</span>
                 <span className="text-emerald-400 font-bold uppercase">{testedQuestionResult.category}</span>
@@ -391,6 +391,26 @@ export function PharmacyRefillCard({
               <p className="text-emerald-200 font-medium leading-relaxed">
                 AI Agent Spoken Answer: "{testedQuestionResult.answer}"
               </p>
+              <div className="flex items-center gap-2 pt-1 border-t border-emerald-900/40">
+                <button
+                  type="button"
+                  onClick={() => {
+                    acousticVoice.speakRole(testedQuestionResult.answer, 'AGENT', selectedPersona);
+                  }}
+                  className="px-2.5 py-1 rounded bg-emerald-800 hover:bg-emerald-700 text-emerald-100 text-[11px] font-bold flex items-center gap-1.5 transition-colors"
+                >
+                  <Volume2 className="w-3.5 h-3.5" />
+                  <span>Replay Voice Answer</span>
+                </button>
+                <button
+                  type="button"
+                  onClick={() => acousticVoice.cancel()}
+                  className="px-2 py-1 rounded bg-slate-800 hover:bg-slate-700 text-slate-300 text-[11px] flex items-center gap-1 transition-colors"
+                >
+                  <VolumeX className="w-3 h-3" />
+                  <span>Stop</span>
+                </button>
+              </div>
             </div>
           )}
         </div>
