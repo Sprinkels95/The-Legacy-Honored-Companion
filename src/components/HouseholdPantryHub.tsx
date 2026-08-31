@@ -325,89 +325,78 @@ export const HouseholdPantryHub: React.FC<Props> = ({
       {activeTab === 'spreadsheet' && (
         <div className="bg-white rounded-3xl border border-slate-200 p-6 sm:p-8 shadow-sm space-y-6">
           {/* Top Folder Breadcrumb & Cloud Sync Bar */}
-          <div className="p-4 rounded-2xl bg-slate-900 text-slate-100 flex flex-col md:flex-row md:items-center justify-between gap-4 shadow-sm">
-            <div className="flex items-center gap-3">
+          <div className="p-4 sm:p-5 rounded-2xl bg-slate-900 text-slate-100 flex flex-col lg:flex-row lg:items-center justify-between gap-4 shadow-sm">
+            <div className="flex items-center gap-3.5 min-w-0">
               <div className="w-10 h-10 rounded-xl bg-emerald-600 flex items-center justify-center text-white shrink-0 shadow-xs">
                 <FileSpreadsheet className="w-5 h-5" />
               </div>
-              <div>
-                <div className="flex items-center gap-2 text-xs text-slate-400 font-mono">
-                  <Folder className="w-3.5 h-3.5 text-amber-400" />
-                  <span>{spreadsheetFolder}</span>
+              <div className="min-w-0">
+                <div className="flex items-center gap-1.5 text-[11px] text-slate-400 font-mono truncate">
+                  <Folder className="w-3.5 h-3.5 text-amber-400 shrink-0" />
+                  <span className="truncate">Google Drive &rsaquo; Wade Caregiver &rsaquo; Household Logistics</span>
                 </div>
-                <h3 className="text-sm md:text-base font-black text-white tracking-tight flex items-center gap-2 mt-0.5">
-                  <span>Wade_Household_Shopping_Master.xlsx</span>
-                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-bold border border-emerald-500/30">
-                    Live Shared Cloud File
+                <div className="flex items-center gap-2 mt-0.5 flex-wrap">
+                  <span className="text-sm sm:text-base font-bold text-white tracking-tight">
+                    Wade_Household_Shopping_Master.xlsx
                   </span>
-                </h3>
+                  <span className="px-2 py-0.5 rounded-full bg-emerald-500/20 text-emerald-300 text-[10px] font-semibold border border-emerald-500/30">
+                    Live Synced
+                  </span>
+                </div>
               </div>
             </div>
 
-            <div className="flex flex-wrap items-center gap-2">
-              {/* Store Accounts & Live Pricing Sync Button */}
+            <div className="flex flex-wrap items-center gap-2 shrink-0">
+              {/* Store Accounts Button */}
               <button
                 type="button"
                 onClick={() => setIsRetailerAccountsModalOpen(true)}
-                className="px-3.5 py-2 bg-gradient-to-r from-indigo-600 to-indigo-700 hover:from-indigo-500 hover:to-indigo-600 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
-                title="Manage Walmart+, Instacart+, Amazon Prime, Costco accounts and live API pricing"
+                className="px-3 py-1.5 bg-indigo-600 hover:bg-indigo-500 text-white rounded-lg text-xs font-semibold flex items-center gap-1.5 shadow-xs transition-colors"
+                title="Manage Walmart+, Instacart+, Amazon Prime, Costco accounts"
               >
                 <Store className="w-3.5 h-3.5 text-amber-300" />
-                <span>Store Accounts & Live Sync</span>
+                <span>Store Accounts</span>
               </button>
 
-              {/* Rerun & Refresh Numbers in Excel */}
+              {/* Rerun Numbers Button */}
               <button
                 type="button"
                 onClick={() => {
                   setIsRefreshingNumbers(true);
                   setTimeout(() => {
                     setIsRefreshingNumbers(false);
-                    setRestockedToast('Excel formulas recalculated! Re-queried live prices & stock across all store accounts.');
+                    setRestockedToast('Spreadsheet recalculation complete! Updated live prices & delivery estimates.');
                     setTimeout(() => setRestockedToast(null), 3500);
-                  }, 1000);
+                  }, 800);
                 }}
                 disabled={isRefreshingNumbers}
-                className="px-3.5 py-2 bg-amber-500 hover:bg-amber-400 text-slate-950 rounded-xl text-xs font-extrabold flex items-center gap-1.5 shadow-xs transition-colors disabled:opacity-50"
-                title="Recalculate formulas and refresh live pricing numbers across all items"
+                className="px-3 py-1.5 bg-amber-400 hover:bg-amber-300 text-slate-950 rounded-lg text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors disabled:opacity-50"
+                title="Recalculate formulas and refresh live pricing"
               >
                 <RefreshCw className={`w-3.5 h-3.5 ${isRefreshingNumbers ? 'animate-spin' : ''}`} />
-                <span>{isRefreshingNumbers ? 'Rerunning Numbers...' : 'Rerun Numbers in Excel'}</span>
+                <span>{isRefreshingNumbers ? 'Recalculating...' : 'Rerun Numbers'}</span>
               </button>
 
-              <button
-                type="button"
-                onClick={handleCopyCsvSpreadsheet}
-                className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-xl text-xs font-bold flex items-center gap-1.5 border border-slate-700 transition-colors"
-                title="Copy spreadsheet table as CSV"
-              >
-                <Copy className="w-3.5 h-3.5 text-emerald-400" />
-                <span>{copiedCsvSuccess ? 'Copied CSV!' : 'Copy Table'}</span>
-              </button>
-
+              {/* Download / Export */}
               <button
                 type="button"
                 onClick={handleDownloadCsv}
-                className="px-3.5 py-2 bg-emerald-600 hover:bg-emerald-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
-                title="Download as Excel-compatible .csv"
+                className="px-3 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 rounded-lg text-xs font-medium flex items-center gap-1.5 border border-slate-700 transition-colors"
+                title="Export as .csv"
               >
                 <Download className="w-3.5 h-3.5" />
-                <span>Download .xlsx / .csv</span>
+                <span>Export CSV</span>
               </button>
 
+              {/* Copy CSV */}
               <button
                 type="button"
-                onClick={() => {
-                  if (navigator.clipboard) {
-                    navigator.clipboard.writeText(window.location.href);
-                    setRestockedToast('Shareable link copied to clipboard!');
-                    setTimeout(() => setRestockedToast(null), 3000);
-                  }
-                }}
-                className="px-3.5 py-2 bg-indigo-600 hover:bg-indigo-500 text-white rounded-xl text-xs font-bold flex items-center gap-1.5 shadow-xs transition-colors"
+                onClick={handleCopyCsvSpreadsheet}
+                className="px-2.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-300 rounded-lg text-xs font-medium flex items-center gap-1 border border-slate-700 transition-colors"
+                title="Copy table to clipboard"
               >
-                <Share2 className="w-3.5 h-3.5" />
-                <span>Share Link</span>
+                <Copy className="w-3.5 h-3.5 text-emerald-400" />
+                <span>{copiedCsvSuccess ? 'Copied' : 'Copy'}</span>
               </button>
             </div>
           </div>
