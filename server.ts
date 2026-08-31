@@ -1,7 +1,6 @@
 import express from "express";
 import path from "path";
 import { GoogleGenAI, Type } from "@google/genai";
-import { createServer as createViteServer } from "vite";
 import dotenv from "dotenv";
 import twilio from "twilio";
 
@@ -2366,6 +2365,7 @@ app.get("/api/health", (req, res) => {
 async function startServer() {
   // Vite integration
   if (process.env.NODE_ENV !== "production") {
+    const { createServer: createViteServer } = await import("vite");
     const vite = await createViteServer({
       server: { middlewareMode: true },
       appType: "spa",
@@ -2380,7 +2380,7 @@ async function startServer() {
   }
 
   app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Care Navigator Agent running on http://0.0.0.0:${PORT}`);
+    console.log(`Care Navigator Agent running on http://0.0.0.0:${PORT} (NODE_ENV=${process.env.NODE_ENV || 'development'})`);
   });
 }
 
