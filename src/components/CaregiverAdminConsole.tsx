@@ -106,7 +106,7 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
   // Sub-tabs for each Hub
   const [clinicalSubTab, setClinicalSubTab] = useState<'infusion' | 'pharmacy' | 'acoustics' | 'dsp'>('infusion');
   const [householdSubTab, setHouseholdSubTab] = useState<'pantry' | 'favorites'>('pantry');
-  const [mobilitySubTab, setMobilitySubTab] = useState<'briefing' | 'transit'>('transit');
+  const [mobilitySubTab, setMobilitySubTab] = useState<'briefing' | 'transit'>('briefing');
   const [reportsSubTab, setReportsSubTab] = useState<'synthesis' | 'community' | 'alerts'>('synthesis');
 
   // Persona & Engine Settings Modal State
@@ -266,7 +266,10 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
           <button
             type="button"
             id="hub-tab-mobility"
-            onClick={() => setMainHub('mobility')}
+            onClick={() => {
+              setMainHub('mobility');
+              setMobilitySubTab('briefing');
+            }}
             className={`p-4 rounded-2xl text-left transition-all border relative flex flex-col justify-between cursor-pointer ${
               mainHub === 'mobility'
                 ? 'bg-indigo-950 text-white border-indigo-500 shadow-md ring-2 ring-indigo-400/40'
@@ -277,7 +280,7 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
               <div className={`p-2 rounded-xl flex items-center justify-center shrink-0 ${
                 mainHub === 'mobility' ? 'bg-indigo-500 text-white' : 'bg-indigo-50 text-indigo-600'
               }`}>
-                <Car className="w-5 h-5" />
+                <Calendar className="w-5 h-5" />
               </div>
               <span className={`px-2 py-0.5 rounded-md text-[9px] font-black uppercase tracking-wider ${
                 mainHub === 'mobility' ? 'bg-indigo-500/30 text-indigo-200' : 'bg-indigo-50 text-indigo-700'
@@ -287,9 +290,9 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
             </div>
 
             <div>
-              <span className="text-sm font-black tracking-tight block">Schedule & 2026 Transit</span>
+              <span className="text-sm font-black tracking-tight block">Calendar & 2026 Transit</span>
               <p className={`text-xs mt-1 leading-snug ${mainHub === 'mobility' ? 'text-indigo-200' : 'text-slate-500'}`}>
-                Daily Briefing, Uber Assist & $0 Copay Claims
+                7-Day Calendar Horizon, Daily Briefing & Uber Staging
               </p>
             </div>
           </button>
@@ -449,6 +452,7 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
                 currentEnergyState={energyState}
                 currentBrevityMode={brevityMode}
                 onSimulateEvent={onSimulateAcousticEvent}
+                onOpenDiscordModal={onOpenDiscordModal}
               />
             )}
 
@@ -550,30 +554,15 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
             <div className="bg-white p-2 rounded-2xl border border-slate-200 shadow-xs flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2 px-2">
                 <span className="p-1.5 bg-indigo-100 text-indigo-700 rounded-lg">
-                  <Car className="w-4 h-4" />
+                  <Calendar className="w-4 h-4" />
                 </span>
                 <div>
-                  <span className="text-xs font-black text-slate-900 block">Schedule, Transit & 2026 Insurance Benefit</span>
-                  <span className="text-[10px] text-slate-500">Autonomous Agents #5 and #8 (10 Free Round-Trips Quota)</span>
+                  <span className="text-xs font-black text-slate-900 block">Calendar Horizon, Briefings & Transit Logistics</span>
+                  <span className="text-[10px] text-slate-500">Autonomous Agents #5 (7-Day Schedule) and #8 (Uber Staging & Insurance)</span>
                 </div>
               </div>
 
               <div className="flex items-center gap-1 bg-slate-100 p-1 rounded-xl border border-slate-200">
-                <button
-                  type="button"
-                  id="subtab-mobility-transit"
-                  onClick={() => setMobilitySubTab('transit')}
-                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
-                    mobilitySubTab === 'transit'
-                      ? 'bg-teal-600 text-white shadow-xs'
-                      : 'text-slate-600 hover:text-slate-900'
-                  }`}
-                >
-                  <Car className="w-3 h-3" />
-                  <span>Uber Staging</span>
-                  <span className="text-[9px] px-1.5 py-0.2 bg-black/20 rounded-md">Agent 8</span>
-                </button>
-
                 <button
                   type="button"
                   id="subtab-briefing"
@@ -587,6 +576,21 @@ export const CaregiverAdminConsole: React.FC<CaregiverAdminConsoleProps> = ({
                   <Calendar className="w-3 h-3" />
                   <span>Calendar</span>
                   <span className="text-[9px] px-1.5 py-0.2 bg-black/20 rounded-md">Agent 5</span>
+                </button>
+
+                <button
+                  type="button"
+                  id="subtab-mobility-transit"
+                  onClick={() => setMobilitySubTab('transit')}
+                  className={`px-3 py-1.5 rounded-lg text-xs font-bold transition-all flex items-center gap-1.5 cursor-pointer ${
+                    mobilitySubTab === 'transit'
+                      ? 'bg-teal-600 text-white shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900'
+                  }`}
+                >
+                  <Car className="w-3 h-3" />
+                  <span>Uber Staging</span>
+                  <span className="text-[9px] px-1.5 py-0.2 bg-black/20 rounded-md">Agent 8</span>
                 </button>
               </div>
             </div>

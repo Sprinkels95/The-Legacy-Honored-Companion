@@ -66,6 +66,17 @@ export const CaregiverAlertsOpsSection: React.FC<Props> = ({ onOpenDiscordModal 
       pumpHours: 11,
       energyState: 'GOOD_ENERGY',
       deliveredToPhone: true
+    },
+    {
+      id: 'feed-3',
+      sender: 'Gemini Acoustic Biomarker Engine',
+      timestamp: 'Today, 3:15 PM',
+      urgency: 'normal',
+      title: '🎙️ Persistent Slurring / Low Vocal Cadence Detected',
+      description: 'Acoustic voice analysis detected persistent low-energy / slurred speech pattern (42 WPM). Switched agent to 1-word brevity and notified caregiver to suggest check-in (hydration, continuous pump check, quiet rest).',
+      pumpHours: 11,
+      energyState: 'LOW_ENERGY_OFF_STATE',
+      deliveredToPhone: true
     }
   ]);
 

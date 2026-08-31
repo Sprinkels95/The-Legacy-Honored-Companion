@@ -59,6 +59,25 @@ const INITIAL_DISCORD_MESSAGES: DiscordMessageItem[] = [
       ],
       footer: 'Legacy Honored • Grocery Agent'
     }
+  },
+  {
+    id: 'disc-msg-3',
+    sender: 'The Care Navigator Agent',
+    avatar: 'https://images.unsplash.com/photo-1576091160399-112ba8d25d1d?w=100',
+    isBot: true,
+    timestamp: 'Today at 3:15 PM',
+    content: '🎙️ **Acoustic Voice Engine: Persistent Slurring / Low Cadence Detected**',
+    embed: {
+      title: '⚠️ Acoustic Biomarker Alert: Low Energy Off-State Pattern (42 WPM)',
+      description: 'Acoustic cadence dropped below 95 WPM with slurred consonant profile. Switched agent to single-word brevity mode.',
+      color: '#F59E0B',
+      fields: [
+        { name: 'Detected Cadence', value: '42 WPM (Hypophonic)', inline: true },
+        { name: 'Continuous Pump Status', value: '11h reserve remaining', inline: true },
+        { name: 'Suggested Caregiver Action', value: 'Offer hydration/warm tea, verify infusion site comfort, and assist with restful posture.', inline: false }
+      ],
+      footer: 'Legacy Honored • Acoustic Voice Watchdog'
+    }
   }
 ];
 

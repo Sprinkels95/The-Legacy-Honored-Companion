@@ -136,6 +136,8 @@ class AcousticVoiceEngine {
 
     const agentSpokenResponse = this.adaptResponseForBrevity('', 'ward-cleaver', brevityModeApplied);
 
+    const isLowState = energyClassification === 'LOW_ENERGY_OFF_STATE';
+
     return {
       id: `speech-event-${Date.now()}`,
       timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
@@ -147,8 +149,12 @@ class AcousticVoiceEngine {
       energyClassification,
       brevityModeApplied,
       agentSpokenResponse,
-      notes: energyClassification === 'LOW_ENERGY_OFF_STATE'
-        ? 'Hypophonic slowed cadence detected. Switched agent to single-word ultra-short mode.'
+      discordNotificationSent: isLowState,
+      suggestedCheckIn: isLowState 
+        ? 'Persistent slurring / low cadence detected. Suggesting proactive in-person check-in (hydration, continuous pump site check, quiet resting posture).'
+        : undefined,
+      notes: isLowState
+        ? 'Hypophonic slowed cadence & slurring detected (<95 WPM). Switched agent to single-word ultra-short mode & prepared caregiver Discord check-in alert.'
         : energyClassification === 'MODERATE_FATIGUE'
         ? 'Mild vocal fatigue detected. Retaining 1-sentence brevity.'
         : 'Fluent vocal cadence. Standard 1-sentence mode.'

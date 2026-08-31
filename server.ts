@@ -1708,6 +1708,7 @@ Analyze:
       });
 
       const parsed = JSON.parse(response.text || "{}");
+      const isLow = (parsed.energyClassification === 'LOW_ENERGY_OFF_STATE') || (parsed.pitchProfile === 'Slurred / Hypophonic Pitch') || (wpm < 90);
       return res.json({
         acousticEvent: {
           id: `speech-event-${Date.now()}`,
@@ -1720,7 +1721,9 @@ Analyze:
           energyClassification: parsed.energyClassification || (wpm < 90 ? 'LOW_ENERGY_OFF_STATE' : 'GOOD_ENERGY'),
           brevityModeApplied: parsed.brevityModeApplied || (wpm < 90 ? 'ULTRA_CONCISE_SINGLE_WORD' : 'STANDARD_SENTENCE'),
           agentSpokenResponse: parsed.agentSpokenResponse || (wpm < 90 ? 'Handled.' : 'Thanks, Captain Wade, taken care of.'),
-          notes: parsed.clinicalNotes || 'Acoustic parameters recorded.'
+          discordNotificationSent: isLow,
+          suggestedCheckIn: isLow ? 'Persistent slurring / low vocal energy detected. Suggesting proactive in-person check-in with Captain Wade.' : undefined,
+          notes: parsed.clinicalNotes || (isLow ? 'Hypophonic slow cadence / slurring detected. Switched agent to single-word brevity & triggered caregiver Discord notification.' : 'Acoustic parameters recorded.')
         }
       });
     }
@@ -1738,7 +1741,9 @@ Analyze:
       energyClassification: isSlow ? 'LOW_ENERGY_OFF_STATE' : 'GOOD_ENERGY',
       brevityModeApplied: isSlow ? 'ULTRA_CONCISE_SINGLE_WORD' : 'STANDARD_SENTENCE',
       agentSpokenResponse: isSlow ? 'Done.' : 'Thanks, Captain Wade, I will take care of it right away.',
-      notes: isSlow ? 'Slow cadence / hypophonic speech detected. Switched agent to single-word brevity.' : 'Fluent cadence detected. 1-sentence mode applied.'
+      discordNotificationSent: isSlow,
+      suggestedCheckIn: isSlow ? 'Persistent slurring / low vocal energy detected. Suggesting proactive in-person check-in with Captain Wade.' : undefined,
+      notes: isSlow ? 'Slow cadence / hypophonic speech detected. Switched agent to single-word brevity & triggered caregiver Discord alert.' : 'Fluent cadence detected. 1-sentence mode applied.'
     };
 
     return res.json({ acousticEvent: event });

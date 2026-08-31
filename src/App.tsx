@@ -424,6 +424,22 @@ export default function App() {
     setEnergyState(evt.energyClassification);
     setBrevityMode(evt.brevityModeApplied);
     acousticVoice.setEnergyState(evt.energyClassification);
+
+    // If persistent low energy or slurring is detected, log audit trail
+    if (evt.energyClassification === 'LOW_ENERGY_OFF_STATE' || evt.pitchProfile === 'Slurred / Hypophonic Pitch') {
+      handleAddAuditLog({
+        id: `audit-acoustic-${Date.now()}`,
+        timestamp: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        rawInput: text,
+        personaUsed: selectedPersona,
+        extractedItemName: 'Acoustic Fatigue Biomarker Alert',
+        status: 'RESTOCK_TRIGGERED',
+        confidenceScore: 0.96,
+        reassuranceText: evt.agentSpokenResponse,
+        reasoning: `Speech cadence slowed to ${wpm} WPM (Hypophonic / slurring). Switched agent to single-word brevity mode and dispatched caregiver Discord check-in alert.`,
+        source: 'voice'
+      });
+    }
   };
 
   return (

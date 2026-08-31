@@ -15,6 +15,8 @@ export interface SpeechAcousticEvent {
   brevityModeApplied: BrevityMode;
   agentSpokenResponse: string;
   notes: string;
+  discordNotificationSent?: boolean;
+  suggestedCheckIn?: string;
 }
 
 export interface DailyGeminiBriefing {

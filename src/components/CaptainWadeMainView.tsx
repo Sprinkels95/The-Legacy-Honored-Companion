@@ -543,8 +543,12 @@ export const CaptainWadeMainView: React.FC<CaptainWadeMainViewProps> = ({
               <h2 className="text-4xl sm:text-5xl lg:text-6xl font-black text-slate-900 tracking-tight pt-1">
                 {currentTime || '12:30 PM'}
               </h2>
-              <p className="text-base sm:text-lg font-medium text-slate-600">
-                {currentDate || 'Saturday, August 29, 2026'}
+              <p className="text-base sm:text-lg font-medium text-slate-600 flex items-center justify-center md:justify-start gap-2">
+                <span>{currentDate || 'Saturday, August 29, 2026'}</span>
+                <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full text-xs font-bold bg-amber-50 text-amber-900 border border-amber-200">
+                  <span>☀️</span>
+                  <span>{calendarBriefing?.weather || dailyBriefing.weatherMood || 'Sunny & Gentle, 70°F'}</span>
+                </span>
               </p>
 
               {/* Station 32 & Tiller Truck Veteran Badge */}
@@ -644,6 +648,10 @@ export const CaptainWadeMainView: React.FC<CaptainWadeMainViewProps> = ({
                     )}
                     <span className="text-xs text-slate-400">
                       Voice: {selectedPersona === 'ward-cleaver' ? 'Ward Cleaver' : selectedPersona === 'first-mate' ? "First Mate" : selectedPersona === 'dr-evil' ? 'Dr. Evil' : 'Clinical Co-Pilot'}
+                    </span>
+                    <span className="px-2.5 py-0.5 rounded-full text-[11px] font-bold bg-amber-400/20 text-amber-200 border border-amber-400/30 flex items-center gap-1">
+                      <span>☀️</span>
+                      <span>{calendarBriefing?.weather || dailyBriefing.weatherMood || 'Sunny & Gentle, 70°F'}</span>
                     </span>
                   </div>
 
