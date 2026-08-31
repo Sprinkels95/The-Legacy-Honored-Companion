@@ -2363,24 +2363,38 @@ app.get("/api/health", (req, res) => {
 });
 
 async function startServer() {
-  // Vite integration
+  // Vite integration in development
   if (process.env.NODE_ENV !== "production") {
-    const { createServer: createViteServer } = await import("vite");
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa",
-    });
-    app.use(vite.middlewares);
+    try {
+      const { createServer: createViteServer } = await import("vite");
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa",
+      });
+      app.use(vite.middlewares);
+    } catch (e) {
+      console.warn("Vite middleware not loaded, serving static files:", e);
+      const distPath = path.resolve(process.cwd(), "dist");
+      app.use(express.static(distPath));
+      app.get("*", (req, res) => {
+        res.sendFile(path.resolve(distPath, "index.html"));
+      });
+    }
   } else {
-    const distPath = path.join(process.cwd(), "dist");
+    // Production static serving
+    const distPath = path.resolve(process.cwd(), "dist");
     app.use(express.static(distPath));
     app.get("*", (req, res) => {
-      res.sendFile(path.join(distPath, "index.html"));
+      res.sendFile(path.resolve(distPath, "index.html"));
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(`Care Navigator Agent running on http://0.0.0.0:${PORT} (NODE_ENV=${process.env.NODE_ENV || 'development'})`);
+  const server = app.listen(PORT, "0.0.0.0", () => {
+    console.log(`Care Navigator Agent listening on 0.0.0.0:${PORT} (NODE_ENV=${process.env.NODE_ENV || 'production'})`);
+  });
+
+  server.on("error", (err) => {
+    console.error("Server listen error:", err);
   });
 }
 
